@@ -407,8 +407,10 @@ void display() {
             map_collapsing_render();
             matrix_upload();
 
+#if !HACK_NOCLIP
             if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z))
                 glClear(GL_COLOR_BUFFER_BIT);
+#endif
 
             glx_disable_sphericalfog();
             if (settings.smooth_fog)
@@ -639,8 +641,12 @@ void keys(WindowInstance * window, int key, int action, int mods) {
         for (int y = 0; y < settings.window_height; y++) { // mirror image (top-bottom)
             for (int x = 0; x < settings.window_width; x++)
                 pic_data[(x + (settings.window_height - y - 1) * settings.window_width) * 4 + 3] = 255;
-            memcpy(pic_data + settings.window_width * 4 * (y + settings.window_height),
-                   pic_data + settings.window_width * 4 * (settings.window_height - y - 1), settings.window_width * 4);
+
+            memcpy(
+                pic_data + settings.window_width * 4 * (y + settings.window_height),
+                pic_data + settings.window_width * 4 * (settings.window_height - y - 1),
+                settings.window_width * 4
+            );
         }
 
         lodepng_encode32_file(pic_name, pic_data + settings.window_width * settings.window_height * 4,

@@ -20,26 +20,33 @@ CDEPS   := $(shell find $(DEPSDIR) -type f -name '*.c')
 ODEPS   := $(CDEPS:$(DEPSDIR)/%.c=$(BUILDDIR)/%.o)
 CFILES  := $(shell find $(SRCDIR) -type f -name '*.c')
 OFILES  := $(CFILES:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
+MFILES  :=
+OMFILES :=
+
+ALLFLAGS ?=
+ALLFLAGS += -std=gnu99
+ALLFLAGS += -DBETTERSPADES_MAJOR=$(MAJOR)
+ALLFLAGS += -DBETTERSPADES_MINOR=$(MINOR)
+ALLFLAGS += -DBETTERSPADES_PATCH=$(PATCH)
+ALLFLAGS += -DBETTERSPADES_VERSION=\"v$(MAJOR).$(MINOR).$(PATCH)\"
+ALLFLAGS += -DGIT_COMMIT_HASH=\"$(shell git describe --always --dirty)\"
+ALLFLAGS += -DUSE_SOUND
 
 CFLAGS ?=
-CFLAGS += -std=gnu99 -Wall -pedantic
-CFLAGS += -DBETTERSPADES_MAJOR=$(MAJOR)
-CFLAGS += -DBETTERSPADES_MINOR=$(MINOR)
-CFLAGS += -DBETTERSPADES_PATCH=$(PATCH)
-CFLAGS += -DBETTERSPADES_VERSION=\"v$(MAJOR).$(MINOR).$(PATCH)\"
-CFLAGS += -DGIT_COMMIT_HASH=\"$(shell git describe --always --dirty)\"
-CFLAGS += -DUSE_SOUND
+CFLAGS += -Wall -pedantic
 
-EXTFLAGS ?=
-EXTFLAGS += -std=gnu99
-EXTFLAGS += -DLOG_USE_COLOR
+MFLAGS ?=
+
+DEPSFLAGS ?=
+DEPSFLAGS += -std=gnu99
+DEPSFLAGS += -DLOG_USE_COLOR
 
 UNAME := $(shell uname -s)
 
 LDFLAGS =
 
 ifeq ($(TOOLKIT),SDL)
-	CFLAGS += -DUSE_SDL
+	ALLFLAGS += -DUSE_SDL
 
 	ifeq ($(OS),Windows_NT)
 		LDFLAGS += -lSDL2
@@ -55,7 +62,7 @@ ifeq ($(TOOLKIT),SDL)
 endif
 
 ifeq ($(TOOLKIT),GLFW)
-	CFLAGS += -DUSE_GLFW
+	ALLFLAGS += -DUSE_GLFW
 
 	ifeq ($(OS),Windows_NT)
 		LDFLAGS += -lglfw3
@@ -71,7 +78,7 @@ ifeq ($(TOOLKIT),GLFW)
 endif
 
 ifeq ($(TOOLKIT),GLUT)
-	CFLAGS += -DUSE_GLUT
+	ALLFLAGS += -DUSE_GLUT
 
 	ifeq ($(OS),Windows_NT)
 		LDFLAGS += -lfreeglut
@@ -84,6 +91,14 @@ ifeq ($(TOOLKIT),GLUT)
 	ifeq ($(UNAME),Darwin)
 		LDFLAGS += -framework GLUT
 	endif
+endif
+
+ifeq ($(TOOLKIT),Cocoa)
+	ALLFLAGS += -DUSE_COCOA
+	MFILES   += $(shell find $(SRCDIR) -type f -name '*.m')
+	OMFILES  += $(MFILES:$(SRCDIR)/%.m=$(BUILDDIR)/%.o)
+	MFLAGS   += $(shell gnustep-config --objc-flags)
+	LDFLAGS  += $(shell gnustep-config --gui-libs)
 endif
 
 ifeq ($(OS),Windows_NT)
@@ -100,16 +115,20 @@ endif
 
 all: $(BUILDDIR) $(BINARY)
 
-$(BINARY): $(OFILES) $(ODEPS)
-	$(CC) -o $(BINARY) $(OFILES) $(ODEPS) $(LDFLAGS)
+$(BINARY): $(OFILES) $(OMFILES) $(ODEPS)
+	$(CC) -o $(BINARY) $(OMFILES) $(OFILES) $(ODEPS) $(LDFLAGS)
 
 $(OFILES): $(BUILDDIR)/%.o: $(SRCDIR)/%.c
 	mkdir -p `dirname $@`
-	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCLUDEDIR)
+	$(CC) $(ALLFLAGS) $(CFLAGS) -c $< -o $@ -I$(INCLUDEDIR)
+
+$(OMFILES): $(BUILDDIR)/%.o: $(SRCDIR)/%.m
+	mkdir -p `dirname $@`
+	$(CC) -x objective-c $(ALLFLAGS) $(MFLAGS) -c $< -o $@ -I$(INCLUDEDIR)
 
 $(ODEPS): $(BUILDDIR)/%.o: $(DEPSDIR)/%.c
 	mkdir -p `dirname $@`
-	$(CC) $(EXTFLAGS) -c $< -o $@ -I$(INCLUDEDIR)
+	$(CC) $(DEPSFLAGS) -c $< -o $@ -I$(INCLUDEDIR)
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
@@ -126,7 +145,7 @@ $(RESPACK):
 	curl -o $(RESPACK) $(PACKURL)
 
 clean:
-	rm -rf $(OFILES) $(BINARY)
+	rm -rf $(OFILES) $(OMFILES) $(BINARY)
 
 nuke:
-	rm -rf $(OFILES) $(ODEPS) $(BINARY)
+	rm -rf $(OFILES) $(OMFILES) $(ODEPS) $(BINARY)

@@ -1,3 +1,5 @@
+#ifdef USE_GLFW
+
 #define _XOPEN_SOURCE 600
 
 #include <stdlib.h>
@@ -25,8 +27,6 @@
 #ifdef OS_HAIKU
     #include <kernel/OS.h>
 #endif
-
-#ifdef USE_GLFW
 
 static bool joystick_available = false;
 static int joystick_id;
@@ -61,9 +61,16 @@ static void window_impl_mouseclick(GLFWwindow * window, int button, int action, 
     if (a >= 0) mouse_click(hud_window, b, a, mods & GLFW_MOD_CONTROL);
 }
 
+static double mx, my;
+
 static void window_impl_mouse(GLFWwindow * window, double x, double y) {
-    if (!joystick_available)
-        mouse(hud_window, x, y);
+    if (!joystick_available) {
+        if (glfwGetInputMode(hud_window->impl, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
+            mouse(hud_window, x - mx, y - my);
+            mx = x;
+            my = y;
+        } else mouse(hud_window, x, y);
+    }
 }
 
 static void window_impl_mousescroll(GLFWwindow * window, double xoffset, double yoffset) {
@@ -103,9 +110,51 @@ static void window_focus_callback(GLFWwindow * window, int focused) {
     mouse_focus(hud_window, focused);
 }
 
+void window_mousemode(int mode) {
+    int s = glfwGetInputMode(hud_window->impl, GLFW_CURSOR);
+
+    if (s == GLFW_CURSOR_DISABLED && mode == WINDOW_CURSOR_ENABLED)
+        glfwSetInputMode(hud_window->impl, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+    if (s == GLFW_CURSOR_NORMAL && mode == WINDOW_CURSOR_DISABLED) {
+        glfwSetInputMode(hud_window->impl, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwGetCursorPos(hud_window->impl, &mx, &my);
+    }
+}
+
 int window_get_mousemode() {
     int s = glfwGetInputMode(hud_window->impl, GLFW_CURSOR);
     return s == GLFW_CURSOR_DISABLED ? WINDOW_CURSOR_DISABLED : WINDOW_CURSOR_ENABLED;
+}
+
+void window_settitle(char * title) {
+    glfwSetWindowTitle(hud_window->impl, title);
+}
+
+void window_mouseloc(double * x, double * y) {
+    glfwGetCursorPos(hud_window->impl, x, y);
+}
+
+void window_fromsettings() {
+    glfwWindowHint(GLFW_SAMPLES, settings.multisamples);
+    glfwSetWindowSize(hud_window->impl, settings.window_width, settings.window_height);
+
+    const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    if (settings.fullscreen)
+        glfwSetWindowMonitor(hud_window->impl, glfwGetPrimaryMonitor(), 0, 0, settings.window_width,
+                             settings.window_height, mode->refreshRate);
+    else
+        glfwSetWindowMonitor(hud_window->impl, NULL, (mode->width - settings.window_width) / 2,
+                             (mode->height - settings.window_height) / 2,
+                             settings.window_width, settings.window_height, 0);
+
+    int width, height; glfwGetWindowSize(hud_window->impl, &width, &height);
+
+    reshape(hud_window, width, height);
+}
+
+float window_time() {
+    return glfwGetTime();
 }
 
 void window_init(int * argc, char ** argv) {
@@ -216,9 +265,16 @@ void window_update() {
             window_pressed_keys[WINDOW_KEY_LEFT]  = state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] < -0.25F;
             window_pressed_keys[WINDOW_KEY_RIGHT] = state.axes[GLFW_GAMEPAD_AXIS_LEFT_X] > 0.25F;
 
-            joystick_mouse[0] += state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X] * 15.0F;
-            joystick_mouse[1] += state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] * 15.0F;
-            mouse(hud_window, joystick_mouse[0], joystick_mouse[1]);
+            double dx = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X] * 15.0F;
+            double dy = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] * 15.0F;
+
+            joystick_mouse[0] += dx;
+            joystick_mouse[1] += dy;
+
+            if (glfwGetInputMode(hud_window->impl, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+                mouse(hud_window, dx, dy);
+            else
+                mouse(hud_window, joystick_mouse[0], joystick_mouse[1]);
 
             gamepad_translate_button(&state, &joystick_state, GLFW_GAMEPAD_BUTTON_A, WINDOW_MOUSE_LMB);
             gamepad_translate_button(&state, &joystick_state, GLFW_GAMEPAD_BUTTON_B, WINDOW_MOUSE_RMB);
@@ -228,7 +284,7 @@ void window_update() {
     }
 }
 
-void window_eventloop(Idle idle, Display display) {
+void window_eventloop(Idle idle, Render render) {
     double last_frame_start = 0.0F;
 
     while (!glfwWindowShouldClose(hud_window->impl)) {
@@ -236,7 +292,7 @@ void window_eventloop(Idle idle, Display display) {
         last_frame_start = window_time();
 
         idle(dt);
-        display();
+        render();
         window_update();
 
         if (settings.vsync > 1 && (window_time() - last_frame_start) < (1.0 / settings.vsync)) {
@@ -250,5 +306,9 @@ void window_eventloop(Idle idle, Display display) {
         fps = 1.0F / dt;
     }
 }
+
+#else
+
+typedef void dummy;
 
 #endif

@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 
 #include <lodepng/lodepng.h>
 #include <log.h>
@@ -579,13 +580,34 @@ static int mu_key_translate(int key) {
     }
 }
 
-void text_input(WindowInstance * window, const uint8_t * buff) {
-    if (hud_active->ctx) mu_input_text(hud_active->ctx, (const char *) buff);
+void text_input(WindowInstance * window, const uint8_t * text) {
+    const uint8_t * end = text + strlen((const char *) text);
 
-    if (chat_input_mode == CHAT_NO_INPUT) return;
+    while (text != end) {
+        char buff[5] = {0};
 
-    size_t size = strlen((const char *) buff); int len = strlen(chat[0][0]);
-    if (len + size <= 128) strcpy(&chat[0][0][len], (const char *) buff);
+        size_t size = decodeSize(UTF8, text[0]);
+
+        if (text[0] <= 0x7F && !isprint(text[0])) goto skip; // non-printable ASCII
+        if (text[0] > 0xF7) goto skip; // invalid UTF-8
+
+        // everything else assumed to be printable
+        switch (size) {
+            case 4: buff[3] = text[3];
+            case 3: buff[2] = text[2];
+            case 2: buff[1] = text[1];
+            case 1: buff[0] = text[0];
+        }
+
+        if (hud_active->ctx) mu_input_text(hud_active->ctx, buff);
+
+        if (chat_input_mode != CHAT_NO_INPUT) {
+            size_t len = strlen(chat[0][0]);
+            if (len + size < 128) strcpy(&chat[0][0][len], buff);
+        }
+
+        skip: text += size;
+    }
 }
 
 void keys(WindowInstance * window, int key, int action, int mods) {
@@ -688,11 +710,11 @@ void mouse_click(WindowInstance * window, int button, int action, int mods) {
 }
 
 void mouse_focus(WindowInstance * window, bool focused) {
-    if (hud_active->focus) hud_active->focus(focused);
+    if (hud_active != NULL && hud_active->focus) hud_active->focus(focused);
 }
 
 void mouse_hover(WindowInstance * window, bool hovered) {
-    if (hud_active->hover) hud_active->hover(hovered);
+    if (hud_active != NULL && hud_active->hover) hud_active->hover(hovered);
 }
 
 void mouse(WindowInstance * window, double x, double y) {

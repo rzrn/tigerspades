@@ -1,0 +1,48 @@
+#define COCOA_SPECIAL_MASK       (1 << 30)
+#define COCOA_KEY_SHIFT          COCOA_SPECIAL_MASK | 1
+#define COCOA_KEY_CONTROL        COCOA_SPECIAL_MASK | 2
+#define COCOA_KEY_ALT            COCOA_SPECIAL_MASK | 3
+#define TOOLKIT_KEY_UP           25
+#define TOOLKIT_KEY_DOWN         39
+#define TOOLKIT_KEY_LEFT         38
+#define TOOLKIT_KEY_RIGHT        40
+#define TOOLKIT_KEY_JUMP         65
+#define TOOLKIT_KEY_SPRINT       COCOA_KEY_SHIFT
+#define TOOLKIT_KEY_CURSOR_UP    111
+#define TOOLKIT_KEY_CURSOR_DOWN  116
+#define TOOLKIT_KEY_CURSOR_LEFT  113
+#define TOOLKIT_KEY_CURSOR_RIGHT 114
+#define TOOLKIT_KEY_BACKSPACE    22
+#define TOOLKIT_KEY_TOOL1        10
+#define TOOLKIT_KEY_TOOL2        11
+#define TOOLKIT_KEY_TOOL3        12
+#define TOOLKIT_KEY_TOOL4        13
+#define TOOLKIT_KEY_TAB          23
+#define TOOLKIT_KEY_ESCAPE       9
+#define TOOLKIT_KEY_MAP          58
+#define TOOLKIT_KEY_CROUCH       COCOA_KEY_CONTROL
+#define TOOLKIT_KEY_SNEAK        55
+#define TOOLKIT_KEY_ENTER        36
+#define TOOLKIT_KEY_F1           67
+#define TOOLKIT_KEY_F2           68
+#define TOOLKIT_KEY_F3           69
+#define TOOLKIT_KEY_F4           70
+#define TOOLKIT_KEY_YES          29
+#define TOOLKIT_KEY_NO           57
+#define TOOLKIT_KEY_VOLUME_UP    86
+#define TOOLKIT_KEY_VOLUME_DOWN  82
+#define TOOLKIT_KEY_RELOAD       27
+#define TOOLKIT_KEY_CHAT         28
+#define TOOLKIT_KEY_FULLSCREEN   95
+#define TOOLKIT_KEY_SCREENSHOT   71
+#define TOOLKIT_KEY_CHANGETEAM   59
+#define TOOLKIT_KEY_CHANGEWEAPON 60
+#define TOOLKIT_KEY_PICKCOLOR    26
+#define TOOLKIT_KEY_COMMAND      61
+#define TOOLKIT_KEY_HIDEHUD      72
+#define TOOLKIT_KEY_LASTTOOL     24
+#define TOOLKIT_KEY_NETWORKSTATS 96
+#define TOOLKIT_KEY_SAVE_MAP     75
+#define TOOLKIT_KEY_SELECT1      10
+#define TOOLKIT_KEY_SELECT2      11
+#define TOOLKIT_KEY_SELECT3      12

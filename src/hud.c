@@ -1306,18 +1306,9 @@ void hud_ingame_hover(bool hovered) {
     if (!hovered) window_mousemode(WINDOW_CURSOR_ENABLED);
 }
 
-static double last_x, last_y;
-static void hud_ingame_mouselocation(double x, double y) {
-    if (window_get_mousemode() != WINDOW_CURSOR_DISABLED) {
-        last_x = x;
-        last_y = y;
+static void hud_ingame_mouselocation(double dx, double dy) {
+    if (window_get_mousemode() != WINDOW_CURSOR_DISABLED)
         return;
-    }
-
-    float dx = x - last_x;
-    float dy = y - last_y;
-    last_x = x;
-    last_y = y;
 
     float s = 1.0F;
     if (camera.mode == CAMERAMODE_FPS && players[local_player.id].held_item == TOOL_GUN &&
@@ -1872,7 +1863,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             if (key == WINDOW_KEY_ESCAPE || key == WINDOW_KEY_ENTER) {
                 size_t size = strsize(chat[0][0], sizeof(chat[0][0]));
 
-                if (key == WINDOW_KEY_ENTER && size > 0)
+                if (key == WINDOW_KEY_ENTER && size > 1)
                     broadcast_chat(chat_input_mode == CHAT_ALL_INPUT ? CHAT_ALL : CHAT_TEAM, chat[0][0], size);
 
                 window_textinput(0);

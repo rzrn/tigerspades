@@ -37,6 +37,10 @@
     #include <BetterSpades/GUI/glut.h>
 #endif
 
+#ifdef USE_COCOA
+    #include <BetterSpades/GUI/Cocoa.h>
+#endif
+
 typedef struct {
     char section[32];
     char name[32];

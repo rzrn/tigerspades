@@ -1,3 +1,5 @@
+#ifdef USE_SDL
+
 #define _XOPEN_SOURCE 600
 
 #include <stdlib.h>
@@ -23,8 +25,6 @@
 #ifdef OS_HAIKU
     #include <kernel/OS.h>
 #endif
-
-#ifdef USE_SDL
 
 static int quit = 0;
 
@@ -69,9 +69,48 @@ int get_sdl_button(int button) {
     }
 }
 
+void window_mousemode(int mode) {
+    int s = SDL_GetRelativeMouseMode();
+    if ((s && mode == WINDOW_CURSOR_ENABLED) || (!s && mode == WINDOW_CURSOR_DISABLED))
+        SDL_SetRelativeMouseMode(mode == WINDOW_CURSOR_ENABLED ? 0 : 1);
+}
+
 int window_get_mousemode() {
     int s = SDL_GetRelativeMouseMode();
     return s ? WINDOW_CURSOR_DISABLED : WINDOW_CURSOR_ENABLED;
+}
+
+void window_settitle(char * title) {
+    SDL_SetWindowTitle(hud_window->impl, title);
+}
+
+void window_mouseloc(double * x, double * y) {
+    int mx, my;
+
+    SDL_GetMouseState(&mx, &my);
+    *x = mx; *y = my;
+}
+
+void window_fromsettings() {
+    SDL_SetWindowSize(hud_window->impl, settings.window_width, settings.window_height);
+
+    if (settings.vsync < 2)
+        window_swapping(settings.vsync);
+    if (settings.vsync > 1)
+        window_swapping(0);
+
+    if (settings.fullscreen)
+        SDL_SetWindowFullscreen(hud_window->impl, SDL_WINDOW_FULLSCREEN);
+    else
+        SDL_SetWindowFullscreen(hud_window->impl, 0);
+
+    int width, height; SDL_GetWindowSize(hud_window->impl, &width, &height);
+
+    reshape(hud_window, width, height);
+}
+
+float window_time() {
+    return SDL_GetTicks() / 1000.0F;
 }
 
 void window_update() {
@@ -111,18 +150,15 @@ void window_update() {
             case SDL_MOUSEWHEEL: mouse_scroll(hud_window, event.wheel.x, event.wheel.y); break;
 
             case SDL_MOUSEMOTION: {
-                if (SDL_GetRelativeMouseMode()) {
-                    static int x, y;
-                    x += event.motion.xrel;
-                    y += event.motion.yrel;
-                    mouse(hud_window, x, y);
-                } else {
+                if (SDL_GetRelativeMouseMode())
+                    mouse(hud_window, event.motion.xrel, event.motion.yrel);
+                else
                     mouse(hud_window, event.motion.x, event.motion.y);
-                }
+
                 break;
             }
 
-            case SDL_TEXTINPUT: text_input(hud_window, event.text.text); break;
+            case SDL_TEXTINPUT: text_input(hud_window, (uint8_t *) event.text.text); break;
 
             case SDL_FINGERDOWN:
                 if (hud_active->input_touch) {
@@ -181,7 +217,7 @@ void window_update() {
     }
 }
 
-void window_eventloop(Idle idle, Display display) {
+void window_eventloop(Idle idle, Render render) {
     double last_frame_start = 0.0F;
 
     while (!quit) {
@@ -189,7 +225,7 @@ void window_eventloop(Idle idle, Display display) {
         last_frame_start = window_time();
 
         idle(dt);
-        display();
+        render();
         window_update();
 
         if (settings.vsync > 1 && (window_time() - last_frame_start) < (1.0 / settings.vsync)) {
@@ -203,5 +239,9 @@ void window_eventloop(Idle idle, Display display) {
         fps = 1.0F / dt;
     }
 }
+
+#else
+
+typedef void dummy;
 
 #endif

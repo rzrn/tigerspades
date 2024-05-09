@@ -1,3 +1,5 @@
+#ifdef USE_GLUT
+
 #define _XOPEN_SOURCE 600
 
 #include <stdlib.h>
@@ -24,8 +26,6 @@
 #ifdef OS_HAIKU
     #include <kernel/OS.h>
 #endif
-
-#ifdef USE_GLUT
 
 void window_keyboard(unsigned char key, int x, int y) {
     if (isprint(key)) text_input(hud_window, (uint8_t[]) {key, 0});
@@ -81,16 +81,35 @@ void window_mouse_button(int button, int state, int x, int y) {
         mouse_click(hud_window, but, action, mod);
 }
 
+int captured = 0;
+
+void window_mousemode(int mode) {
+    if ((captured && mode == WINDOW_CURSOR_ENABLED) || (!captured && mode == WINDOW_CURSOR_DISABLED)) {
+        captured = ~captured; glutSetCursor(captured ? GLUT_CURSOR_NONE : GLUT_CURSOR_INHERIT);
+    }
+}
+
 int window_get_mousemode() {
     return captured ? WINDOW_CURSOR_DISABLED : WINDOW_CURSOR_ENABLED;
 }
 
+void window_settitle(char * title) {
+    glutSetWindowTitle(title);
+}
+
+static double mx, my;
+
+void window_mouseloc(double * x, double * y) {
+    *x = mx;
+    *y = my;
+}
+
 void window_mouse_motion(int x, int y) {
-    static int warped = 0;
+    static bool warped = false;
     mx = x; my = y;
 
     if (warped) {
-        warped = 0;
+        warped = false;
         return;
     }
 
@@ -98,12 +117,23 @@ void window_mouse_motion(int x, int y) {
         int w = glutGet(GLUT_WINDOW_WIDTH);
         int h = glutGet(GLUT_WINDOW_HEIGHT);
         glutWarpPointer(w / 2, h / 2);
-        warped = 1;
+        warped = true;
 
-        static int mx = 0, my = 0;
-        mx += x - w / 2; my += y - h / 2;
-        mouse(hud_window, mx, my);
+        mouse(hud_window, x - w / 2, y - h / 2);
     } else mouse(hud_window, x, y);
+}
+
+void window_fromsettings() {
+    if (settings.fullscreen)
+        glutFullScreen();
+    else
+        glutReshapeWindow(settings.window_width, settings.window_height);
+
+    reshape(hud_window, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+}
+
+float window_time() {
+    return glutGet(GLUT_ELAPSED_TIME) / 1000.0F;
 }
 
 void window_entry(int state) {
@@ -132,11 +162,11 @@ void window_init(int * argc, char ** argv) {
     glutEntryFunc(window_entry);
 }
 
-static Idle idle       = NULL;
-static Display display = NULL;
+static Idle idle     = NULL;
+static Render render = NULL;
 
 void window_display() {
-    display();
+    render();
     glutSwapBuffers();
 }
 
@@ -160,12 +190,16 @@ void window_idle() {
     glutPostRedisplay();
 }
 
-void window_eventloop(Idle func1, Display func2) {
-    idle = func1; display = func2;
+void window_eventloop(Idle func1, Render func2) {
+    idle = func1; render = func2;
 
     glutIdleFunc(window_idle);
     glutDisplayFunc(window_display);
     glutMainLoop();
 }
+
+#else
+
+typedef void dummy;
 
 #endif

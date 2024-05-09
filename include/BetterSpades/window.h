@@ -135,20 +135,17 @@ void window_swapping(int value);
 void window_fromsettings(void);
 void window_deinit(void);
 int window_cpucores();
+
+void window_settitle(char *);
 void window_title(char * suffix);
 void window_sendkey(int action, int keycode, int mod);
 
 int window_get_mousemode();
 
 typedef void (*Idle)(double);
-typedef void (*Display)(void);
+typedef void (*Render)(void);
 
 void window_init(int *, char **);
-void window_eventloop(Idle, Display);
-
-#ifdef USE_GLUT
-    extern int captured;
-    extern double mx, my;
-#endif
+void window_eventloop(Idle, Render);
 
 #endif

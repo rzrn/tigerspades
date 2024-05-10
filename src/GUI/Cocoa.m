@@ -14,7 +14,9 @@
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
 
-#import <GNUstepGUI/GSDisplayServer.h>
+#ifdef USE_GNUSTEP
+    #import <GNUstepGUI/GSDisplayServer.h>
+#endif
 
 @interface GameView : NSOpenGLView
 {
@@ -55,8 +57,13 @@
     NSRect rect = [self frame];
 
     // https://trac.macports.org/ticket/52210?cversion=1&cnum_hist=57
-    if (_isNewerThanLion) rect = [[self window] convertRectToScreen:rect];
-    else rect.origin = [[self window] convertBaseToScreen:rect.origin];
+
+    #if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
+        rect.origin = [[self window] convertBaseToScreen:rect.origin];
+    #else
+        if (_isNewerThanLion) rect = [[self window] convertRectToScreen:rect];
+        else rect.origin = [[self window] convertBaseToScreen:rect.origin];
+    #endif
 
     return rect;
 }
@@ -72,10 +79,11 @@
 
 - (void) updateMouse {
     if (_isMouseCaptured) {
-        // GNUstep
-        int screen = [[NSScreen mainScreen] screenNumber];
-        [GSCurrentServer() setMouseLocation:[self centerOnScreen]
-                                   onScreen:screen];
+        #ifdef USE_GNUSTEP
+            int screen = [[NSScreen mainScreen] screenNumber];
+            [GSCurrentServer() setMouseLocation:[self centerOnScreen]
+                                       onScreen:screen];
+        #endif
     } else {
         NSPoint mouseLocation = [NSEvent mouseLocation];
 
@@ -92,11 +100,12 @@
 
 - (void) captureMouse {
     if (!_isMouseCaptured) {
-        int win = [[self window] windowNumber];
+        #ifdef USE_GNUSTEP
+            int win = [[self window] windowNumber];
 
-        // GNUstep
-        [GSCurrentServer() hidecursor];
-        [GSCurrentServer() capturemouse:win];
+            [GSCurrentServer() hidecursor];
+            [GSCurrentServer() capturemouse:win];
+        #endif
 
         _isMouseCaptured = true;
     }
@@ -104,9 +113,10 @@
 
 - (void) releaseMouse {
     if (_isMouseCaptured) {
-        // GNUstep
-        [GSCurrentServer() showcursor];
-        [GSCurrentServer() releasemouse];
+        #ifdef USE_GNUSTEP
+            [GSCurrentServer() showcursor];
+            [GSCurrentServer() releasemouse];
+        #endif
 
         _isMouseCaptured = false;
     }

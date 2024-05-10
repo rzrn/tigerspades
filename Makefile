@@ -97,8 +97,14 @@ ifeq ($(TOOLKIT),Cocoa)
 	ALLFLAGS += -DUSE_COCOA
 	MFILES   += $(shell find $(SRCDIR) -type f -name '*.m')
 	OMFILES  += $(MFILES:$(SRCDIR)/%.m=$(BUILDDIR)/%.o)
-	MFLAGS   += $(shell gnustep-config --objc-flags)
-	LDFLAGS  += $(shell gnustep-config --gui-libs)
+
+	ifeq ($(UNAME),Darwin)
+		ALLFLAGS += -DUSE_QUARTZ
+	else
+		ALLFLAGS += -DUSE_GNUSTEP
+		MFLAGS   += $(shell gnustep-config --objc-flags)
+		LDFLAGS  += $(shell gnustep-config --gui-libs)
+	endif
 endif
 
 ifeq ($(OS),Windows_NT)

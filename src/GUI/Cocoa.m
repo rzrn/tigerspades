@@ -193,9 +193,9 @@
 
 - (void) flagsChanged:(NSEvent *) ev
 {
-    static NSEventModifierFlags previousFlags = 0;
+    static unsigned int previousFlags = 0;
 
-    NSEventModifierFlags flags = [ev modifierFlags];
+    unsigned int flags = [ev modifierFlags];
 
     int mods = flags & NSControlKeyMask;
 
@@ -343,7 +343,7 @@ void window_keyname(int keycode, char * output, size_t length) {
 void window_init(int * argc, char ** argv) {
     app = [NSApplication sharedApplication];
 
-    NSUInteger windowStyle = NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask;
+    unsigned int windowStyle = NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask;
     NSRect windowRect = NSMakeRect(0, 0, settings.window_width, settings.window_height);
 
     [NSAutoreleasePool new];

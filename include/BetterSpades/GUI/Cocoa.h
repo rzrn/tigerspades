@@ -1,3 +1,5 @@
+#define TOOLKIT "Cocoa"
+
 #define COCOA_SPECIAL_MASK       (1 << 30)
 #define COCOA_KEY_SHIFT          COCOA_SPECIAL_MASK | 1
 #define COCOA_KEY_CONTROL        COCOA_SPECIAL_MASK | 2

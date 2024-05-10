@@ -113,6 +113,37 @@ float window_time() {
     return SDL_GetTicks() / 1000.0F;
 }
 
+const char * window_clipboard() {
+    return SDL_HasClipboardText() ? SDL_GetClipboardText() : NULL;
+}
+
+void window_textinput(int allow) {
+    if (allow && !SDL_IsTextInputActive())
+        SDL_StartTextInput();
+    if (!allow && SDL_IsTextInputActive())
+        SDL_StopTextInput();
+}
+
+void window_swapping(int value) {
+    SDL_GL_SetSwapInterval(value);
+}
+
+void window_deinit() {
+    SDL_DestroyWindow(hud_window->impl);
+    SDL_Quit();
+}
+
+void window_keyname(int keycode, char * output, size_t length) {
+    if (keycode == 0) { output[0] = '?'; output[1] = 0; return; }
+
+    const char * keyname = SDL_GetKeyName(keycode);
+
+    if (keyname != NULL && *keyname != 0)
+        strnzcpy(output, keyname, length);
+    else
+        snprintf(output, length, "#%x", keycode);
+}
+
 void window_update() {
     SDL_GL_SwapWindow(hud_window->impl);
     SDL_Event event;

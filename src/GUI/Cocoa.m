@@ -241,8 +241,7 @@ static BOOL isRunning = YES;
     [menubar setTitle:@"BetterSpades"];
     [NSApp setMainMenu:menubar];
 
-    NSString * quitTitle = @"Quit";
-    NSMenuItem * quitMenuItem = [[NSMenuItem alloc] initWithTitle:quitTitle
+    NSMenuItem * quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
                                                            action:@selector(terminate:)
                                                     keyEquivalent:@"q"];
     [menubar addItem:quitMenuItem];
@@ -322,6 +321,23 @@ float window_time() {
     if (offset < 0) offset = [NSDate timeIntervalSinceReferenceDate];
 
     return (float) ([NSDate timeIntervalSinceReferenceDate] - offset);
+}
+
+const char * window_clipboard() {
+    return NULL; // TODO
+}
+
+void window_textinput(int allow) {
+}
+
+void window_swapping(int value) {
+}
+
+void window_deinit() {
+}
+
+void window_keyname(int keycode, char * output, size_t length) {
+    snprintf(output, length, "#%x", keycode); // TODO
 }
 
 void window_init(int * argc, char ** argv) {

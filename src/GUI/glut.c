@@ -27,6 +27,53 @@
     #include <kernel/OS.h>
 #endif
 
+// FreeGLUT extension
+#define GLUT_KEY_NUM_LOCK  0x006D
+#define GLUT_KEY_BEGIN     0x006E
+#define GLUT_KEY_DELETE    0x006F
+#define GLUT_KEY_SHIFT_L   0x0070
+#define GLUT_KEY_SHIFT_R   0x0071
+#define GLUT_KEY_CTRL_L    0x0072
+#define GLUT_KEY_CTRL_R    0x0073
+#define GLUT_KEY_ALT_L     0x0074
+#define GLUT_KEY_ALT_R     0x0075
+
+char * glut_special_key_name(int keycode) {
+    switch (keycode) {
+        case GLUT_KEY_F1:        return "F1";
+        case GLUT_KEY_F2:        return "F2";
+        case GLUT_KEY_F3:        return "F3";
+        case GLUT_KEY_F4:        return "F4";
+        case GLUT_KEY_F5:        return "F5";
+        case GLUT_KEY_F6:        return "F6";
+        case GLUT_KEY_F7:        return "F7";
+        case GLUT_KEY_F8:        return "F8";
+        case GLUT_KEY_F9:        return "F9";
+        case GLUT_KEY_F10:       return "F10";
+        case GLUT_KEY_F11:       return "F11";
+        case GLUT_KEY_F12:       return "F12";
+        case GLUT_KEY_LEFT:      return "Left";
+        case GLUT_KEY_UP:        return "Up";
+        case GLUT_KEY_RIGHT:     return "Right";
+        case GLUT_KEY_DOWN:      return "Down";
+        case GLUT_KEY_PAGE_UP:   return "Page Up";
+        case GLUT_KEY_PAGE_DOWN: return "Page Down";
+        case GLUT_KEY_HOME:      return "Home";
+        case GLUT_KEY_END:       return "End";
+        case GLUT_KEY_INSERT:    return "Insert";
+        case GLUT_KEY_NUM_LOCK:  return "Num Lock";
+        case GLUT_KEY_BEGIN:     return "Home";
+        case GLUT_KEY_DELETE:    return "Delete";
+        case GLUT_KEY_SHIFT_L:   return "Left Shift";
+        case GLUT_KEY_SHIFT_R:   return "Right Shift";
+        case GLUT_KEY_CTRL_L:    return "Left Ctrl";
+        case GLUT_KEY_CTRL_R:    return "Right Ctrl";
+        case GLUT_KEY_ALT_L:     return "Left Alt";
+        case GLUT_KEY_ALT_R:     return "Right Alt";
+        default:                 return NULL;
+    }
+}
+
 void window_keyboard(unsigned char key, int x, int y) {
     if (isprint(key)) text_input(hud_window, (uint8_t[]) {key, 0});
 
@@ -134,6 +181,53 @@ void window_fromsettings() {
 
 float window_time() {
     return glutGet(GLUT_ELAPSED_TIME) / 1000.0F;
+}
+
+const char * window_clipboard() {
+    return NULL;
+}
+
+void window_textinput(int allow) {
+}
+
+void window_swapping(int value) {
+}
+
+void window_deinit() {
+}
+
+void window_keyname(int keycode, char * output, size_t length) {
+    if (keycode == 0) { output[0] = '?'; output[1] = 0; return; }
+
+    #if defined(OS_WINDOWS)
+        GetKeyNameTextA(glfwGetKeyScancode(keycode) << 16, output, length);
+    #else
+        char * keyname = NULL;
+
+        if (keycode & GLUT_SPECIAL_MASK)
+            keyname = glut_special_key_name(keycode & ~GLUT_SPECIAL_MASK);
+        else switch (keycode) {
+            case 0:  keyname = "Null";      break;
+            case 7:  keyname = "Beep";      break;
+            case 8:  keyname = "Backspace"; break;
+            case 9:  keyname = "Tab";       break;
+            case 10: keyname = "Enter";     break;
+            case 13: keyname = "Enter";     break;
+            case 27: keyname = "Escape";    break;
+            case 32: keyname = "Space";     break;
+            default: {
+                static char buf[2];
+                buf[0] = keycode;
+                buf[1] = 0;
+                keyname = buf;
+            }
+        }
+
+        if (keyname != NULL && *keyname != 0)
+            strnzcpy(output, keyname, length);
+        else
+            snprintf(output, length, "#%x", keycode);
+    #endif
 }
 
 void window_entry(int state) {

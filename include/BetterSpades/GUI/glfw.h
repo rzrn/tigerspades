@@ -1,3 +1,5 @@
+#define TOOLKIT "GLFW"
+
 #define TOOLKIT_KEY_UP           GLFW_KEY_W
 #define TOOLKIT_KEY_DOWN         GLFW_KEY_S
 #define TOOLKIT_KEY_LEFT         GLFW_KEY_A

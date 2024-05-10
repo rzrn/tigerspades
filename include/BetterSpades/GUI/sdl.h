@@ -1,3 +1,5 @@
+#define TOOLKIT "SDL"
+
 #define TOOLKIT_KEY_UP           SDLK_w
 #define TOOLKIT_KEY_DOWN         SDLK_s
 #define TOOLKIT_KEY_LEFT         SDLK_a

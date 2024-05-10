@@ -1,3 +1,5 @@
+#define TOOLKIT "GLUT"
+
 #define GLUT_SPECIAL_MASK        (1 << 30)
 #define TOOLKIT_KEY_UP           ((int) 'W')
 #define TOOLKIT_KEY_DOWN         ((int) 'S')
@@ -15,7 +17,7 @@
 #define TOOLKIT_KEY_TOOL3        ((int) '3')
 #define TOOLKIT_KEY_TOOL4        ((int) '4')
 #define TOOLKIT_KEY_TAB          ((int) '\t')
-#define TOOLKIT_KEY_ESCAPE       ((int) '\e')
+#define TOOLKIT_KEY_ESCAPE       0x1B
 #define TOOLKIT_KEY_MAP          ((int) 'M')
 #define TOOLKIT_KEY_CROUCH       ((int) 'C')
 #define TOOLKIT_KEY_SNEAK        ((int) 'V')

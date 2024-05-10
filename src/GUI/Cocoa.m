@@ -370,7 +370,11 @@ void window_init(int * argc, char ** argv) {
 
     [window setDelegate:[GameWindowDelegate alloc]];
 
-    NSOpenGLPixelFormatAttribute viewAttrs[] = {NSOpenGLPFADoubleBuffer, 0};
+    NSOpenGLPixelFormatAttribute viewAttrs[] = {
+        NSOpenGLPFAColorSize,    32,
+        NSOpenGLPFADepthSize,    24,
+        NSOpenGLPFADoubleBuffer, 0
+    };
     NSOpenGLPixelFormat * format = [[NSOpenGLPixelFormat alloc] initWithAttributes:viewAttrs];
 
     view = [[GameView alloc] initWithFrame:windowRect pixelFormat:format];

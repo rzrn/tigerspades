@@ -130,7 +130,7 @@
 
         mouse(hud_window, dx, -dy);
     } else {
-        NSPoint point = [self convertPoint:ev.locationInWindow fromView:nil];
+        NSPoint point = [self convertPoint:[ev locationInWindow] fromView:nil];
         NSRect rect = [self frame];
 
         mouse(hud_window, point.x, rect.size.height - point.y);

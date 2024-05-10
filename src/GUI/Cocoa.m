@@ -370,8 +370,13 @@ void window_init(int * argc, char ** argv) {
 
     [window setDelegate:[GameWindowDelegate alloc]];
 
-    view = [[GameView alloc] initWithFrame:windowRect];
+    NSOpenGLPixelFormatAttribute viewAttrs[] = {NSOpenGLPFADoubleBuffer, 0};
+    NSOpenGLPixelFormat * format = [[NSOpenGLPixelFormat alloc] initWithAttributes:viewAttrs];
+
+    view = [[GameView alloc] initWithFrame:windowRect pixelFormat:format];
     [view autorelease];
+
+    [format release];
 
     [window setContentView:view];
 

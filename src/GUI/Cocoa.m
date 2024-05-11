@@ -353,7 +353,10 @@ void window_keyname(int keycode, char * output, size_t length) {
 void window_init(int * argc, char ** argv) {
     app = [NSApplication sharedApplication];
 
-    unsigned int windowStyle = NSTitledWindowMask | NSClosableWindowMask | NSResizableWindowMask;
+    unsigned int windowStyle = NSTitledWindowMask
+                             | NSClosableWindowMask
+                             | NSMiniaturizableWindowMask
+                             | NSResizableWindowMask;
     NSRect windowRect = NSMakeRect(0, 0, settings.window_width, settings.window_height);
 
     [NSAutoreleasePool new];
@@ -381,6 +384,17 @@ void window_init(int * argc, char ** argv) {
     [view autorelease];
 
     [format release];
+
+    #ifdef USE_QUARTZ
+        #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
+            [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+            [NSApp activateIgnoringOtherApps:YES];
+        #else
+            ProcessSerialNumber serial = {0, kCurrentProcess};
+            TransformProcessType(&serial, kProcessTransformToForegroundApplication);
+            SetFrontProcess(&serial);
+        #endif
+    #endif
 
     [window makeKeyAndOrderFront:nil];
     [window center];

@@ -382,9 +382,10 @@ void window_init(int * argc, char ** argv) {
 
     [format release];
 
-    [window setContentView:view];
+    [window makeKeyAndOrderFront:nil];
+    [window center];
 
-    [window orderFrontRegardless];
+    [window setContentView:view];
 
     [window setAcceptsMouseMovedEvents:YES];
 

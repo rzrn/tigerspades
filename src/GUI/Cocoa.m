@@ -243,21 +243,6 @@ static BOOL isRunning = YES;
 
     return NSTerminateNow;
 }
-
-- (void) applicationWillFinishLaunching:(NSNotification *) notification
-{
-    NSMenu * menubar = [[NSMenu alloc] init];
-
-    [menubar setTitle:@"BetterSpades"];
-    [NSApp setMainMenu:menubar];
-
-    NSMenuItem * quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
-                                                           action:@selector(terminate:)
-                                                    keyEquivalent:@"q"];
-    [menubar addItem:quitMenuItem];
-
-    [NSApp setApplicationIconImage:[[NSImage alloc] initWithContentsOfFile:@"icon.tiff"]];
-}
 @end
 
 @interface GameWindowDelegate : NSObject
@@ -360,6 +345,18 @@ void window_init(int * argc, char ** argv) {
     NSRect windowRect = NSMakeRect(0, 0, settings.window_width, settings.window_height);
 
     [NSAutoreleasePool new];
+
+    NSMenu * menubar = [[NSMenu alloc] init];
+
+    [menubar setTitle:@"BetterSpades"];
+    [NSApp setMainMenu:menubar];
+
+    NSMenuItem * quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
+                                                           action:@selector(terminate:)
+                                                    keyEquivalent:@"q"];
+    [menubar addItem:quitMenuItem];
+
+    [NSApp setApplicationIconImage:[[NSImage alloc] initWithContentsOfFile:@"icon.tiff"]];
 
     window = [[NSWindow alloc] initWithContentRect:windowRect
                                          styleMask:windowStyle

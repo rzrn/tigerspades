@@ -73,4 +73,6 @@ void hud_change(HUD *);
 void hud_init();
 void hud_mousemode(int mode);
 
+void load_map(const char *);
+
 #endif

@@ -40,7 +40,7 @@
 #include <kernel/OS.h>
 #endif
 
-void window_title(char * suffix) {
+void window_title(const char * suffix) {
     char title[128];
 
     if (suffix)

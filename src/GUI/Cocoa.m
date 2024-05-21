@@ -6,9 +6,9 @@
 #include <time.h>
 
 #include <BetterSpades/common.h>
-#include <BetterSpades/main.h>
 #include <BetterSpades/window.h>
 #include <BetterSpades/config.h>
+#include <BetterSpades/main.h>
 #include <BetterSpades/hud.h>
 
 #import <Foundation/Foundation.h>
@@ -102,6 +102,8 @@
     if (!_isMouseCaptured) {
         #ifdef USE_GNUSTEP
             int win = [[self window] windowNumber];
+
+            [[self window] makeKeyWindow];
 
             [GSCurrentServer() hidecursor];
             [GSCurrentServer() capturemouse:win];
@@ -243,6 +245,17 @@ static BOOL isRunning = YES;
 
     return NSTerminateNow;
 }
+
+- (void) openMenu:(id) sender
+{
+    NSOpenPanel * panel = [NSOpenPanel openPanel];
+    [panel setAllowsMultipleSelection:NO];
+    [panel setCanChooseFiles:YES];
+    [panel runModal];
+
+    NSString * filepath = [[[panel URLs] firstObject] path];
+    load_map([filepath UTF8String]);
+}
 @end
 
 @interface GameWindowDelegate : NSObject
@@ -346,10 +359,19 @@ void window_init(int * argc, char ** argv) {
 
     [NSAutoreleasePool new];
 
+    [app setDelegate:[GameAppDelegate alloc]];
+
     NSMenu * menubar = [[NSMenu alloc] init];
 
     [menubar setTitle:@"BetterSpades"];
     [NSApp setMainMenu:menubar];
+
+    NSMenuItem * openMenuItem = [NSMenuItem new];
+    [openMenuItem setTitle:@"Open..."];
+    [openMenuItem setTarget:[app delegate]];
+    [openMenuItem setAction:@selector(openMenu:)];
+
+    [menubar addItem:openMenuItem];
 
     NSMenuItem * quitMenuItem = [[NSMenuItem alloc] initWithTitle:@"Quit"
                                                            action:@selector(terminate:)
@@ -365,8 +387,6 @@ void window_init(int * argc, char ** argv) {
     [window autorelease];
 
     [window setTitle:@"TigerSpades"];
-
-    [app setDelegate:[GameAppDelegate alloc]];
 
     [window setDelegate:[GameWindowDelegate alloc]];
 

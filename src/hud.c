@@ -2153,19 +2153,25 @@ static void hud_serverlist_init() {
     ping_start(hud_serverlist_pingupdate);
 }
 
+void load_map(const char * filepath) {
+    void * data = file_load(filepath);
+    map_vxl_load(data, file_size(filepath));
+    free(data);
+
+    chunk_rebuild_all();
+    camera.mode = CAMERAMODE_FPS;
+
+    players[local_player.id].pos.x = map_size_x / 2.0F;
+    players[local_player.id].pos.y = map_size_y - 1.0F;
+    players[local_player.id].pos.z = map_size_z / 2.0F;
+
+    window_title(filepath);
+    hud_change(&hud_ingame);
+}
+
 static void server_c(char * address, char * name, Version version) {
-    if (file_exists(address)) {
-        void * data = file_load(address);
-        map_vxl_load(data, file_size(address));
-        free(data);
-        chunk_rebuild_all();
-        camera.mode = CAMERAMODE_FPS;
-        players[local_player.id].pos.x = map_size_x / 2.0F;
-        players[local_player.id].pos.y = map_size_y - 1.0F;
-        players[local_player.id].pos.z = map_size_z / 2.0F;
-        window_title(address);
-        hud_change(&hud_ingame);
-    } else {
+    if (file_exists(address)) load_map(address);
+    else {
         window_title(name);
         if (name && address) {
             rpc_setv(RPC_VALUE_SERVERNAME, name);

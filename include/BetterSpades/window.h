@@ -137,7 +137,7 @@ void window_deinit(void);
 int window_cpucores();
 
 void window_settitle(char *);
-void window_title(char * suffix);
+void window_title(const char * suffix);
 void window_sendkey(int action, int keycode, int mod);
 
 int window_get_mousemode();

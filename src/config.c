@@ -38,40 +38,41 @@
 char * config_filepath = "config.ini";
 
 Options settings = {
-    .opengl14          = 1,
-    .color_correction  = 0,
-    .shadow_entities   = 0,
-    .render_distance   = RENDER_DISTANCE,
-    .name              = "Deuce",
-    .window_width      = 800,
-    .window_height     = 600,
-    .min_lan_port      = 32882,
-    .max_lan_port      = 32892,
-    .volume            = 10,
-    .invert_y          = 0,
-    .fullscreen        = 0,
-    .mouse_sensitivity = 5.0F,
-    .show_news         = 1,
-    .multisamples      = 0,
-    .greedy_meshing    = 0,
-    .vsync             = 1,
-    .voxlap_models     = 0,
-    .force_displaylist = 0,
-    .smooth_fog        = 0,
-    .ambient_occlusion = 0,
-    .camera_fov        = CAMERA_DEFAULT_FOV,
-    .hold_down_sights  = 0,
-    .chat_shadow       = 1,
-    .player_arms       = 0,
-    .scale             = 0,
-    .tracing_enabled   = 0,
-    .trajectory_length = 16,
-    .projectile_count  = 8,
-    .show_minimap      = 1,
-    .toggle_crouch     = 0,
-    .toggle_sprint     = 0,
-    .enable_shadows    = 1,
-    .enable_particles  = 1,
+    .opengl14           = 1,
+    .color_correction   = 0,
+    .shadow_entities    = 0,
+    .render_distance    = RENDER_DISTANCE,
+    .name               = "Deuce",
+    .window_width       = 800,
+    .window_height      = 600,
+    .min_lan_port       = 32882,
+    .max_lan_port       = 32892,
+    .volume             = 10,
+    .invert_y           = 0,
+    .fullscreen         = 0,
+    .mouse_sensitivity  = 5.0F,
+    .show_news          = 1,
+    .multisamples       = 0,
+    .greedy_meshing     = 0,
+    .vsync              = 1,
+    .voxlap_models      = 0,
+    .force_displaylist  = 0,
+    .smooth_fog         = 0,
+    .ambient_occlusion  = 0,
+    .camera_fov         = CAMERA_DEFAULT_FOV,
+    .hold_down_sights   = 0,
+    .chat_shadow        = 1,
+    .player_arms        = 0,
+    .scale              = 0,
+    .tracing_enabled    = 0,
+    .trajectory_length  = 16,
+    .projectile_count   = 8,
+    .show_minimap       = 1,
+    .toggle_crouch      = 0,
+    .toggle_sprint      = 0,
+    .enable_shadows     = 1,
+    .enable_particles   = 1,
+    .smooth_orientation = 1,
 };
 
 Options settings_tmp = {0};
@@ -115,36 +116,37 @@ void config_save() {
     config_keys_update();
     kv6_rebuild_complete();
 
-    config_sets("client", "name",              settings.name);
-    config_seti("client", "min_lan_port",      settings.min_lan_port);
-    config_seti("client", "max_lan_port",      settings.max_lan_port);
-    config_seti("client", "xres",              settings.window_width);
-    config_seti("client", "yres",              settings.window_height);
-    config_seti("client", "windowed",          !settings.fullscreen);
-    config_seti("client", "multisamples",      settings.multisamples);
-    config_seti("client", "greedy_meshing",    settings.greedy_meshing);
-    config_seti("client", "vsync",             settings.vsync);
-    config_setf("client", "mouse_sensitivity", settings.mouse_sensitivity);
-    config_seti("client", "show_news",         settings.show_news);
-    config_seti("client", "vol",               settings.volume);
-    config_seti("client", "voxlap_models",     settings.voxlap_models);
-    config_seti("client", "force_displaylist", settings.force_displaylist);
-    config_seti("client", "inverty",           settings.invert_y);
-    config_seti("client", "smooth_fog",        settings.smooth_fog);
-    config_seti("client", "ambient_occlusion", settings.ambient_occlusion);
-    config_setf("client", "camera_fov",        settings.camera_fov);
-    config_seti("client", "hold_down_sights",  settings.hold_down_sights);
-    config_seti("client", "chat_shadow",       settings.chat_shadow);
-    config_seti("client", "show_player_arms",  settings.player_arms);
-    config_seti("client", "scale",             settings.scale);
-    config_seti("client", "tracing_enabled",   settings.tracing_enabled);
-    config_seti("client", "trajectory_length", settings.trajectory_length);
-    config_seti("client", "projectile_count",  settings.projectile_count);
-    config_seti("client", "show_minimap",      settings.show_minimap);
-    config_seti("client", "toggle_crouch",     settings.toggle_crouch);
-    config_seti("client", "toggle_sprint",     settings.toggle_sprint);
-    config_seti("client", "enable_shadows",    settings.enable_shadows);
-    config_seti("client", "enable_particles",  settings.enable_particles);
+    config_sets("client", "name",               settings.name);
+    config_seti("client", "min_lan_port",       settings.min_lan_port);
+    config_seti("client", "max_lan_port",       settings.max_lan_port);
+    config_seti("client", "xres",               settings.window_width);
+    config_seti("client", "yres",               settings.window_height);
+    config_seti("client", "windowed",           !settings.fullscreen);
+    config_seti("client", "multisamples",       settings.multisamples);
+    config_seti("client", "greedy_meshing",     settings.greedy_meshing);
+    config_seti("client", "vsync",              settings.vsync);
+    config_setf("client", "mouse_sensitivity",  settings.mouse_sensitivity);
+    config_seti("client", "show_news",          settings.show_news);
+    config_seti("client", "vol",                settings.volume);
+    config_seti("client", "voxlap_models",      settings.voxlap_models);
+    config_seti("client", "force_displaylist",  settings.force_displaylist);
+    config_seti("client", "inverty",            settings.invert_y);
+    config_seti("client", "smooth_fog",         settings.smooth_fog);
+    config_seti("client", "ambient_occlusion",  settings.ambient_occlusion);
+    config_setf("client", "camera_fov",         settings.camera_fov);
+    config_seti("client", "hold_down_sights",   settings.hold_down_sights);
+    config_seti("client", "chat_shadow",        settings.chat_shadow);
+    config_seti("client", "show_player_arms",   settings.player_arms);
+    config_seti("client", "scale",              settings.scale);
+    config_seti("client", "tracing_enabled",    settings.tracing_enabled);
+    config_seti("client", "trajectory_length",  settings.trajectory_length);
+    config_seti("client", "projectile_count",   settings.projectile_count);
+    config_seti("client", "show_minimap",       settings.show_minimap);
+    config_seti("client", "toggle_crouch",      settings.toggle_crouch);
+    config_seti("client", "toggle_sprint",      settings.toggle_sprint);
+    config_seti("client", "enable_shadows",     settings.enable_shadows);
+    config_seti("client", "enable_particles",   settings.enable_particles);
+    config_seti("client", "smooth_orientation", settings.smooth_orientation);
 
     for (int k = 0; k < list_size(&config_keys); k++) {
         ConfigKeyPair * e = list_get(&config_keys, k);
@@ -257,6 +259,8 @@ static int config_read_key(void * user, const char * section, const char * name,
             settings.enable_shadows = atoi(value);
         } else if (!strcmp(name, "enable_particles")) {
             settings.enable_particles = atoi(value);
+        } else if (!strcmp(name, "smooth_orientation")) {
+            settings.smooth_orientation = atoi(value);
         }
     }
 
@@ -761,6 +765,16 @@ void config_reload() {
                  .max      = 1,
                  .help     = "Useful for map development",
                  .name     = "Map shadows",
+                 .category = "Debug"
+             });
+    list_add(&config_settings,
+             &(Setting) {
+                 .value    = &settings_tmp.smooth_orientation,
+                 .type     = CONFIG_TYPE_INT,
+                 .min      = 0,
+                 .max      = 1,
+                 .help     = "Disable to spectate cheaters",
+                 .name     = "Smooth orientation",
                  .category = "Debug"
              });
 }

@@ -309,7 +309,7 @@ void weapon_shoot() {
 
                 PacketHit contained;
                 contained.player_id = hit.player_id;
-                #if HACK_HEADSHOT
+                #if HACKS_ENABLED && HACK_HEADSHOT
                 contained.hit_type = HITTYPE_HEAD;
                 #else
                 contained.hit_type = hit.player_section;

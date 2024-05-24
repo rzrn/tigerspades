@@ -281,11 +281,11 @@ void cameracontroller_spectator(float dt) {
 void cameracontroller_spectator_render() {
     if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
         Player * p = &players[cameracontroller_bodyview_player];
-        float l  = hypot3f(p->orientation_smooth.x, p->orientation_smooth.y, p->orientation_smooth.z);
-        float ox = p->orientation_smooth.x / l;
-        float oy = p->orientation_smooth.y / l;
-        float oz = p->orientation_smooth.z / l;
 
+        Vector3f * o = settings.smooth_orientation ? &p->orientation_smooth : &p->orientation;
+
+        float n = hypot3f(o->x, o->y, o->z);
+        float ox = o->x / n, oy = o->y / n, oz = o->z / n;
         matrix_lookAt(matrix_view, camera.pos.x, camera.pos.y, camera.pos.z, camera.pos.x + ox, camera.pos.y + oy, camera.pos.z + oz, 0.0F,
                       1.0F, 0.0F);
     } else {

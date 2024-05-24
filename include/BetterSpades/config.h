@@ -82,6 +82,7 @@ typedef struct {
     int   toggle_sprint;
     int   enable_shadows;
     int   enable_particles;
+    int   smooth_orientation;
 } Options;
 
 extern Options settings, settings_tmp;

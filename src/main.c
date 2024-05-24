@@ -408,7 +408,7 @@ void display() {
             map_collapsing_render();
             matrix_upload();
 
-#if !HACK_NOCLIP
+#if !(HACKS_ENABLED && HACK_NOCLIP)
             if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z))
                 glClear(GL_COLOR_BUFFER_BIT);
 #endif

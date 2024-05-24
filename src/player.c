@@ -1009,7 +1009,7 @@ void player_boxclipmove(Player * p, float fsynctics) {
     while (z >= -1.36f && !player_clipbox(nx + f, p->pos.y - 0.45f, nz + z)
           && !player_clipbox(nx + f, p->pos.y + 0.45f, nz + z))
         z -= 0.9f;
-#if !HACK_NOCLIP
+#if !(HACKS_ENABLED && HACK_NOCLIP)
     if (z < -1.36f)
 #else
     if (true)
@@ -1038,7 +1038,7 @@ void player_boxclipmove(Player * p, float fsynctics) {
     while (z >= -1.36f && !player_clipbox(p->pos.x - 0.45f, ny + f, nz + z)
           && !player_clipbox(p->pos.x + 0.45f, ny + f, nz + z))
         z -= 0.9f;
-#if !HACK_NOCLIP
+#if !(HACKS_ENABLED && HACK_NOCLIP)
     if (z < -1.36f)
 #else
     if (true)

@@ -50,16 +50,24 @@
 #endif
 
 typedef struct {
+#ifdef USE_SOUND
     ALuint openal_handle;
     char local;
     int stick_to_player;
+#else
+    void * dummy;
+#endif
 } SoundSource;
 
 EntitySystem sound_sources;
 
 struct _WAV {
+#ifdef USE_SOUND
     ALuint openal_buffer;
     float min, max;
+#else
+    void * dummy;
+#endif
 };
 
 #define SOUND_TOTAL (SOUND_LAST + 1)
@@ -72,6 +80,7 @@ typedef struct {
     float min, max;
 } Resource;
 
+#ifdef USE_SOUND
 static Resource wav_sound(enum WAV index) {
     switch (index) {
         case SOUND_FOOTSTEP1:      return (Resource) {"wav/footstep1.wav", 0.1F, 32.0F};
@@ -118,6 +127,7 @@ static Resource wav_sound(enum WAV index) {
 
     return (Resource) {NULL, 0.0F, 0.0F};
 }
+#endif
 
 void sound_volume(float vol) {
 #ifdef USE_SOUND

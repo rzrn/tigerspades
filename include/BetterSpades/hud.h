@@ -64,6 +64,8 @@ extern HUD hud_controls;
 extern HUD * hud_active;
 extern WindowInstance * hud_window;
 
+extern const char * hud_serverlist_popup;
+
 extern bool offline;
 extern char serverlist_url[2048], newslist_url[2048];
 

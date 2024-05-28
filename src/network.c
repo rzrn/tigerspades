@@ -69,7 +69,7 @@ float network_stats_last = 0.0F;
 ENetHost * client;
 ENetPeer * peer;
 
-char network_custom_reason[17];
+char network_custom_reason[128];
 
 const char * network_reason_disconnect(int code) {
     if (*network_custom_reason)
@@ -1268,7 +1268,7 @@ int network_update() {
 
                 case ENET_EVENT_TYPE_DISCONNECT: {
                     hud_change(&hud_serverlist);
-                    chat_showpopup(network_reason_disconnect(event.data), sizeof(network_custom_reason), UTF8, 10.0F, Red);
+                    hud_serverlist_popup = network_reason_disconnect(event.data);
                     log_error("server disconnected! reason: %s", network_reason_disconnect(event.data));
                     event.peer->data = NULL;
                     network_connected = 0;

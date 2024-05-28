@@ -105,6 +105,8 @@ static void mu_text_color_default(mu_Context * ctx) {
 }
 
 void hud_change(HUD * new) {
+    button_map.lmb = button_map.rmb = button_map.mmb = false;
+
     config_key_reset_togglestates();
     hud_active = new;
 
@@ -127,11 +129,10 @@ static float hud_ingame_touch_x = 0.0F;
 static float hud_ingame_touch_y = 0.0F;
 
 int screen_current = SCREEN_NONE;
-int show_exit = 0;
+
 static void hud_ingame_init() {
     window_textinput(0);
     chat_input_mode = CHAT_NO_INPUT;
-    show_exit = 0;
     window_mousemode(WINDOW_CURSOR_DISABLED);
 }
 
@@ -361,99 +362,78 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal);
 
 static int hud_ingame_onscreencontrol(int index, char * str, int activate) {
     if (chat_input_mode == CHAT_NO_INPUT) {
-        if (show_exit) {
+        if (!network_connected || (network_connected && network_logged_in)) {
             switch (index) {
                 case 0:
                     if (str)
-                        strcpy(str, "Yes");
+                        strcpy(str, "G-Chat");
+                    if (activate == 0)
+                        hud_ingame_keyboard(WINDOW_KEY_CHAT, WINDOW_RELEASE, 0, 0);
+                    if (activate == 1)
+                        hud_ingame_keyboard(WINDOW_KEY_CHAT, WINDOW_PRESS, 0, 0);
+                    return 1;
+                case 1:
+                    if (str)
+                        strcpy(str, "T-Chat");
                     if (activate == 0)
                         hud_ingame_keyboard(WINDOW_KEY_YES, WINDOW_RELEASE, 0, 0);
                     if (activate == 1)
                         hud_ingame_keyboard(WINDOW_KEY_YES, WINDOW_PRESS, 0, 0);
                     return 1;
-                case 1:
+                case 2:
                     if (str)
-                        strcpy(str, "No");
+                        strcpy(str, "Score");
                     if (activate == 0)
-                        hud_ingame_keyboard(WINDOW_KEY_NO, WINDOW_RELEASE, 0, 0);
+                        keys(hud_window, WINDOW_KEY_TAB, WINDOW_RELEASE, 0);
                     if (activate == 1)
-                        hud_ingame_keyboard(WINDOW_KEY_NO, WINDOW_PRESS, 0, 0);
+                        keys(hud_window, WINDOW_KEY_TAB, WINDOW_PRESS, 0);
                     return 1;
-            }
-        } else {
-            if (!network_connected || (network_connected && network_logged_in)) {
-                switch (index) {
-                    case 0:
-                        if (str)
-                            strcpy(str, "G-Chat");
-                        if (activate == 0)
-                            hud_ingame_keyboard(WINDOW_KEY_CHAT, WINDOW_RELEASE, 0, 0);
-                        if (activate == 1)
-                            hud_ingame_keyboard(WINDOW_KEY_CHAT, WINDOW_PRESS, 0, 0);
-                        return 1;
-                    case 1:
-                        if (str)
-                            strcpy(str, "T-Chat");
-                        if (activate == 0)
-                            hud_ingame_keyboard(WINDOW_KEY_YES, WINDOW_RELEASE, 0, 0);
-                        if (activate == 1)
-                            hud_ingame_keyboard(WINDOW_KEY_YES, WINDOW_PRESS, 0, 0);
-                        return 1;
-                    case 2:
-                        if (str)
-                            strcpy(str, "Score");
-                        if (activate == 0)
-                            keys(hud_window, WINDOW_KEY_TAB, WINDOW_RELEASE, 0);
-                        if (activate == 1)
-                            keys(hud_window, WINDOW_KEY_TAB, WINDOW_PRESS, 0);
-                        return 1;
-                    case 3:
-                        if (str)
-                            strcpy(str, "Team");
-                        if (activate == 0)
-                            hud_ingame_keyboard(WINDOW_KEY_CHANGETEAM, WINDOW_RELEASE, 0, 0);
-                        if (activate == 1)
-                            hud_ingame_keyboard(WINDOW_KEY_CHANGETEAM, WINDOW_PRESS, 0, 0);
-                        return 1;
-                    case 4:
-                        if (str)
-                            strcpy(str, "Weapon");
-                        if (activate == 0)
-                            hud_ingame_keyboard(WINDOW_KEY_CHANGEWEAPON, WINDOW_RELEASE, 0, 0);
-                        if (activate == 1)
-                            hud_ingame_keyboard(WINDOW_KEY_CHANGEWEAPON, WINDOW_PRESS, 0, 0);
-                        return 1;
-                    case 5:
-                        if (str)
-                            strcpy(str, "Network");
-                        if (activate == 0)
-                            keys(hud_window, WINDOW_KEY_NETWORKSTATS, WINDOW_RELEASE, 0);
-                        if (activate == 1)
-                            keys(hud_window, WINDOW_KEY_NETWORKSTATS, WINDOW_PRESS, 0);
-                        return 1;
-                    case 6:
-                        if (str)
-                            strcpy(str, "Tool");
-                        if (activate == 1)
-                            mouse_scroll(hud_window, 0, -1);
-                        return 1;
-                    case 64:
-                        if (str)
-                            strcpy(str, "LMB");
-                        if (activate == 0)
-                            mouse_click(hud_window, WINDOW_MOUSE_LMB, WINDOW_RELEASE, 0);
-                        if (activate == 1)
-                            mouse_click(hud_window, WINDOW_MOUSE_LMB, WINDOW_PRESS, 0);
-                        return 1;
-                    case 65:
-                        if (str)
-                            strcpy(str, "RMB");
-                        if (activate == 0)
-                            mouse_click(hud_window, WINDOW_MOUSE_RMB, WINDOW_RELEASE, 0);
-                        if (activate == 1)
-                            mouse_click(hud_window, WINDOW_MOUSE_RMB, WINDOW_PRESS, 0);
-                        return 1;
-                }
+                case 3:
+                    if (str)
+                        strcpy(str, "Team");
+                    if (activate == 0)
+                        hud_ingame_keyboard(WINDOW_KEY_CHANGETEAM, WINDOW_RELEASE, 0, 0);
+                    if (activate == 1)
+                        hud_ingame_keyboard(WINDOW_KEY_CHANGETEAM, WINDOW_PRESS, 0, 0);
+                    return 1;
+                case 4:
+                    if (str)
+                        strcpy(str, "Weapon");
+                    if (activate == 0)
+                        hud_ingame_keyboard(WINDOW_KEY_CHANGEWEAPON, WINDOW_RELEASE, 0, 0);
+                    if (activate == 1)
+                        hud_ingame_keyboard(WINDOW_KEY_CHANGEWEAPON, WINDOW_PRESS, 0, 0);
+                    return 1;
+                case 5:
+                    if (str)
+                        strcpy(str, "Network");
+                    if (activate == 0)
+                        keys(hud_window, WINDOW_KEY_NETWORKSTATS, WINDOW_RELEASE, 0);
+                    if (activate == 1)
+                        keys(hud_window, WINDOW_KEY_NETWORKSTATS, WINDOW_PRESS, 0);
+                    return 1;
+                case 6:
+                    if (str)
+                        strcpy(str, "Tool");
+                    if (activate == 1)
+                        mouse_scroll(hud_window, 0, -1);
+                    return 1;
+                case 64:
+                    if (str)
+                        strcpy(str, "LMB");
+                    if (activate == 0)
+                        mouse_click(hud_window, WINDOW_MOUSE_LMB, WINDOW_RELEASE, 0);
+                    if (activate == 1)
+                        mouse_click(hud_window, WINDOW_MOUSE_LMB, WINDOW_PRESS, 0);
+                    return 1;
+                case 65:
+                    if (str)
+                        strcpy(str, "RMB");
+                    if (activate == 0)
+                        mouse_click(hud_window, WINDOW_MOUSE_RMB, WINDOW_RELEASE, 0);
+                    if (activate == 1)
+                        mouse_click(hud_window, WINDOW_MOUSE_RMB, WINDOW_PRESS, 0);
+                    return 1;
             }
         }
     } else {
@@ -1213,17 +1193,6 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             font_select(FONT_FIXEDSYS);
         }
 
-        if (show_exit) {
-            glColor3f(1.0F, 0.0F, 0.0F);
-            font_render(settings.window_width / 2.0F - font_length(3.0F * scale, "EXIT GAME? Y/N", ASCII) / 2.0F,
-                        settings.window_height / 2.0F + 48.0F * scale, 3.0F * scale, "EXIT GAME? Y/N", ASCII);
-
-            char play_time[128];
-            sprintf(play_time, "Playing for %i min. %02i sec.", (int) window_time() / 60, (int) window_time() % 60);
-            font_render(settings.window_width / 2.0F - font_length(2.0F * scale, play_time, ASCII) / 2.0F,
-                        settings.window_height, 2.0F * scale, play_time, ASCII);
-        }
-
         if (window_time() - chat_popup_timer < chat_popup_duration) {
             glColor3ub(chat_popup_color.r, chat_popup_color.g, chat_popup_color.b);
             font_render((settings.window_width - font_length(3.0F * scale, chat_popup, UTF8)) / 2.0F,
@@ -1327,7 +1296,7 @@ static void hud_ingame_mouselocation(double dx, double dy) {
 
 static void hud_ingame_mouseclick(double x, double y, int button, int action, int mods) {
     if (window_get_mousemode() == WINDOW_CURSOR_ENABLED) {
-        if (window_focused && window_hovered && action == WINDOW_RELEASE && !show_exit)
+        if (window_focused && window_hovered && action == WINDOW_RELEASE)
             window_mousemode(WINDOW_CURSOR_DISABLED);
 
         return;
@@ -1546,19 +1515,6 @@ static const char * hud_ingame_completeword(const char * s) {
 }
 
 static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
-    if (show_exit) {
-        if (action == WINDOW_PRESS) {
-            if (key == WINDOW_KEY_NO) {
-                show_exit = 0;
-                window_mousemode(WINDOW_CURSOR_DISABLED);
-            }
-
-            if (key == WINDOW_KEY_YES) hud_change(&hud_serverlist);
-        }
-
-        return;
-    }
-
     if (chat_input_mode != CHAT_NO_INPUT && action == WINDOW_PRESS && key == WINDOW_KEY_TAB && strlen(chat[0][0]) > 0) {
         // autocomplete word
         char * incomplete = strrchr(chat[0][0], ' ') + 1;
@@ -1815,8 +1771,8 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if (key == WINDOW_KEY_ESCAPE) {
-                show_exit ^= 1;
-                window_mousemode(show_exit ? WINDOW_CURSOR_ENABLED : WINDOW_CURSOR_DISABLED);
+                window_mousemode(WINDOW_CURSOR_ENABLED);
+                hud_change(&hud_settings);
                 return;
             }
 
@@ -2230,13 +2186,21 @@ static int hud_header_render(mu_Context * ctx, float scale, const char * text) {
         mu_Container * cnt = mu_get_current_container(ctx); cnt->rect = frame;
 
         int width = cnt->body.w;
+
         mu_layout_row(ctx, 4, (int[]) {0.166F * width, 0.166F * width, 0.166F * width, -1}, 0);
 
-        hud_render_tab_button(ctx, scale, "Servers",  &hud_serverlist);
+        // `hud_ingame_init` will disconnect.
+        hud_render_tab_button(ctx, scale, network_connected ? "Disconnect" : "Servers", &hud_serverlist);
+
         hud_render_tab_button(ctx, scale, "Settings", &hud_settings);
         hud_render_tab_button(ctx, scale, "Controls", &hud_controls);
 
-        mu_text_color_default(ctx); mu_button_ex(ctx, text, 0, MU_OPT_ALIGNRIGHT | MU_OPT_NOINTERACT);
+        mu_text_color_default(ctx);
+
+        if (network_connected) {
+            char play_time[128]; sprintf(play_time, "Playing for %i min. %02i sec.", (int) window_time() / 60, (int) window_time() % 60);
+            mu_button_ex(ctx, play_time, 0, MU_OPT_ALIGNRIGHT | MU_OPT_NOINTERACT);
+        } else mu_button_ex(ctx, text, 0, MU_OPT_ALIGNRIGHT | MU_OPT_NOINTERACT);
     }
 
     return retval;
@@ -2254,6 +2218,8 @@ static void hud_sort_button_render(mu_Context * ctx, float scale, const char * n
 
     mu_text_color_default(ctx);
 }
+
+const char * hud_serverlist_popup = NULL;
 
 static void hud_serverlist_render(mu_Context * ctx, float scale) {
     char total_str[128]; sprintf(total_str, server_count > 0 ? "%i players on %i servers" : "No servers", player_count, server_count);
@@ -2402,16 +2368,35 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
         mu_end_window(ctx);
     }
 
-    if (window_time() - chat_popup_timer < chat_popup_duration
-       && mu_begin_window_ex(ctx, "Disconnected from server", mu_rect(200, 250, 300, 100),
-                             MU_OPT_HOLDFOCUS | MU_OPT_NORESIZE | MU_OPT_NOCLOSE)) {
-        mu_Container * cnt = mu_get_current_container(ctx);
-        mu_bring_to_front(ctx, cnt);
-        cnt->rect = mu_rect((settings.window_width - 300 * scale) / 2, 250 * scale, 300 * scale, 100 * scale);
-        mu_layout_row(ctx, 2, (int[]) {ctx->text_width(ctx->style->font, "Reason:", 0) * 1.5F, -1}, 0);
-        mu_text(ctx, "Reason:");
-        mu_text(ctx, chat_popup);
-        mu_end_window(ctx);
+    if (hud_serverlist_popup != NULL) {
+        int w = 380 * scale, h = 110 * scale;
+        int x = (settings.window_width - w) / 2;
+        int y = (settings.window_height - h) / 2;
+
+        if (mu_begin_window_ex(ctx, "Disconnected", mu_rect(x, y, w, h),
+                               MU_OPT_HOLDFOCUS | MU_OPT_NORESIZE | MU_OPT_NOCLOSE)) {
+            mu_Container * cnt = mu_get_current_container(ctx);
+            mu_bring_to_front(ctx, cnt);
+
+            mu_layout_row(ctx, 1, (int[]) {-1}, 0);
+            mu_text(ctx, "You have been disconnected from the server.");
+
+            mu_layout_row(ctx, 2, (int[]) {ctx->text_width(ctx->style->font, "Reason: ", 0), -1}, 0);
+
+            mu_text_color(ctx, 200, 200, 200);
+            mu_text(ctx, "Reason:");
+
+            mu_text_color_default(ctx);
+            mu_text(ctx, hud_serverlist_popup);
+
+            int width = mu_get_current_container(ctx)->body.w;
+            mu_layout_row(ctx, 2, (int[]) {0.75F * width, -1}, 0);
+            mu_layout_next(ctx);
+
+            if (mu_button(ctx, "Close")) hud_serverlist_popup = NULL;
+
+            mu_end_window(ctx);
+        }
     }
 
     if (request_news) {
@@ -2719,6 +2704,11 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
     }
 }
 
+static void hud_settings_keyboard(int key, int action, int mods, int internal)  {
+    if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE)
+        if (network_connected) hud_change(&hud_ingame);
+}
+
 static void hud_settings_touch(void * finger, int action, float x, float y, float dx, float dy) {
     window_setmouseloc(x, y);
 }
@@ -2727,7 +2717,7 @@ HUD hud_settings = {
     hud_settings_init,
     NULL,
     hud_settings_render,
-    NULL,
+    hud_settings_keyboard,
     NULL,
     NULL,
     NULL,
@@ -2872,7 +2862,8 @@ static void hud_controls_keyboard(int key, int action, int mods, int internal) {
         *hud_controls_edit = internal;
         hud_controls_edit = NULL;
         config_save();
-    }
+    } else if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE)
+        if (network_connected) hud_change(&hud_ingame);
 }
 
 HUD hud_controls = {

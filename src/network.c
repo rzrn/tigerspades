@@ -1135,7 +1135,9 @@ int network_connect_sub(char * ip, int port, int version) {
     peer = enet_host_connect(client, &address, 1, version);
 
     network_logged_in = 0;
-    *network_custom_reason = 0;
+    hud_serverlist_popup = NULL;
+
+    network_custom_reason[0] = 0;
 
     memset(network_stats, 0, sizeof(NetworkStat) * 40);
 

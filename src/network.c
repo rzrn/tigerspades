@@ -403,6 +403,18 @@ static inline void addExtInfoEntry(uint8_t id, uint8_t version, size_t * index) 
     *index += writePacketExtInfoEntry(network_buffer + offset, &extension);
 }
 
+static const char * getExtensionName(uint8_t id) {
+    switch (id) {
+        case EXT_PLAYER_PROPERTIES: return "Player Properties";
+        case EXT_TRACE_BULLETS:     return "Trace Bullets";
+        case EXT_HIT_EFFECTS:       return "Hit Effects";
+        case EXT_256PLAYERS:        return "Player Limit";
+        case EXT_MESSAGES:          return "Message Types";
+        case EXT_KICKREASON:        return "Kick Reason";
+        default:                    return "Unknown";
+    }
+}
+
 void getPacketExtInfo(uint8_t * data, int len) {
     READPACKET(PacketExtInfo, p, data);
 
@@ -415,8 +427,9 @@ void getPacketExtInfo(uint8_t * data, int len) {
                 readPacketExtInfoEntry(data + sizePacketExtInfo + k * sizePacketExtInfoEntry, &ext);
 
                 log_info(
-                    "Extension 0x%02X of version %i %s",
-                    ext.id, ext.version, ext.id >= 192 ? "(which is packetless)" : ""
+                    "Extension 0x%02X (%s) of version %i %s",
+                    ext.id, getExtensionName(ext.id), ext.version,
+                    ext.id >= 192 ? "(which is packetless)" : ""
                 );
 
                 if (ext.id == EXT_HIT_EFFECTS) local_hit_effects = false;

@@ -1161,8 +1161,8 @@ int network_connect_sub(char * ip, int port, int version) {
     }
 
     static const char popup[] = "No response";
+    hud_serverlist_popup = popup;
 
-    chat_showpopup(popup, sizeof(popup), UTF8, 3.0F, Red);
     enet_peer_reset(peer);
     return 0;
 }

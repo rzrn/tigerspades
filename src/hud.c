@@ -67,15 +67,7 @@ static int is_inside_centered(double mx, double my, int x, int y, int w, int h) 
     return mx >= x && mx < x + w && my >= y && my < y + h;
 }*/
 
-void hud_init() {
-    hud_serverlist.ctx = malloc(sizeof(mu_Context));
-    hud_settings.ctx   = malloc(sizeof(mu_Context));
-    hud_controls.ctx   = malloc(sizeof(mu_Context));
-
-    pthread_mutex_init(&serverlist_lock, NULL);
-
-    hud_change(&hud_serverlist);
-}
+static void serverlist_refresh();
 
 static int mu_text_height(mu_Font font) {
     float scalex = fmax(1, round(settings.window_width / 800.0F));
@@ -85,9 +77,9 @@ static int mu_text_height(mu_Font font) {
     return scale * 16.0F;
 }
 
-static int mu_text_width(mu_Font font, const char* text, int len) {
+static int mu_text_width(mu_Font font, const char * text, int len) {
     if (len <= 0) {
-        return ceil(font_length(mu_text_height(font) / 16.0F, (char*) text, UTF8));
+        return ceil(font_length(mu_text_height(font) / 16.0F, (char *) text, UTF8));
     } else {
         char tmp[len + 1];
         memcpy(tmp, text, len);
@@ -104,19 +96,35 @@ static void mu_text_color_default(mu_Context * ctx) {
     ctx->style->colors[MU_COLOR_TEXT] = mu_color(230, 230, 230, 255);
 }
 
+void hud_init() {
+    mu_Context * ctx = malloc(sizeof(mu_Context)); mu_init(ctx);
+    hud_serverlist.ctx = hud_settings.ctx = hud_controls.ctx = ctx;
+
+    ctx->text_width                          = mu_text_width;
+    ctx->text_height                         = mu_text_height;
+    ctx->style->colors[MU_COLOR_BUTTONHOVER] = mu_color(95, 95, 70, 255);
+    ctx->style->colors[MU_COLOR_PANELBG]     = mu_color(10, 10, 10, 192);
+    ctx->style->colors[MU_COLOR_SCROLLTHUMB] = mu_color(128, 128, 128, 255);
+
+    pthread_mutex_init(&serverlist_lock, NULL);
+
+    hud_change(&hud_serverlist);
+    serverlist_refresh();
+}
+
 void hud_change(HUD * new) {
     button_map.lmb = button_map.rmb = button_map.mmb = false;
-
     config_key_reset_togglestates();
+
     hud_active = new;
 
     if (hud_active->ctx) {
-        mu_init(hud_active->ctx);
-        hud_active->ctx->text_width                          = mu_text_width;
-        hud_active->ctx->text_height                         = mu_text_height;
-        hud_active->ctx->style->colors[MU_COLOR_BUTTONHOVER] = mu_color(95, 95, 70, 255);
-        hud_active->ctx->style->colors[MU_COLOR_PANELBG]     = mu_color(10, 10, 10, 192);
-        hud_active->ctx->style->colors[MU_COLOR_SCROLLTHUMB] = mu_color(128, 128, 128, 255);
+        mu_set_focus(hud_active->ctx, 0);
+
+        hud_active->ctx->mouse_down    = 0;
+        hud_active->ctx->mouse_pressed = 0;
+        hud_active->ctx->key_down      = 0;
+        hud_active->ctx->key_pressed   = 0;
     }
 
     if (hud_active->init)
@@ -132,8 +140,9 @@ int screen_current = SCREEN_NONE;
 
 static void hud_ingame_init() {
     window_textinput(0);
-    chat_input_mode = CHAT_NO_INPUT;
     window_mousemode(WINDOW_CURSOR_DISABLED);
+
+    chat_input_mode = CHAT_NO_INPUT;
 }
 
 typedef struct {
@@ -485,9 +494,10 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         for (int k = 0; k < 40; k++) {
             max = max(max, network_stats[k].ingoing + network_stats[k].outgoing);
         }
+
         for (int k = 0; k < 40; k++) {
-            float in_h = (float)(network_stats[39 - k].ingoing) / max * 160.0F;
-            float out_h = (float)(network_stats[39 - k].ingoing + network_stats[39 - k].outgoing) / max * 160.0F;
+            float in_h = (float) (network_stats[39 - k].ingoing) / max * 160.0F;
+            float out_h = (float) (network_stats[39 - k].ingoing + network_stats[39 - k].outgoing) / max * 160.0F;
             float ping_h = min(network_stats[39 - k].avg_ping / 25.0F, 160.0F);
 
             glColor3f(0.0F, 0.0F, 1.0F);
@@ -496,7 +506,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
             if (!k) {
                 sprintf(dbg_str, "out: %i b/s", network_stats[1].outgoing);
-                font_render(8.0F * scale + 80 * scale, 212.0F * scale, 1.0F * scale, dbg_str, ASCII);
+                font_render(8.0F * scale, 200.0F * scale, 1.0F * scale, dbg_str, ASCII);
             }
 
             glColor3f(0.0F, 1.0F, 0.0F);
@@ -504,7 +514,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
             if (!k) {
                 sprintf(dbg_str, "in: %i b/s", network_stats[1].ingoing);
-                font_render(8.0F * scale, 212.0F * scale, 1.0F * scale, dbg_str, ASCII);
+                font_render(8.0F * scale, 216.0F * scale, 1.0F * scale, dbg_str, ASCII);
             }
 
             glColor3f(1.0F, 0.0F, 0.0F);
@@ -513,7 +523,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
             if (!k) {
                 sprintf(dbg_str, "ping: %i ms", network_stats[1].avg_ping);
-                font_render(8.0F * scale, 202.0F * scale, 1.0F * scale, dbg_str, ASCII);
+                font_render(8.0F * scale, 184.0F * scale, 1.0F * scale, dbg_str, ASCII);
             }
         }
         font_select(FONT_FIXEDSYS);
@@ -1518,7 +1528,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
     if (chat_input_mode != CHAT_NO_INPUT && action == WINDOW_PRESS && key == WINDOW_KEY_TAB && strlen(chat[0][0]) > 0) {
         // autocomplete word
         char * incomplete = strrchr(chat[0][0], ' ') + 1;
-        if (incomplete == (char*)1)
+        if (incomplete == (char *) 1)
             incomplete = chat[0][0];
         const char * match = hud_ingame_completeword(incomplete);
         if (match && strlen(match) + strlen(chat[0][0]) < 128)
@@ -1771,7 +1781,6 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if (key == WINDOW_KEY_ESCAPE) {
-                window_mousemode(WINDOW_CURSOR_ENABLED);
                 hud_change(&hud_settings);
                 return;
             }
@@ -2079,13 +2088,10 @@ bool offline = false;
 
 char serverlist_url[] = "http://services.buildandshoot.com/serverlist.json", newslist_url[] = "http://aos.party/bs/news/";
 
-static void hud_serverlist_init() {
+static void serverlist_refresh() {
     ping_stop();
     network_disconnect();
-    window_title(NULL);
     rpc_seti(RPC_VALUE_SLOTS, 0);
-
-    window_mousemode(WINDOW_CURSOR_ENABLED);
 
     pthread_mutex_lock(&serverlist_lock);
     player_count = server_count = 0;
@@ -2101,12 +2107,17 @@ static void hud_serverlist_init() {
     serverlist_con_established = request_serverlist != NULL;
     *serverlist_input = 0;
 
-    window_textinput(1);
-
     hud_serverlist_sort_chosen = NULL;
     serverlist_descending = true;
 
     ping_start(hud_serverlist_pingupdate);
+}
+
+static void hud_serverlist_init() {
+    window_textinput(1);
+    window_mousemode(WINDOW_CURSOR_ENABLED);
+
+    window_title(NULL);
 }
 
 void load_map(const char * filepath) {
@@ -2162,14 +2173,15 @@ static Texture * hud_serverlist_ui_images(int icon_id, bool * resize) {
     }
 }
 
-static void hud_render_tab_button(mu_Context * ctx, float scale, const char * tabname, HUD * tabptr) {
-    if (hud_active == tabptr)
-        mu_text_color(ctx, 255, 255, 0);
+static int hud_render_tab_button(mu_Context * ctx, float scale, const char * tabname, HUD * tabptr) {
+    if (hud_active == tabptr) mu_text_color(ctx, 255, 255, 0);
 
-    if (mu_button_ex(ctx, tabname, 0, MU_OPT_ALIGNCENTER | (hud_active == tabptr ? MU_OPT_NOINTERACT : 0)))
-        hud_change(tabptr);
-
+    int retval = mu_button_ex(ctx, tabname, 0, MU_OPT_ALIGNCENTER | (hud_active == tabptr ? MU_OPT_NOINTERACT : 0));
     mu_text_color_default(ctx);
+
+    if (retval) hud_change(tabptr);
+
+    return retval;
 }
 
 static int hud_header_render(mu_Context * ctx, float scale, const char * text) {
@@ -2189,8 +2201,8 @@ static int hud_header_render(mu_Context * ctx, float scale, const char * text) {
 
         mu_layout_row(ctx, 4, (int[]) {0.166F * width, 0.166F * width, 0.166F * width, -1}, 0);
 
-        // `hud_ingame_init` will disconnect.
-        hud_render_tab_button(ctx, scale, network_connected ? "Disconnect" : "Servers", &hud_serverlist);
+        if (hud_render_tab_button(ctx, scale, network_connected ? "Disconnect" : "Servers", &hud_serverlist))
+            if (network_connected) serverlist_refresh();
 
         hud_render_tab_button(ctx, scale, "Settings", &hud_settings);
         hud_render_tab_button(ctx, scale, "Controls", &hud_controls);
@@ -2268,7 +2280,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
             join_address = serverlist_input;
 
         if (mu_button_ex(ctx, "Refresh", 0, MU_OPT_ALIGNCENTER) && !request_serverlist)
-            hud_serverlist_init();
+            serverlist_refresh();
 
         mu_layout_row(ctx, 1, (int[]) {-1}, -1);
 
@@ -2508,7 +2520,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
 
             case HTTP_STATUS_FAILED: {
                 http_release(request_serverlist);
-                hud_serverlist_init();
+                serverlist_refresh();
                 break;
             }
         }
@@ -2546,6 +2558,9 @@ HUD hud_serverlist = {
 /*         HUD_SETTINGS START        */
 
 static void hud_settings_init() {
+    window_textinput(1);
+    window_mousemode(WINDOW_CURSOR_ENABLED);
+
     memcpy(&settings_tmp, &settings, sizeof(Options));
 }
 
@@ -2704,7 +2719,7 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
     }
 }
 
-static void hud_settings_keyboard(int key, int action, int mods, int internal)  {
+static void hud_settings_keyboard(int key, int action, int mods, int internal) {
     if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE)
         if (network_connected) hud_change(&hud_ingame);
 }
@@ -2735,6 +2750,9 @@ HUD hud_settings = {
 static int * hud_controls_edit;
 
 static void hud_controls_init() {
+    window_textinput(1);
+    window_mousemode(WINDOW_CURSOR_ENABLED);
+
     hud_controls_edit = NULL;
 }
 

@@ -657,7 +657,7 @@ void getPacketStateData(uint8_t * data, int len) {
     network_map_transfer = 0;
     chat_popup_duration  = 0;
 
-    log_info("map data was %i bytes", compressed_chunk_data_offset);
+    log_info("Map data was %i bytes", compressed_chunk_data_offset);
     if (!network_map_cached) {
         int avail_size = 1024 * 1024;
         void * decompressed = malloc(avail_size);
@@ -676,14 +676,16 @@ void getPacketStateData(uint8_t * data, int len) {
             }
             if (r == LIBDEFLATE_SUCCESS) {
                 map_vxl_load(decompressed, decompressed_size);
-/*#ifndef USE_TOUCH
-                char filename[128];
-                sprintf(filename, "cache/%08X.vxl", libdeflate_crc32(0, decompressed, decompressed_size));
-                log_info("%s", filename);
-                FILE * f = fopen(filename, "wb");
-                fwrite(decompressed, 1, decompressed_size, f);
-                fclose(f);
-#endif*/
+#ifndef USE_TOUCH
+                if (settings.map_cache) {
+                    char filename[128];
+                    sprintf(filename, "cache/%08X.vxl", libdeflate_crc32(0, decompressed, decompressed_size));
+                    log_info("Map cached: %s", filename);
+                    FILE * f = fopen(filename, "wb");
+                    fwrite(decompressed, 1, decompressed_size, f);
+                    fclose(f);
+                }
+#endif
                 chunk_rebuild_all();
                 break;
             }
@@ -791,18 +793,9 @@ void getPacketMapStart(uint8_t * data, int len) {
         compressed_chunk_data_estimate = p.map_size;
 
         data[len - 1] = 0;
-        log_info("map name: %s", p.map_name);
-        log_info("map crc32: 0x%08X", p.crc32);
 
         char filename[128];
-        sprintf(filename, "cache/%02X%02X%02X%02X.vxl",
-            BYTE0(p.crc32),
-            BYTE1(p.crc32),
-            BYTE2(p.crc32),
-            BYTE3(p.crc32)
-        );
-
-        log_info("%s", filename);
+        sprintf(filename, "cache/%08X.vxl", p.crc32);
 
         if (file_exists(filename)) {
             network_map_cached = 1;
@@ -811,6 +804,9 @@ void getPacketMapStart(uint8_t * data, int len) {
             free(mapd);
             chunk_rebuild_all();
         }
+
+        log_info("Map name: %s %s", p.map_name, network_map_cached ? "(cached)" : "");
+        log_info("Map crc32: 0x%08X", p.crc32);
 
         PacketMapCached reply; reply.cached = network_map_cached;
         sendPacketMapCached(&reply, 0);

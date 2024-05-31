@@ -73,6 +73,7 @@ Options settings = {
     .enable_shadows     = 1,
     .enable_particles   = 1,
     .smooth_orientation = 1,
+    .map_cache          = 0,
 };
 
 Options settings_tmp = {0};
@@ -147,6 +148,7 @@ void config_save() {
     config_seti("client", "enable_shadows",     settings.enable_shadows);
     config_seti("client", "enable_particles",   settings.enable_particles);
     config_seti("client", "smooth_orientation", settings.smooth_orientation);
+    config_seti("client", "map_cache",          settings.map_cache);
 
     for (int k = 0; k < list_size(&config_keys); k++) {
         ConfigKeyPair * e = list_get(&config_keys, k);
@@ -261,6 +263,8 @@ static int config_read_key(void * user, const char * section, const char * name,
             settings.enable_particles = atoi(value);
         } else if (!strcmp(name, "smooth_orientation")) {
             settings.smooth_orientation = atoi(value);
+        } else if (!strcmp(name, "map_cache")) {
+            settings.map_cache = atoi(value);
         }
     }
 
@@ -508,6 +512,16 @@ void config_reload() {
                  .max      = INT_MAX,
                  .name     = "Maximum LAN port",
                  .help     = "Last port to scan for LAN games",
+                 .category = "Game"
+             });
+    list_add(&config_settings,
+             &(Setting) {
+                 .value    = &settings_tmp.map_cache,
+                 .type     = CONFIG_TYPE_INT,
+                 .min      = 0,
+                 .max      = 1,
+                 .name     = "Use map cache",
+                 .help     = "Can use a lot of disk space",
                  .category = "Game"
              });
     list_add(&config_settings,

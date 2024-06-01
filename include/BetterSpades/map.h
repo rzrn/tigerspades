@@ -42,7 +42,7 @@ void map_update_physics(int x, int y, int z);
 float map_sunblock(int x, int y, int z);
 bool map_isair(int x, int y, int z);
 TrueColor map_get(int x, int y, int z);
-void map_set(int x, int y, int z, TrueColor);
+void map_set(int x, int y, int z, TrueColor *);
 int map_cube_line(int x1, int y1, int z1, int x2, int y2, int z2, Vector3i * cube_array);
 void map_vxl_setgeom(int x, int y, int z, unsigned int t, unsigned int * map);
 void map_vxl_setcolor(int x, int y, int z, unsigned int t, unsigned int * map);

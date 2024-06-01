@@ -232,7 +232,7 @@ static bool falling_blocks_pivot(void * key, void * value, void * user) {
     float * pivot = (float*) user;
     uint32_t pos = *(uint32_t *) key;
 
-    map_set(pos_keyx(pos), pos_keyy(pos), pos_keyz(pos), White);
+    map_set(pos_keyx(pos), pos_keyy(pos), pos_keyz(pos), NULL);
     pivot[0] += pos_keyx(pos);
     pivot[1] += pos_keyy(pos);
     pivot[2] += pos_keyz(pos);
@@ -546,18 +546,18 @@ TrueColor map_get(int x, int y, int z) {
     return readBGR(&result);
 }
 
-void map_set(int x, int y, int z, TrueColor color) {
+void map_set(int x, int y, int z, TrueColor * color) {
     if (x < 0 || y < 0 || z < 0 || x >= map_size_x || y >= map_size_y || z >= map_size_z)
         return;
 
     pthread_rwlock_wrlock(&map_lock);
 
-    uint32_t value; writeBGR(&value, color);
-
-    if (value == 0xFFFFFFFF)
+    if (color == NULL)
         libvxl_map_setair(&map, x, z, map_size_y - 1 - y);
-    else
+    else {
+        uint32_t value; writeBGR(&value, *color);
         libvxl_map_set(&map, x, z, map_size_y - 1 - y, value);
+    }
 
     pthread_rwlock_unlock(&map_lock);
 

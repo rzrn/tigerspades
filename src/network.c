@@ -229,7 +229,7 @@ void getPacketBlockAction(uint8_t * data, int len) {
             if (63 - z > 0) {
                 TrueColor col = map_get(x, 63 - z, y);
 
-                map_set(x, 63 - z, y, White);
+                map_set(x, 63 - z, y, NULL);
                 map_update_physics(x, 63 - z, y);
 
                 particle_create(col, x + 0.5F, 63 - z + 0.5F, y + 0.5F, 2.5F, 1.0F, 8, 0.1F, 0.25F);
@@ -242,7 +242,7 @@ void getPacketBlockAction(uint8_t * data, int len) {
                 for (int k = y - 1; k <= y + 1; k++) {
                     for (int i = x - 1; i <= x + 1; i++) {
                         if (j > 1) {
-                            map_set(i, j, k, White);
+                            map_set(i, j, k, NULL);
                             map_update_physics(i, j, k);
                         }
                     }
@@ -253,21 +253,21 @@ void getPacketBlockAction(uint8_t * data, int len) {
 
         case ACTION_SPADE: {
             if ((63 - z - 1) > 1) {
-                map_set(x, 63 - z - 1, y, White);
+                map_set(x, 63 - z - 1, y, NULL);
                 map_update_physics(x, 63 - z - 1, y);
             }
 
             if ((63 - z + 0) > 1) {
                 TrueColor col = map_get(x, 63 - z, y);
 
-                map_set(x, 63 - z + 0, y, White);
+                map_set(x, 63 - z + 0, y, NULL);
                 map_update_physics(x, 63 - z + 0, y);
 
                 particle_create(col, x + 0.5F, 63 - z + 0.5F, y + 0.5F, 2.5F, 1.0F, 8, 0.1F, 0.25F);
             }
 
             if ((63 - z + 1) > 1) {
-                map_set(x, 63 - z + 1, y, White);
+                map_set(x, 63 - z + 1, y, NULL);
                 map_update_physics(x, 63 - z + 1, y);
             }
             break;
@@ -278,16 +278,14 @@ void getPacketBlockAction(uint8_t * data, int len) {
                 bool play_sound = map_isair(x, 63 - z, y);
 
                 TrueColor color = {
-                    players[p.player_id].block.r,
-                    players[p.player_id].block.g,
-                    players[p.player_id].block.b,
-                    255
+                    .r = players[p.player_id].block.r,
+                    .g = players[p.player_id].block.g,
+                    .b = players[p.player_id].block.b,
+                    .a = 255
                 };
 
-                map_set(x, 63 - z, y, color);
-
-                if (play_sound)
-                    sound_create(SOUND_WORLD, sound(SOUND_BUILD), x + 0.5F, 63 - z + 0.5F, y + 0.5F);
+                map_set(x, 63 - z, y, &color);
+                if (play_sound) sound_create(SOUND_WORLD, sound(SOUND_BUILD), x + 0.5F, 63 - z + 0.5F, y + 0.5F);
             }
             break;
         }
@@ -310,13 +308,13 @@ void getPacketBlockLine(uint8_t * data, int len) {
     };
 
     if (sx == ex && sy == ey && sz == ez) {
-        map_set(sx, 63 - sz, sy, color);
+        map_set(sx, 63 - sz, sy, &color);
     } else {
         Vector3i blocks[64];
         int len = map_cube_line(sx, sy, sz, ex, ey, ez, blocks);
         while (len > 0) {
             if (map_isair(blocks[len - 1].x, 63 - blocks[len - 1].z, blocks[len - 1].y)) {
-                map_set(blocks[len - 1].x, 63 - blocks[len - 1].z, blocks[len - 1].y, color);
+                map_set(blocks[len - 1].x, 63 - blocks[len - 1].z, blocks[len - 1].y, &color);
             }
             len--;
         }

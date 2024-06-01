@@ -19,11 +19,16 @@
 
 #define _XOPEN_SOURCE 600
 
-#include <enet/enet.h>
-#include <pthread.h>
 #include <math.h>
 #include <unistd.h>
 #include <string.h>
+
+#include <pthread.h>
+#include <signal.h>
+
+#include <http.h>
+#include <parson.h>
+#include <lodepng/lodepng.h>
 
 #include <hashtable.h>
 
@@ -35,63 +40,39 @@
 #include <BetterSpades/hud.h>
 #include <BetterSpades/channel.h>
 #include <BetterSpades/utils.h>
+#include <BetterSpades/network.h>
 
-Channel ping_queue;
-ENetSocket sock, lan;
-pthread_t ping_thread;
-void (*ping_result)(void *, float time_delta, char * aos);
+typedef struct {
+    ServerEntry * entry;
+    ENetAddress addr;
+    float timestamp;
+    int trycount;
+} PingTask;
 
-void ping_init() {
-    channel_create(&ping_queue, sizeof(PingEntry), 64);
+int server_count = 0, player_count = 0;
+ServerEntry ** serverlist = NULL;
 
-    sock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
-    enet_socket_set_option(sock, ENET_SOCKOPT_NONBLOCK, 1);
+News * newslist = NULL;
 
-    lan = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
-    enet_socket_set_option(lan, ENET_SOCKOPT_NONBLOCK, 1);
-    enet_socket_set_option(lan, ENET_SOCKOPT_BROADCAST, 1);
+pthread_t ping_thread; pthread_mutex_t serverlist_lock;
 
-    pthread_create(&ping_thread, NULL, ping_update, NULL);
-}
-
-void ping_deinit() {
-    enet_socket_destroy(sock);
-    enet_socket_destroy(lan);
-}
-
-float lan_ping_start = 0.0F;
-
-static void ping_lan() {
-    static const ENetBuffer hellolan = {.data = "HELLOLAN", .dataLength = 8};
-    static ENetAddress addr = {.host = 0xFFFFFFFF}; // 255.255.255.255
-
-    lan_ping_start = window_time();
-
-    int begin = max(0, settings.min_lan_port), end = min(65535, settings.max_lan_port);
-
-    for (addr.port = begin; addr.port <= end; addr.port++)
-        enet_socket_send(lan, &addr, &hellolan, 1);
-}
-
-static bool pings_retry(void * key, void * value, void * user) {
-    PingEntry * entry = (PingEntry *) value;
-
-    if (window_time() - entry->time_start > 2.0F) { // timeout
-        // try up to 3 times after first failed attempt
-        if (entry->trycount >= 3) {
-            return true;
-        } else {
-            enet_socket_send(sock, &entry->addr, &(ENetBuffer) {.data = "HELLO", .dataLength = 5}, 1);
-            entry->time_start = window_time();
-            entry->trycount++;
-            log_warn("Ping timeout on %s, retrying (attempt %i)", entry->aos, entry->trycount);
-        }
+static void newslist_clear() {
+    while (newslist != NULL) {
+        News * next = newslist->next;
+        free(newslist); newslist = next;
     }
-
-    return false;
 }
 
-#define IP_KEY(addr) (((uint64_t) addr.host << 16) | (addr.port));
+static void serverlist_clear() {
+    pthread_mutex_lock(&serverlist_lock);
+
+    for (size_t i = 0; i < server_count; i++)
+        free(serverlist[i]);
+
+    player_count = server_count = 0;
+
+    pthread_mutex_unlock(&serverlist_lock);
+}
 
 Version json_get_game_version(const JSON_Object * obj) {
     const char * game_version = json_object_get_string(obj, "game_version");
@@ -107,104 +88,351 @@ Version json_get_game_version(const JSON_Object * obj) {
     return UNKNOWN;
 }
 
+#define IPKEY(addr) (((uint64_t) addr.host << 16) | (addr.port));
+
+int serverlist_sort_default(const ServerEntry * a, const ServerEntry * b) {
+    if (strcmp(a->country, "LAN") == 0)
+        return -1;
+
+    if (strcmp(b->country, "LAN") == 0)
+        return 1;
+
+    if (a->current == b->current) {
+        if (a->ping == b->ping)
+            return strcmp(a->name, b->name);
+        else {
+            if (a->ping < 0) return +1;
+            if (b->ping < 0) return -1;
+
+            return a->ping - b->ping;
+        }
+    }
+
+    return b->current - a->current;
+}
+
+int serverlist_sort_players(const ServerEntry * a, const ServerEntry * b) {
+    return b->current - a->current;
+}
+
+int serverlist_sort_name(const ServerEntry * a, const ServerEntry * b) {
+    return strcmp(a->name, b->name);
+}
+
+int serverlist_sort_map(const ServerEntry * a, const ServerEntry * b) {
+    return strcmp(a->map, b->map);
+}
+
+int serverlist_sort_mode(const ServerEntry * a, const ServerEntry * b) {
+    return strcmp(a->gamemode, b->gamemode);
+}
+
+int serverlist_sort_ping(const ServerEntry * a, const ServerEntry * b) {
+    if (a->ping < 0) return +1;
+    if (b->ping < 0) return -1;
+
+    return a->ping - b->ping;
+}
+
+ServerlistComparator serverlist_comparator = serverlist_sort_default;
+bool serverlist_descending = true;
+
+static int serverlist_cmp(const void * a, const void * b) {
+    const ServerEntry * A = *((const ServerEntry **) a);
+    const ServerEntry * B = *((const ServerEntry **) b);
+
+    return serverlist_descending ? serverlist_comparator(A, B) : -serverlist_comparator(A, B);
+}
+
+void serverlist_sort() {
+    qsort(serverlist, server_count, sizeof(ServerEntry *), serverlist_cmp);
+}
+
+static void ping_lan(ENetSocket socket) {
+    static const ENetBuffer hellolan = {.data = "HELLOLAN", .dataLength = 8};
+    static ENetAddress addr = {.host = 0xFFFFFFFF}; // 255.255.255.255
+
+    int begin = max(0, settings.min_lan_port), end = min(65535, settings.max_lan_port);
+
+    for (addr.port = begin; addr.port <= end; addr.port++)
+        enet_socket_send(socket, &addr, &hellolan, 1);
+}
+
+static bool working = true, quit = false;
+
+const char * _status = NULL;
+
+const char * ping_status() {
+    return _status;
+}
+
 void * ping_update(void * data) {
     pthread_detach(pthread_self());
 
-    float ping_start = window_time();
+    begin: working = true;
 
-    HashTable pings; ht_setup(&pings, sizeof(uint64_t), sizeof(PingEntry), 64);
+    // Step 1: clean up everything if needed.
+    _status = "Initializing...";
 
-    for (;;) {
-        size_t drain = channel_size(&ping_queue);
-        for (size_t k = 0; (k < drain) || (!pings.size && window_time() - ping_start >= 8.0F); k++) {
-            PingEntry entry;
-            channel_await(&ping_queue, &entry);
+    newslist_clear();
+    serverlist_clear();
 
-            uint64_t ID = IP_KEY(entry.addr);
-            ht_insert(&pings, &ID, &entry);
-        }
+    // Step 2: do blocking `http_get` requests.
+    _status = "Connecting to the master server...";
 
-        char tmp[512];
-        ENetAddress from;
+    http_t * request_serverlist = NULL, * request_news = NULL;
 
-        ENetBuffer buf = {.data = tmp, .dataLength = sizeof(tmp)};
+    if (!offline) {
+        request_serverlist = http_get(serverlist_url, NULL);
+        request_news = http_get(newslist_url, NULL);
+    }
 
-        for (;;) {
-            int recvLength = enet_socket_receive(sock, &from, &buf, 1);
-            uint64_t ID = IP_KEY(from);
+    // Step 3: shout loudly into the local network.
+    _status = request_serverlist == NULL ? "Fetching local servers..." : "Fetching servers...";
 
-            if (recvLength != 0) {
-                PingEntry * entry = ht_lookup(&pings, &ID);
+    ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
+    enet_socket_set_option(sock, ENET_SOCKOPT_NONBLOCK, 1);
 
-                if (entry) {
-                    if (recvLength > 0) { // received something!
-                        if (!strncmp(buf.data, "HI", recvLength)) {
-                            ping_result(NULL, window_time() - entry->time_start, entry->aos);
-                            ht_erase(&pings, &ID);
-                        } else entry->trycount++;
-                    } else ht_erase(&pings, &ID); // connection was closed
+    ENetSocket lan = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
+    enet_socket_set_option(lan, ENET_SOCKOPT_NONBLOCK, 1);
+    enet_socket_set_option(lan, ENET_SOCKOPT_BROADCAST, 1);
+
+    float ping_start = request_serverlist == NULL ? -INFINITY : INFINITY;
+    float lan_ping_start = window_time(); ping_lan(lan);
+
+    // Step 4: catch stones flying towards us.
+    static const ENetBuffer hello = {.data = "HELLO", .dataLength = 5};
+
+    HashTable pings; ht_setup(&pings, sizeof(uint64_t), sizeof(PingTask), 64);
+
+    while (working && (request_serverlist != NULL ||
+                             request_news != NULL ||
+               window_time() - ping_start <= 8.0F ||
+           window_time() - lan_ping_start <= 5.0F)) {
+        if (request_serverlist != NULL) switch (http_process(request_serverlist)) {
+            case HTTP_STATUS_PENDING: break;
+
+            case HTTP_STATUS_COMPLETED: {
+                JSON_Value * js = json_parse_string(request_serverlist->response_data);
+                JSON_Array * servers = json_value_get_array(js);
+
+                pthread_mutex_lock(&serverlist_lock);
+
+                int begin = server_count; server_count += json_array_get_count(servers);
+                serverlist = realloc(serverlist, server_count * sizeof(ServerEntry));
+                CHECK_ALLOCATION_ERROR(serverlist)
+
+                for (int k = begin; k < server_count; k++) {
+                    JSON_Object * s = json_array_get_object(servers, k - begin);
+
+                    serverlist[k] = malloc(sizeof(ServerEntry));
+
+                    serverlist[k]->current = (int) json_object_get_number(s, "players_current");
+                    serverlist[k]->max     = (int) json_object_get_number(s, "players_max");
+                    serverlist[k]->ping    = -1;
+
+                    strnzcpy(serverlist[k]->name,       json_object_get_string(s, "name"),       sizeof(serverlist[k]->name));
+                    strnzcpy(serverlist[k]->map,        json_object_get_string(s, "map"),        sizeof(serverlist[k]->map));
+                    strnzcpy(serverlist[k]->gamemode,   json_object_get_string(s, "game_mode"),  sizeof(serverlist[k]->gamemode));
+                    strnzcpy(serverlist[k]->identifier, json_object_get_string(s, "identifier"), sizeof(serverlist[k]->identifier));
+                    strnzcpy(serverlist[k]->country,    json_object_get_string(s, "country"),    sizeof(serverlist[k]->country));
+
+                    serverlist[k]->version = json_get_game_version(s);
+
+                    Address addr;
+
+                    if (network_identifier_split(serverlist[k]->identifier, &addr)) {
+                        PingTask task = {
+                            .entry     = serverlist[k],
+                            .trycount  = 0,
+                            .addr.port = addr.port,
+                            .timestamp = window_time(),
+                        };
+                        enet_address_set_host(&task.addr, addr.ip);
+
+                        uint64_t ID = IPKEY(task.addr);
+                        ht_insert(&pings, &ID, &task);
+
+                        enet_socket_send(sock, &task.addr, &hello, 1);
+                    }
+
+                    player_count += serverlist[k]->current;
                 }
-            } else break; // would block
-        }
 
-        ht_iterate_remove(&pings, NULL, pings_retry);
+                serverlist_sort();
+                pthread_mutex_unlock(&serverlist_lock);
 
-        if (enet_socket_receive(lan, &from, &buf, 1) > 0) {
-            // “ping_result” before can block, so sometimes this value is very inaccurate
-            float ping = window_time() - lan_ping_start;
-
-            JSON_Value * js = json_parse_string(buf.data);
-            if (js) {
-                JSON_Object * root = json_value_get_object(js);
-
-                Server e;
-
-                strcpy(e.country, "LAN");
-                snprintf(e.identifier, sizeof(e.identifier) - 1, "aos://%u:%u", from.host, from.port);
-
-                strnzcpy(e.name,     json_object_get_string(root, "name"),      sizeof(e.name));
-                strnzcpy(e.gamemode, json_object_get_string(root, "game_mode"), sizeof(e.gamemode));
-                strnzcpy(e.map,      json_object_get_string(root, "map"),       sizeof(e.map));
-
-                e.current = json_object_get_number(root, "players_current");
-                e.max     = json_object_get_number(root, "players_max");
-                e.version = json_get_game_version(root);
-                e.ping    = ceil(ping * 1000.0F);
-
-                if (ping_result) ping_result(&e, ping, NULL);
+                http_release(request_serverlist);
                 json_value_free(js);
+                request_serverlist = NULL;
+
+                ping_start = window_time();
+
+                break;
+            }
+
+            case HTTP_STATUS_FAILED: {
+                http_release(request_serverlist);
+                break;
             }
         }
 
-        usleep(1000);
+        if (request_news != NULL) switch (http_process(request_news)) {
+            case HTTP_STATUS_COMPLETED: {
+                JSON_Value * js = json_parse_string(request_news->response_data);
+                JSON_Array * news = json_value_get_array(js);
+                int news_entries = json_array_get_count(news);
+
+                News * current = NULL;
+
+                for (int k = 0; k < news_entries; k++) {
+                    if (current != NULL) {
+                        current->next = calloc(sizeof(News), 1);
+                        current = current->next;
+                    } else current = newslist = calloc(sizeof(News), 1);
+
+                    JSON_Object * s = json_array_get_object(news, k);
+                    if (json_object_get_string(s, "caption"))
+                        strncpy(current->caption, json_object_get_string(s, "caption"), sizeof(current->caption) - 1);
+
+                    if (json_object_get_string(s, "url"))
+                        strncpy(current->url, json_object_get_string(s, "url"), sizeof(current->url) - 1);
+
+                    current->tile_size = json_object_get_number(s, "tilesize");
+                    current->color     = json_object_get_number(s, "color");
+                    current->image     = NULL;
+
+                    if (json_object_get_string(s, "image")) {
+                        char * img = (char *) json_object_get_string(s, "image");
+                        size_t imglen = strlen(img);
+
+                        if (imglen > 0) {
+                            int size = base64_decode(img, imglen);
+
+                            unsigned char * buffer; unsigned int width, height;
+                            lodepng_decode32(&buffer, &width, &height, (uint8_t *) img, size);
+
+                            current->image = texture_alloc();
+                            texture_create_buffer(current->image, "image", width, height, buffer, 1);
+                            texture_filter(current->image, TEXTURE_FILTER_LINEAR);
+                        }
+                    }
+                }
+
+                json_value_free(js);
+                http_release(request_news);
+                request_news = NULL;
+                break;
+            }
+
+            case HTTP_STATUS_FAILED: {
+                http_release(request_news);
+                request_news = NULL;
+                break;
+            }
+
+            default: break;
+        }
+
+        char tmp[512]; ENetAddress from;
+        ENetBuffer buf = {.data = tmp, .dataLength = sizeof(tmp)};
+
+        {
+            int recv = enet_socket_receive(sock, &from, &buf, 1);
+
+            if (recv != 0) {
+                uint64_t ID = IPKEY(from);
+                PingTask * task = ht_lookup(&pings, &ID);
+
+                if (task != NULL) {
+                    if (recv > 0) { // received something!
+                        if (!strncmp(buf.data, "HI", recv)) {
+
+                            float dt = window_time() - task->timestamp;
+
+                            pthread_mutex_lock(&serverlist_lock);
+                            task->entry->ping = ceil(dt * 1000.0F);
+                            serverlist_sort();
+                            pthread_mutex_unlock(&serverlist_lock);
+
+                            ht_erase(&pings, &ID);
+                        } else if (task->trycount >= 3) {
+                            ht_erase(&pings, &ID);
+                        } else {
+                            enet_socket_send(sock, &task->addr, &hello, 1);
+                            task->timestamp = window_time();
+                            task->trycount++;
+
+                            log_warn("Ping timeout on %s, retrying (attempt %i)", task->entry->identifier, task->trycount);
+                        }
+                    } else ht_erase(&pings, &ID); // connection was closed
+                }
+            }
+        }
+
+        if (enet_socket_receive(lan, &from, &buf, 1) > 0) {
+            float ping = window_time() - lan_ping_start;
+
+            JSON_Value * js = json_parse_string(buf.data);
+            if (js != NULL) {
+                JSON_Object * root = json_value_get_object(js);
+
+                ServerEntry * e = malloc(sizeof(ServerEntry));
+
+                strcpy(e->country, "LAN");
+                snprintf(e->identifier, sizeof(e->identifier) - 1, "aos://%u:%u", from.host, from.port);
+
+                strnzcpy(e->name,     json_object_get_string(root, "name"),      sizeof(e->name));
+                strnzcpy(e->gamemode, json_object_get_string(root, "game_mode"), sizeof(e->gamemode));
+                strnzcpy(e->map,      json_object_get_string(root, "map"),       sizeof(e->map));
+
+                e->current = json_object_get_number(root, "players_current");
+                e->max     = json_object_get_number(root, "players_max");
+                e->version = json_get_game_version(root);
+                e->ping    = ceil(ping * 1000.0F);
+
+                pthread_mutex_lock(&serverlist_lock);
+                serverlist = realloc(serverlist, (server_count + 1) * sizeof(ServerEntry *));
+                serverlist[server_count] = e;
+
+                player_count += e->current; server_count++;
+
+                serverlist_sort();
+                pthread_mutex_unlock(&serverlist_lock);
+
+                json_value_free(js);
+            }
+        }
     }
+
+    // Step 5: wait until we get kicked.
+    _status = "Nothing to see here";
+
+    enet_socket_destroy(sock);
+    enet_socket_destroy(lan);
+    ht_destroy(&pings);
+
+    while (working) usleep(10000);
+
+    if (quit) return NULL;
+
+    goto begin; // it hurts
 }
 
-void ping_check(char * addr, int port, char * aos) {
-    static const ENetBuffer hello = {.data = "HELLO", .dataLength = 5};
+void ping_init() {
+    pthread_mutex_init(&serverlist_lock, NULL);
 
-    PingEntry entry = {
-        .trycount   = 0,
-        .addr.port  = port,
-        .time_start = window_time(),
-    };
-
-    strncpy(entry.aos, aos, sizeof(entry.aos) - 1);
-    entry.aos[sizeof(entry.aos) - 1] = 0;
-
-    enet_address_set_host(&entry.addr, addr);
-
-    channel_put(&ping_queue, &entry);
-
-    enet_socket_send(sock, &entry.addr, &hello, 1);
+    pthread_create(&ping_thread, NULL, ping_update, NULL);
 }
 
-void ping_start(void (*result)(void *, float, char *)) {
-    ping_stop();
-    ping_result = result;
-    ping_lan();
+void ping_refresh() {
+    serverlist_comparator = serverlist_sort_default;
+    serverlist_descending = true;
+
+    working = false;
 }
 
-void ping_stop() {
-    channel_clear(&ping_queue);
+void ping_deinit() {
+    quit = true; working = false;
+    void * ret; pthread_join(ping_thread, &ret);
 }

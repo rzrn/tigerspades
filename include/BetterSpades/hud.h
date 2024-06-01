@@ -44,17 +44,6 @@ typedef struct {
     mu_Context * ctx;
 } HUD;
 
-typedef struct {
-    int     current, max;
-    char    name[32];
-    char    map[21];
-    char    gamemode[8];
-    int     ping;
-    char    identifier[32];
-    char    country[4];
-    Version version;
-} Server;
-
 extern HUD hud_ingame;
 extern HUD hud_mapload;
 extern HUD hud_serverlist;

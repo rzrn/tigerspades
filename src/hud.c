@@ -25,8 +25,6 @@
 #include <limits.h>
 #include <ctype.h>
 
-#include <lodepng/lodepng.h>
-
 #include <BetterSpades/main.h>
 #include <BetterSpades/file.h>
 #include <BetterSpades/common.h>
@@ -51,13 +49,8 @@
 #include <BetterSpades/particle.h>
 #include <BetterSpades/opengl.h>
 
-#include <parson.h>
-#include <http.h>
-
 HUD * hud_active;
 WindowInstance * hud_window;
-
-static pthread_mutex_t serverlist_lock;
 
 static int is_inside_centered(double mx, double my, int x, int y, int w, int h) {
     return mx >= x - w / 2 && mx < x + w / 2 && my >= y - h / 2 && my < y + h / 2;
@@ -106,10 +99,7 @@ void hud_init() {
     ctx->style->colors[MU_COLOR_PANELBG]     = mu_color(10, 10, 10, 192);
     ctx->style->colors[MU_COLOR_SCROLLTHUMB] = mu_color(128, 128, 128, 255);
 
-    pthread_mutex_init(&serverlist_lock, NULL);
-
     hud_change(&hud_serverlist);
-    serverlist_refresh();
 }
 
 void hud_change(HUD * new) {
@@ -1976,141 +1966,17 @@ HUD hud_ingame = {
 };
 
 /*         HUD_SERVERLIST START        */
-
-static http_t * request_serverlist = NULL;
-static http_t * request_news = NULL;
-static int server_count = 0;
-static int player_count = 0;
-static Server * serverlist;
-
-static int serverlist_con_established;
-
-typedef struct News {
-    Texture * image;
-    char caption[65];
-    char url[129];
-    float tile_size;
-    int color;
-    struct News * next;
-} News;
-
-static News serverlist_news;
-
-static int serverlist_news_exists = 0;
 static char serverlist_input[128];
-
-typedef int (*serverlist_sort)(const Server *, const Server *);
-
-static serverlist_sort hud_serverlist_sort_chosen = NULL;
-bool serverlist_descending = true;
-
-static int hud_serverlist_cmp(const void * a, const void * b) {
-    const Server * A = (const Server*) a;
-    const Server * B = (const Server*) b;
-
-    return serverlist_descending ? hud_serverlist_sort_chosen(A, B) : -hud_serverlist_sort_chosen(A, B);
-}
-
-static void hud_serverlist_sort(serverlist_sort cmp) {
-    if (cmp != hud_serverlist_sort_chosen) {
-        hud_serverlist_sort_chosen = cmp;
-        serverlist_descending      = true;
-    } else serverlist_descending = !serverlist_descending;
-
-    qsort(serverlist, server_count, sizeof(Server), hud_serverlist_cmp);
-}
-
-static int hud_serverlist_sort_default(const void * a, const void * b) {
-    const Server * A = (const Server*) a;
-    const Server * B = (const Server*) b;
-
-    if (strcmp(A->country, "LAN") == 0)
-        return -1;
-
-    if (strcmp(B->country, "LAN") == 0)
-        return 1;
-
-    if (A->current == B->current) {
-        if (A->ping == B->ping)
-            return strcmp(A->name, B->name);
-        else {
-            if (A->ping < 0) return +1;
-            if (B->ping < 0) return -1;
-
-            return A->ping - B->ping;
-        }
-    }
-
-    return B->current - A->current;
-}
-
-static int hud_serverlist_sort_players(const Server * a, const Server * b) {
-    return b->current - a->current;
-}
-
-static int hud_serverlist_sort_name(const Server * a, const Server * b) {
-    return strcmp(a->name, b->name);
-}
-
-static int hud_serverlist_sort_map(const Server * a, const Server * b) {
-    return strcmp(a->map, b->map);
-}
-
-static int hud_serverlist_sort_mode(const Server * a, const Server * b) {
-    return strcmp(a->gamemode, b->gamemode);
-}
-
-static int hud_serverlist_sort_ping(const Server * a, const Server * b) {
-    if (a->ping < 0) return +1;
-    if (b->ping < 0) return -1;
-
-    return a->ping - b->ping;
-}
-
-static void hud_serverlist_pingupdate(void * entry, float time_delta, char * aos) {
-    pthread_mutex_lock(&serverlist_lock);
-    if (!entry) {
-        for (int k = 0; k < server_count; k++)
-            if (!strcmp(serverlist[k].identifier, aos)) {
-                serverlist[k].ping = ceil(time_delta * 1000.0F);
-                break;
-            }
-    } else {
-        serverlist = realloc(serverlist, (++server_count) * sizeof(Server));
-        memcpy(serverlist + server_count - 1, entry, sizeof(Server));
-    }
-
-    qsort(serverlist, server_count, sizeof(Server), hud_serverlist_sort_default);
-    pthread_mutex_unlock(&serverlist_lock);
-}
 
 bool offline = false;
 
 char serverlist_url[] = "http://services.buildandshoot.com/serverlist.json", newslist_url[] = "http://aos.party/bs/news/";
 
 static void serverlist_refresh() {
-    ping_stop();
-    network_disconnect();
     rpc_seti(RPC_VALUE_SLOTS, 0);
 
-    pthread_mutex_lock(&serverlist_lock);
-    player_count = server_count = 0;
-    pthread_mutex_unlock(&serverlist_lock);
-
-    if (!offline) {
-        request_serverlist = http_get(serverlist_url, NULL);
-
-        if (!serverlist_news_exists)
-            request_news = http_get(newslist_url, NULL);
-    }
-
-    serverlist_con_established = request_serverlist != NULL;
     *serverlist_input = 0;
-
-    hud_serverlist_sort_chosen = NULL;
-    serverlist_descending = true;
-
-    ping_start(hud_serverlist_pingupdate);
+    ping_refresh();
 }
 
 static void hud_serverlist_init() {
@@ -2155,7 +2021,8 @@ static void server_c(char * address, char * name, Version version) {
 
 static Texture * hud_serverlist_ui_images(int icon_id, bool * resize) {
     if (icon_id >= 32) {
-        News * current = &serverlist_news;
+        News * current = newslist;
+
         int index = 32;
         while (current) {
             if (index == icon_id)
@@ -2201,8 +2068,12 @@ static int hud_header_render(mu_Context * ctx, float scale, const char * text) {
 
         mu_layout_row(ctx, 4, (int[]) {0.166F * width, 0.166F * width, 0.166F * width, -1}, 0);
 
-        if (hud_render_tab_button(ctx, scale, network_connected ? "Disconnect" : "Servers", &hud_serverlist))
-            if (network_connected) serverlist_refresh();
+        if (hud_render_tab_button(ctx, scale, network_connected ? "Disconnect" : "Servers", &hud_serverlist)) {
+            if (network_connected) {
+                serverlist_refresh();
+                network_disconnect();
+            }
+        }
 
         hud_render_tab_button(ctx, scale, "Settings", &hud_settings);
         hud_render_tab_button(ctx, scale, "Controls", &hud_controls);
@@ -2218,13 +2089,20 @@ static int hud_header_render(mu_Context * ctx, float scale, const char * text) {
     return retval;
 }
 
-static void hud_sort_button_render(mu_Context * ctx, float scale, const char * name, serverlist_sort cmp) {
-    if (hud_serverlist_sort_chosen == cmp)
+static void hud_sort_button_render(mu_Context * ctx, float scale, const char * name, ServerlistComparator cmp) {
+    if (serverlist_comparator == cmp)
         mu_text_color(ctx, 255, 255, 0);
 
     if (mu_button_ex(ctx, name, 0, MU_OPT_ALIGNCENTER)) {
         pthread_mutex_lock(&serverlist_lock);
-        hud_serverlist_sort(cmp);
+
+        if (cmp != serverlist_comparator) {
+            serverlist_comparator = cmp;
+            serverlist_descending = true;
+        } else serverlist_descending = !serverlist_descending;
+
+        serverlist_sort();
+
         pthread_mutex_unlock(&serverlist_lock);
     }
 
@@ -2241,13 +2119,14 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
     if (hud_header_render(ctx, scale, total_str)) {
         mu_layout_row(ctx, 1, (int[]) {-1}, settings.window_height * 0.3F);
 
-        if (serverlist_news_exists && settings.show_news) {
+        if (newslist != NULL && settings.show_news) {
             mu_begin_panel(ctx, "News");
             mu_layout_row(ctx, 0, NULL, 0);
 
-            News * current = &serverlist_news;
+            News * current = newslist;
             int index = 0;
-            while (current) {
+
+            while (current != NULL) {
                 mu_layout_begin_column(ctx);
                 float size = settings.window_height * 0.3F - ctx->text_height(ctx->style->font) * 4.125F;
                 mu_layout_row(ctx, 1, (int[]) {size * current->tile_size}, size);
@@ -2279,7 +2158,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
         if (mu_button_ex(ctx, "Join", 0, MU_OPT_ALIGNCENTER))
             join_address = serverlist_input;
 
-        if (mu_button_ex(ctx, "Refresh", 0, MU_OPT_ALIGNCENTER) && !request_serverlist)
+        if (mu_button_ex(ctx, "Refresh", 0, MU_OPT_ALIGNCENTER))
             serverlist_refresh();
 
         mu_layout_row(ctx, 1, (int[]) {-1}, -1);
@@ -2290,11 +2169,11 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
         int flag_width = ctx->style->size.y + ctx->style->padding * 2;
         mu_layout_row(ctx, 5, (int[]) {0.12F * width, 0.415F * width, 0.22F * width, 0.12F * width, -1}, 0);
 
-        hud_sort_button_render(ctx, scale, "Players", hud_serverlist_sort_players);
-        hud_sort_button_render(ctx, scale, "Name",    hud_serverlist_sort_name);
-        hud_sort_button_render(ctx, scale, "Map",     hud_serverlist_sort_map);
-        hud_sort_button_render(ctx, scale, "Mode",    hud_serverlist_sort_mode);
-        hud_sort_button_render(ctx, scale, "Ping",    hud_serverlist_sort_ping);
+        hud_sort_button_render(ctx, scale, "Players", serverlist_sort_players);
+        hud_sort_button_render(ctx, scale, "Name",    serverlist_sort_name);
+        hud_sort_button_render(ctx, scale, "Map",     serverlist_sort_map);
+        hud_sort_button_render(ctx, scale, "Mode",    serverlist_sort_mode);
+        hud_sort_button_render(ctx, scale, "Ping",    serverlist_sort_ping);
 
         mu_layout_row(ctx, 6,
                       (int[]) {0.12F * width, flag_width, 0.415F * width - flag_width - ctx->style->spacing * 2,
@@ -2302,23 +2181,24 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
                       0);
 
         pthread_mutex_lock(&serverlist_lock);
+
         if (server_count > 0) {
             for (int k = 0; k < server_count; k++) {
-                if (strstr(serverlist[k].name, serverlist_input) || strstr(serverlist[k].identifier, serverlist_input)
-                 || strstr(serverlist[k].map, serverlist_input)  || strstr(serverlist[k].gamemode, serverlist_input)) {
-                    int f = ((serverlist[k].current && serverlist[k].current < serverlist[k].max)
-                             || serverlist[k].current < 0) ? 1 : 2;
+                if (strstr(serverlist[k]->name, serverlist_input) || strstr(serverlist[k]->identifier, serverlist_input)
+                 || strstr(serverlist[k]->map,  serverlist_input) || strstr(serverlist[k]->gamemode,   serverlist_input)) {
+                    bool shadowed = serverlist[k]->current <= 0 || serverlist[k]->max <= serverlist[k]->current;
+                    int f = shadowed ? 2 : 1;
 
-                    if (serverlist[k].current >= 0)
-                        sprintf(total_str, "%i/%i", serverlist[k].current, serverlist[k].max);
+                    if (serverlist[k]->current >= 0)
+                        sprintf(total_str, "%i/%i", serverlist[k]->current, serverlist[k]->max);
                     else
                         strcpy(total_str, "-");
 
-                    mu_push_id(ctx, &serverlist[k].identifier, strlen(serverlist[k].identifier));
+                    mu_push_id(ctx, serverlist[k], sizeof(ServerEntry *));
 
                     bool join = false;
 
-                    float ratio = ((float) serverlist[k].current) / ((float) serverlist[k].max);
+                    float ratio = ((float) serverlist[k]->current) / ((float) serverlist[k]->max);
 
                     if (ratio >= 1.0)
                         mu_text_color(ctx, 255 / f, 0, 0);
@@ -2332,48 +2212,53 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
 
                     mu_text_color(ctx, 230 / f, 230 / f, 230 / f);
 
-                    if (mu_button_ex(ctx, "", texture_flag_index(serverlist[k].country) + HUD_FLAG_INDEX_START,
+                    if (mu_button_ex(ctx, "", texture_flag_index(serverlist[k]->country) + HUD_FLAG_INDEX_START,
                                     MU_OPT_NOFRAME))
                         join = true;
 
-                    if (mu_button_ex(ctx, serverlist[k].name, 0, MU_OPT_NOFRAME))
+                    if (mu_button_ex(ctx, serverlist[k]->name, 0, MU_OPT_NOFRAME))
                         join = true;
 
-                    if (mu_button_ex(ctx, serverlist[k].map, 0, MU_OPT_NOFRAME))
+                    if (mu_button_ex(ctx, serverlist[k]->map, 0, MU_OPT_NOFRAME))
                         join = true;
 
-                    if (mu_button_ex(ctx, serverlist[k].gamemode, 0, MU_OPT_NOFRAME | MU_OPT_ALIGNCENTER))
+                    if (mu_button_ex(ctx, serverlist[k]->gamemode, 0, MU_OPT_NOFRAME | MU_OPT_ALIGNCENTER))
                         join = true;
 
-                    if (serverlist[k].ping >= 0) {
-                        if (serverlist[k].ping < 110)
+                    if (serverlist[k]->ping >= 0) {
+                        if (serverlist[k]->ping < 110)
                             mu_text_color(ctx, 0, 255 / f, 0);
-                        else if (serverlist[k].ping < 200)
+                        else if (serverlist[k]->ping < 200)
                             mu_text_color(ctx, 255 / f, 255 / f, 0);
                         else
                             mu_text_color(ctx, 255 / f, 0, 0);
                     }
 
-                    sprintf(total_str, "%i", serverlist[k].ping);
-                    if (mu_button_ex(ctx, (serverlist[k].ping >= 0) ? total_str : "?", 0,
+                    sprintf(total_str, "%i", serverlist[k]->ping);
+                    if (mu_button_ex(ctx, (serverlist[k]->ping >= 0) ? total_str : "?", 0,
                                     MU_OPT_NOFRAME | MU_OPT_ALIGNCENTER))
                         join = true;
 
                     mu_pop_id(ctx);
 
                     if (join) {
-                        join_address = serverlist[k].identifier;
-                        join_name    = serverlist[k].name;
-                        join_version = serverlist[k].version;
+                        join_address = serverlist[k]->identifier;
+                        join_name    = serverlist[k]->name;
+                        join_version = serverlist[k]->version;
                     }
                 }
             }
         } else {
             mu_layout_row(ctx, 1, (int[]) {-1}, 0);
-            mu_button_ex(ctx, "Fetching servers...", 0, MU_OPT_NOFRAME | MU_OPT_ALIGNCENTER);
+
+            const char * status = ping_status();
+
+            if (status != NULL)
+                mu_button_ex(ctx, status, 0, MU_OPT_NOFRAME | MU_OPT_ALIGNCENTER);
         }
 
         pthread_mutex_unlock(&serverlist_lock);
+
         mu_text_color_default(ctx);
         mu_end_panel(ctx);
 
@@ -2408,121 +2293,6 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
             if (mu_button(ctx, "Close")) hud_serverlist_popup = NULL;
 
             mu_end_window(ctx);
-        }
-    }
-
-    if (request_news) {
-        switch (http_process(request_news)) {
-            case HTTP_STATUS_COMPLETED: {
-                JSON_Value * js = json_parse_string(request_news->response_data);
-                JSON_Array * news = json_value_get_array(js);
-                int news_entries = json_array_get_count(news);
-
-                News * current = &serverlist_news;
-                memset(current, 0, sizeof(News));
-
-                for (int k = 0; k < news_entries; k++) {
-                    JSON_Object * s = json_array_get_object(news, k);
-                    if (json_object_get_string(s, "caption"))
-                        strncpy(current->caption, json_object_get_string(s, "caption"), sizeof(current->caption) - 1);
-
-                    if (json_object_get_string(s, "url"))
-                        strncpy(current->url, json_object_get_string(s, "url"), sizeof(current->url) - 1);
-
-                    current->tile_size = json_object_get_number(s, "tilesize");
-                    current->color     = json_object_get_number(s, "color");
-                    current->image     = NULL;
-
-                    if (json_object_get_string(s, "image")) {
-                        char * img = (char *) json_object_get_string(s, "image");
-                        size_t imglen = strlen(img);
-
-                        if (imglen > 0) {
-                            int size = base64_decode(img, imglen);
-
-                            unsigned char * buffer; unsigned int width, height;
-                            lodepng_decode32(&buffer, &width, &height, (uint8_t *) img, size);
-
-                            current->image = texture_alloc();
-                            texture_create_buffer(current->image, "image", width, height, buffer, 1);
-                            texture_filter(current->image, TEXTURE_FILTER_LINEAR);
-                        }
-                    }
-
-                    current->next = (k < news_entries - 1) ? malloc(sizeof(News)) : NULL;
-                    current = current->next;
-                }
-
-                json_value_free(js);
-                http_release(request_news);
-                serverlist_news_exists = 1;
-                request_news = NULL;
-                break;
-            }
-
-            case HTTP_STATUS_FAILED: {
-                http_release(request_news);
-                request_news = NULL;
-                break;
-            }
-
-            default: break;
-        }
-    }
-
-    if (request_serverlist) {
-        switch (http_process(request_serverlist)) {
-            case HTTP_STATUS_PENDING: break;
-
-            case HTTP_STATUS_COMPLETED: {
-                JSON_Value * js = json_parse_string(request_serverlist->response_data);
-                JSON_Array * servers = json_value_get_array(js);
-
-                pthread_mutex_lock(&serverlist_lock);
-
-                int begin = server_count; server_count += json_array_get_count(servers);
-                serverlist = realloc(serverlist, server_count * sizeof(Server));
-                CHECK_ALLOCATION_ERROR(serverlist)
-
-                player_count = 0;
-                for (int k = begin; k < server_count; k++) {
-                    JSON_Object * s = json_array_get_object(servers, k - begin);
-                    memset(&serverlist[k], 0, sizeof(Server));
-
-                    serverlist[k].current = (int) json_object_get_number(s, "players_current");
-                    serverlist[k].max     = (int) json_object_get_number(s, "players_max");
-                    serverlist[k].ping    = -1;
-
-                    strnzcpy(serverlist[k].name,       json_object_get_string(s, "name"),       sizeof(serverlist[k].name));
-                    strnzcpy(serverlist[k].map,        json_object_get_string(s, "map"),        sizeof(serverlist[k].map));
-                    strnzcpy(serverlist[k].gamemode,   json_object_get_string(s, "game_mode"),  sizeof(serverlist[k].gamemode));
-                    strnzcpy(serverlist[k].identifier, json_object_get_string(s, "identifier"), sizeof(serverlist[k].identifier));
-                    strnzcpy(serverlist[k].country,    json_object_get_string(s, "country"),    sizeof(serverlist[k].country));
-
-                    serverlist[k].version = json_get_game_version(s);
-
-                    Address addr;
-
-                    if (network_identifier_split(serverlist[k].identifier, &addr))
-                        ping_check(addr.ip, addr.port, serverlist[k].identifier);
-
-                    player_count += serverlist[k].current;
-                }
-
-                qsort(serverlist, server_count, sizeof(Server), hud_serverlist_sort_default);
-                pthread_mutex_unlock(&serverlist_lock);
-
-                http_release(request_serverlist);
-                json_value_free(js);
-                request_serverlist = NULL;
-                break;
-            }
-
-            case HTTP_STATUS_FAILED: {
-                http_release(request_serverlist);
-                serverlist_refresh();
-                break;
-            }
         }
     }
 

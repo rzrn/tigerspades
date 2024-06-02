@@ -154,206 +154,204 @@ static void hud_ingame_render3D() {
     matrix_identity(matrix_view);
     matrix_upload_p();
 
-    {
-        if (camera.mode == CAMERAMODE_FPS && players[local_player.id].items_show) {
-            static kv6 * const model_spade = &model[MODEL_SPADE];
+    if (camera.mode == CAMERAMODE_FPS && players[local_player.id].items_show) {
+        static kv6 * const model_spade = &model[MODEL_SPADE];
 
-            players[local_player.id].input.buttons &= MASKOFF(BUTTON_SECONDARY);
+        players[local_player.id].input.buttons &= MASKOFF(BUTTON_SECONDARY);
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_SPADE) * 0.5F,
+                         -6.0F);
+        matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
+        matrix_translate(matrix_model, (model_spade->xpiv - model_spade->xsiz / 2) * 0.05F,
+                         (model_spade->zpiv - model_spade->zsiz / 2) * 0.05F,
+                         (model_spade->ypiv - model_spade->ysiz / 2) * 0.05F);
+
+        if (players[local_player.id].held_item == TOOL_SPADE)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        matrix_upload();
+        kv6_render(model_spade, players[local_player.id].team);
+
+        if (local_player.blocks > 0) {
+            static kv6 * const model_block = &model[MODEL_BLOCK];
 
             matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_SPADE) * 0.5F,
-                             -6.0F);
+            matrix_translate(matrix_model, -2.25F,
+                             -1.5F - (players[local_player.id].held_item == TOOL_BLOCK) * 0.5F, -6.0F);
+            matrix_translate(matrix_model, 1.5F, 0.0F, 0.0F);
             matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
-            matrix_translate(matrix_model, (model_spade->xpiv - model_spade->xsiz / 2) * 0.05F,
-                             (model_spade->zpiv - model_spade->zsiz / 2) * 0.05F,
-                             (model_spade->ypiv - model_spade->ysiz / 2) * 0.05F);
+            matrix_translate(matrix_model, (model_block->xpiv - model_block->xsiz / 2) * 0.05F,
+                             (model_block->zpiv - model_block->zsiz / 2) * 0.05F,
+                             (model_block->ypiv - model_block->ysiz / 2) * 0.05F);
 
-            if (players[local_player.id].held_item == TOOL_SPADE)
+            if (players[local_player.id].held_item == TOOL_BLOCK)
+                matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+            model_block->red   = players[local_player.id].block.r / 255.0F;
+            model_block->green = players[local_player.id].block.g / 255.0F;
+            model_block->blue  = players[local_player.id].block.b / 255.0F;
+            matrix_upload();
+
+            kv6_render(model_block, players[local_player.id].team);
+        }
+
+        if (local_player.ammo + local_player.ammo_reserved > 0) {
+            kv6 * gun = weapon_model(players[local_player.id].weapon);
+
+            matrix_identity(matrix_model);
+            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GUN) * 0.5F,
+                             -6.0F);
+            matrix_translate(matrix_model, 3.0F, 0.0F, 0.0F);
+            matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
+            matrix_translate(matrix_model, (gun->xpiv - gun->xsiz / 2) * 0.05F, (gun->zpiv - gun->zsiz / 2) * 0.05F,
+                             (gun->ypiv - gun->ysiz / 2) * 0.05F);
+
+            if (players[local_player.id].held_item == TOOL_GUN)
                 matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
 
             matrix_upload();
-            kv6_render(model_spade, players[local_player.id].team);
-
-            if (local_player.blocks > 0) {
-                static kv6 * const model_block = &model[MODEL_BLOCK];
-
-                matrix_identity(matrix_model);
-                matrix_translate(matrix_model, -2.25F,
-                                 -1.5F - (players[local_player.id].held_item == TOOL_BLOCK) * 0.5F, -6.0F);
-                matrix_translate(matrix_model, 1.5F, 0.0F, 0.0F);
-                matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
-                matrix_translate(matrix_model, (model_block->xpiv - model_block->xsiz / 2) * 0.05F,
-                                 (model_block->zpiv - model_block->zsiz / 2) * 0.05F,
-                                 (model_block->ypiv - model_block->ysiz / 2) * 0.05F);
-
-                if (players[local_player.id].held_item == TOOL_BLOCK)
-                    matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
-
-                model_block->red   = players[local_player.id].block.r / 255.0F;
-                model_block->green = players[local_player.id].block.g / 255.0F;
-                model_block->blue  = players[local_player.id].block.b / 255.0F;
-                matrix_upload();
-
-                kv6_render(model_block, players[local_player.id].team);
-            }
-
-            if (local_player.ammo + local_player.ammo_reserved > 0) {
-                kv6 * gun = weapon_model(players[local_player.id].weapon);
-
-                matrix_identity(matrix_model);
-                matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GUN) * 0.5F,
-                                 -6.0F);
-                matrix_translate(matrix_model, 3.0F, 0.0F, 0.0F);
-                matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
-                matrix_translate(matrix_model, (gun->xpiv - gun->xsiz / 2) * 0.05F, (gun->zpiv - gun->zsiz / 2) * 0.05F,
-                                 (gun->ypiv - gun->ysiz / 2) * 0.05F);
-
-                if (players[local_player.id].held_item == TOOL_GUN)
-                    matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
-
-                matrix_upload();
-                kv6_render(gun, players[local_player.id].team);
-            }
-
-            if (local_player.grenades > 0) {
-                static kv6 * const model_grenade = &model[MODEL_GRENADE];
-
-                matrix_identity(matrix_model);
-                matrix_translate(matrix_model, -2.25F,
-                                 -1.5F - (players[local_player.id].held_item == TOOL_GRENADE) * 0.5F, -6.0F);
-                matrix_translate(matrix_model, 4.5F, 0.0F, 0.0F);
-                matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
-                matrix_translate(matrix_model, (model_grenade->xpiv - model_grenade->xsiz / 2) * 0.05F,
-                                 (model_grenade->zpiv - model_grenade->zsiz / 2) * 0.05F,
-                                 (model_grenade->ypiv - model_grenade->ysiz / 2) * 0.05F);
-
-                if (players[local_player.id].held_item == TOOL_GRENADE)
-                    matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
-
-                matrix_upload();
-                kv6_render(model_grenade, players[local_player.id].team);
-            }
+            kv6_render(gun, players[local_player.id].team);
         }
 
-        if (screen_current == SCREEN_TEAM_SELECT) {
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -1.4F, -2.0F, -3.0F);
-            matrix_rotate(matrix_model, -90.0F + 22.5F, 0.0F, 1.0F, 0.0F);
-            matrix_upload();
-            Player p_hud;
-            memset(&p_hud, 0, sizeof(Player));
-            p_hud.spade_use_timer    = FLT_MAX;
-            p_hud.input.keys         = 0;
-            p_hud.input.buttons      = 0;
-            p_hud.held_item          = TOOL_SPADE;
-            p_hud.physics.eye.x      = p_hud.pos.x = 0;
-            p_hud.physics.eye.y      = p_hud.pos.y = 0;
-            p_hud.physics.eye.z      = p_hud.pos.z = 0;
-            p_hud.physics.velocity.x = 0.0F;
-            p_hud.physics.velocity.y = 0.0F;
-            p_hud.physics.velocity.z = 0.0F;
-            p_hud.orientation.x = p_hud.orientation_smooth.x = 1.0F;
-            p_hud.orientation.y = p_hud.orientation_smooth.y = 0.0F;
-            p_hud.orientation.z = p_hud.orientation_smooth.z = 0.0F;
-            p_hud.alive = 1;
+        if (local_player.grenades > 0) {
+            static kv6 * const model_grenade = &model[MODEL_GRENADE];
 
-            p_hud.team = TEAM_1;
-            player_render(&p_hud, PLAYERS_MAX);
             matrix_identity(matrix_model);
-            matrix_translate(matrix_model, 1.4F, -2.0F, -3.0F);
-            matrix_rotate(matrix_model, -90.0F - 22.5F, 0.0F, 1.0F, 0.0F);
+            matrix_translate(matrix_model, -2.25F,
+                             -1.5F - (players[local_player.id].held_item == TOOL_GRENADE) * 0.5F, -6.0F);
+            matrix_translate(matrix_model, 4.5F, 0.0F, 0.0F);
+            matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
+            matrix_translate(matrix_model, (model_grenade->xpiv - model_grenade->xsiz / 2) * 0.05F,
+                             (model_grenade->zpiv - model_grenade->zsiz / 2) * 0.05F,
+                             (model_grenade->ypiv - model_grenade->ysiz / 2) * 0.05F);
+
+            if (players[local_player.id].held_item == TOOL_GRENADE)
+                matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
             matrix_upload();
-            p_hud.team = TEAM_2;
-            player_render(&p_hud, PLAYERS_MAX);
+            kv6_render(model_grenade, players[local_player.id].team);
         }
+    }
 
-        if (screen_current == SCREEN_GUN_SELECT) {
-            static kv6 * const model_semi = &model[MODEL_SEMI];
+    if (screen_current == SCREEN_TEAM_SELECT) {
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -1.4F, -2.0F, -3.0F);
+        matrix_rotate(matrix_model, -90.0F + 22.5F, 0.0F, 1.0F, 0.0F);
+        matrix_upload();
+        Player p_hud;
+        memset(&p_hud, 0, sizeof(Player));
+        p_hud.spade_use_timer    = FLT_MAX;
+        p_hud.input.keys         = 0;
+        p_hud.input.buttons      = 0;
+        p_hud.held_item          = TOOL_SPADE;
+        p_hud.physics.eye.x      = p_hud.pos.x = 0;
+        p_hud.physics.eye.y      = p_hud.pos.y = 0;
+        p_hud.physics.eye.z      = p_hud.pos.z = 0;
+        p_hud.physics.velocity.x = 0.0F;
+        p_hud.physics.velocity.y = 0.0F;
+        p_hud.physics.velocity.z = 0.0F;
+        p_hud.orientation.x = p_hud.orientation_smooth.x = 1.0F;
+        p_hud.orientation.y = p_hud.orientation_smooth.y = 0.0F;
+        p_hud.orientation.z = p_hud.orientation_smooth.z = 0.0F;
+        p_hud.alive = 1;
 
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -1.5F, -1.25F, -3.25F);
-            matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
-            matrix_translate(matrix_model, (model_semi->xpiv - model_semi->xsiz / 2.0F) * model_semi->scale,
-                             (model_semi->zpiv - model_semi->zsiz / 2.0F) * model_semi->scale,
-                             (model_semi->ypiv - model_semi->ysiz / 2.0F) * model_semi->scale);
-            matrix_upload();
-            kv6_render(model_semi, TEAM_SPECTATOR);
+        p_hud.team = TEAM_1;
+        player_render(&p_hud, PLAYERS_MAX);
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, 1.4F, -2.0F, -3.0F);
+        matrix_rotate(matrix_model, -90.0F - 22.5F, 0.0F, 1.0F, 0.0F);
+        matrix_upload();
+        p_hud.team = TEAM_2;
+        player_render(&p_hud, PLAYERS_MAX);
+    }
 
-            static kv6 * const model_smg = &model[MODEL_SMG];
+    if (screen_current == SCREEN_GUN_SELECT) {
+        static kv6 * const model_semi = &model[MODEL_SEMI];
 
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, 0.0F, -1.25F, -3.25F);
-            matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
-            matrix_translate(matrix_model, (model_smg->xpiv - model_smg->xsiz / 2.0F) * model_smg->scale,
-                             (model_smg->zpiv - model_smg->zsiz / 2.0F) * model_smg->scale,
-                             (model_smg->ypiv - model_smg->ysiz / 2.0F) * model_smg->scale);
-            matrix_upload();
-            kv6_render(model_smg, TEAM_SPECTATOR);
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -1.5F, -1.25F, -3.25F);
+        matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
+        matrix_translate(matrix_model, (model_semi->xpiv - model_semi->xsiz / 2.0F) * model_semi->scale,
+                         (model_semi->zpiv - model_semi->zsiz / 2.0F) * model_semi->scale,
+                         (model_semi->ypiv - model_semi->ysiz / 2.0F) * model_semi->scale);
+        matrix_upload();
+        kv6_render(model_semi, TEAM_SPECTATOR);
 
-            static kv6 * const model_shotgun = &model[MODEL_SHOTGUN];
+        static kv6 * const model_smg = &model[MODEL_SMG];
 
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, 1.5F, -1.25F, -3.25F);
-            matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
-            matrix_translate(matrix_model, (model_shotgun->xpiv - model_shotgun->xsiz / 2.0F) * model_shotgun->scale,
-                             (model_shotgun->zpiv - model_shotgun->zsiz / 2.0F) * model_shotgun->scale,
-                             (model_shotgun->ypiv - model_shotgun->ysiz / 2.0F) * model_shotgun->scale);
-            matrix_upload();
-            kv6_render(model_shotgun, TEAM_SPECTATOR);
-        }
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, 0.0F, -1.25F, -3.25F);
+        matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
+        matrix_translate(matrix_model, (model_smg->xpiv - model_smg->xsiz / 2.0F) * model_smg->scale,
+                         (model_smg->zpiv - model_smg->zsiz / 2.0F) * model_smg->scale,
+                         (model_smg->ypiv - model_smg->ysiz / 2.0F) * model_smg->scale);
+        matrix_upload();
+        kv6_render(model_smg, TEAM_SPECTATOR);
 
-        kv6 * rotating_model = NULL;
-        int rotating_model_team = TEAM_SPECTATOR;
-        if (gamestate.gamemode_type == GAMEMODE_CTF) {
-            switch (players[local_player.id].team) {
-                case TEAM_1: {
-                    if (HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL)
-                    && (gamestate.gamemode.ctf.team_2_intel_location.held == local_player.id)) {
-                        rotating_model      = &model[MODEL_INTEL];
-                        rotating_model_team = TEAM_2;
-                    }
-                    break;
+        static kv6 * const model_shotgun = &model[MODEL_SHOTGUN];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, 1.5F, -1.25F, -3.25F);
+        matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
+        matrix_translate(matrix_model, (model_shotgun->xpiv - model_shotgun->xsiz / 2.0F) * model_shotgun->scale,
+                         (model_shotgun->zpiv - model_shotgun->zsiz / 2.0F) * model_shotgun->scale,
+                         (model_shotgun->ypiv - model_shotgun->ysiz / 2.0F) * model_shotgun->scale);
+        matrix_upload();
+        kv6_render(model_shotgun, TEAM_SPECTATOR);
+    }
+
+    kv6 * rotating_model = NULL;
+    int rotating_model_team = TEAM_SPECTATOR;
+    if (gamestate.gamemode_type == GAMEMODE_CTF) {
+        switch (players[local_player.id].team) {
+            case TEAM_1: {
+                if (HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL)
+                && (gamestate.gamemode.ctf.team_2_intel_location.held == local_player.id)) {
+                    rotating_model      = &model[MODEL_INTEL];
+                    rotating_model_team = TEAM_2;
                 }
+                break;
+            }
 
-                case TEAM_2: {
-                    if (HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL)
-                    && (gamestate.gamemode.ctf.team_1_intel_location.held == local_player.id)) {
-                        rotating_model      = &model[MODEL_INTEL];
-                        rotating_model_team = TEAM_1;
-                    }
-                    break;
+            case TEAM_2: {
+                if (HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL)
+                && (gamestate.gamemode.ctf.team_1_intel_location.held == local_player.id)) {
+                    rotating_model      = &model[MODEL_INTEL];
+                    rotating_model_team = TEAM_1;
                 }
+                break;
             }
         }
+    }
 
-        if (gamestate.gamemode_type == GAMEMODE_TC) {
-            for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++) {
-                float n = norm3f(gamestate.gamemode.tc.territory[k].pos.x,
-                                 63.0F - gamestate.gamemode.tc.territory[k].pos.z,
-                                 gamestate.gamemode.tc.territory[k].pos.y,
-                                 players[local_player.id].pos.x,
-                                 players[local_player.id].pos.y,
-                                 players[local_player.id].pos.z);
+    if (gamestate.gamemode_type == GAMEMODE_TC) {
+        for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++) {
+            float n = norm3f(gamestate.gamemode.tc.territory[k].pos.x,
+                             63.0F - gamestate.gamemode.tc.territory[k].pos.z,
+                             gamestate.gamemode.tc.territory[k].pos.y,
+                             players[local_player.id].pos.x,
+                             players[local_player.id].pos.y,
+                             players[local_player.id].pos.z);
 
-                if (n <= 400.0F) {
-                    rotating_model      = &model[MODEL_TENT];
-                    rotating_model_team = gamestate.gamemode.tc.territory[k].team;
-                    break;
-                }
+            if (n <= 400.0F) {
+                rotating_model      = &model[MODEL_TENT];
+                rotating_model_team = gamestate.gamemode.tc.territory[k].team;
+                break;
             }
         }
+    }
 
-        if (rotating_model) {
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, 0.0F,
-                             -(rotating_model->zsiz * 0.5F + rotating_model->zpiv) * rotating_model->scale, -10.0F);
-            matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
-            matrix_upload();
-            glViewport(-settings.window_width * 0.4F, settings.window_height * 0.2F, settings.window_width,
-                       settings.window_height);
-            kv6_render(rotating_model, rotating_model_team);
-            glViewport(0.0F, 0.0F, settings.window_width, settings.window_height);
-        }
+    if (rotating_model) {
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, 0.0F,
+                         -(rotating_model->zsiz * 0.5F + rotating_model->zpiv) * rotating_model->scale, -10.0F);
+        matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
+        matrix_upload();
+        glViewport(-settings.window_width * 0.4F, settings.window_height * 0.2F, settings.window_width,
+                   settings.window_height);
+        kv6_render(rotating_model, rotating_model_team);
+        glViewport(0.0F, 0.0F, settings.window_width, settings.window_height);
     }
 }
 
@@ -516,661 +514,659 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         glColor3f(1.0F, 1.0F, 1.0F);
     }
 
-    {
-        if (window_key_down(WINDOW_KEY_HIDEHUD))
-            return;
+    if (window_key_down(WINDOW_KEY_TRACE_CLEAN))
+        trajectories_reset();
 
-        if (window_key_down(WINDOW_KEY_TRACE_CLEAN))
-            trajectories_reset();
+    if (window_key_down(WINDOW_KEY_HIDEHUD))
+        return;
 
-        if (screen_current == SCREEN_TEAM_SELECT) {
+    if (screen_current == SCREEN_TEAM_SELECT) {
+        glColor3f(1.0F, 0.0F, 0.0F);
+        char join_str[48];
+
+        sprintf(join_str, "Press 1 to join %s", gamestate.team_1.name);
+        font_centered(settings.window_width / 4.0F, 61 * scale, 1.0F * scale, join_str, ASCII);
+
+        font_centered(settings.window_width / 2.0F, 61 * scale, 1.0F * scale, "Press 2 to spectate", ASCII);
+
+        sprintf(join_str, "Press 3 to join %s", gamestate.team_2.name);
+        font_centered(settings.window_width / 4.0F * 3.0F, 61 * scale, 1.0F * scale, join_str, ASCII);
+        glColor3f(1.0F, 1.0F, 1.0F);
+    }
+
+    if (screen_current == SCREEN_GUN_SELECT) {
+        glColor3f(1.0F, 0.0F, 0.0F);
+        font_centered(settings.window_width / 4.0F * 1.0F, 61 * scale, 1.0F * scale, "Press 1 to select", ASCII);
+        font_centered(settings.window_width / 4.0F * 2.0F, 61 * scale, 1.0F * scale, "Press 2 to select", ASCII);
+        font_centered(settings.window_width / 4.0F * 3.0F, 61 * scale, 1.0F * scale, "Press 3 to select", ASCII);
+        glColor3f(1.0F, 1.0F, 1.0F);
+    }
+
+    if ((window_key_down(WINDOW_KEY_TAB) && chat_input_mode == CHAT_NO_INPUT) || camera.mode == CAMERAMODE_SELECTION) {
+        if (network_connected && network_logged_in) {
+            char ping_str[16];
+            sprintf(ping_str, "Ping: %i ms", network_ping());
+            font_select(FONT_SMALLFNT);
             glColor3f(1.0F, 0.0F, 0.0F);
-            char join_str[48];
-
-            sprintf(join_str, "Press 1 to join %s", gamestate.team_1.name);
-            font_centered(settings.window_width / 4.0F, 61 * scale, 1.0F * scale, join_str, ASCII);
-
-            font_centered(settings.window_width / 2.0F, 61 * scale, 1.0F * scale, "Press 2 to spectate", ASCII);
-
-            sprintf(join_str, "Press 3 to join %s", gamestate.team_2.name);
-            font_centered(settings.window_width / 4.0F * 3.0F, 61 * scale, 1.0F * scale, join_str, ASCII);
-            glColor3f(1.0F, 1.0F, 1.0F);
-        }
-
-        if (screen_current == SCREEN_GUN_SELECT) {
-            glColor3f(1.0F, 0.0F, 0.0F);
-            font_centered(settings.window_width / 4.0F * 1.0F, 61 * scale, 1.0F * scale, "Press 1 to select", ASCII);
-            font_centered(settings.window_width / 4.0F * 2.0F, 61 * scale, 1.0F * scale, "Press 2 to select", ASCII);
-            font_centered(settings.window_width / 4.0F * 3.0F, 61 * scale, 1.0F * scale, "Press 3 to select", ASCII);
-            glColor3f(1.0F, 1.0F, 1.0F);
-        }
-
-        if ((window_key_down(WINDOW_KEY_TAB) && chat_input_mode == CHAT_NO_INPUT) || camera.mode == CAMERAMODE_SELECTION) {
-            if (network_connected && network_logged_in) {
-                char ping_str[16];
-                sprintf(ping_str, "Ping: %i ms", network_ping());
-                font_select(FONT_SMALLFNT);
-                glColor3f(1.0F, 0.0F, 0.0F);
-                font_centered(settings.window_width / 2.0F, settings.window_height * 0.92F, 1.0F * scale, ping_str, ASCII);
-                font_select(FONT_FIXEDSYS);
-            }
-
-            char score_str[8];
-            glColorRGB3i(gamestate.team_1.color);
-
-            switch (gamestate.gamemode_type) {
-                case GAMEMODE_CTF:
-                    sprintf(score_str, "%i/%i", gamestate.gamemode.ctf.team_1_score,
-                            gamestate.gamemode.ctf.capture_limit);
-                    break;
-                case GAMEMODE_TC: {
-                    int t = 0;
-                    for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++)
-                        if (gamestate.gamemode.tc.territory[k].team == TEAM_1)
-                            t++;
-                    sprintf(score_str, "%i/%i", t, gamestate.gamemode.tc.territory_count);
-                    break;
-                }
-            }
-
-            font_centered(settings.window_width * 0.25F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team_1.name, UTF8);
-            font_centered(settings.window_width * 0.25F, settings.window_height - 47 * scale, 3.0F * scale, score_str, ASCII);
-
-            glColorRGB3i(gamestate.team_2.color);
-            switch (gamestate.gamemode_type) {
-                case GAMEMODE_CTF:
-                    sprintf(score_str, "%i/%i", gamestate.gamemode.ctf.team_2_score,
-                            gamestate.gamemode.ctf.capture_limit);
-                    break;
-                case GAMEMODE_TC: {
-                    int t = 0;
-                    for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++)
-                        if (gamestate.gamemode.tc.territory[k].team == TEAM_2)
-                            t++;
-                    sprintf(score_str, "%i/%i", t, gamestate.gamemode.tc.territory_count);
-                    break;
-                }
-            }
-
-            font_centered(settings.window_width * 0.75F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team_2.name, UTF8);
-            font_centered(settings.window_width * 0.75F, settings.window_height - 47 * scale, 3.0F * scale, score_str, ASCII);
-
-            PlayerTable pt[PLAYERS_MAX];
-            int connected = 0;
-            for (int k = 0; k < PLAYERS_MAX; k++) {
-                if (players[k].connected) {
-                    pt[connected].id = k;
-                    pt[connected++].score = players[k].score;
-                }
-            }
-            qsort(pt, connected, sizeof(PlayerTable), playertable_sort);
-
-            int cntt[3] = {0};
-            for (int k = 0; k < connected; k++) {
-                int mul = 0;
-                switch (players[pt[k].id].team) {
-                    case TEAM_1: mul = 1; break;
-                    case TEAM_2: mul = 3; break;
-                    default:
-                    case TEAM_SPECTATOR: mul = 2; break;
-                }
-                if (pt[k].id == local_player.id)
-                    glColor3f(1.0F, 1.0F, 0.0F);
-                else if (!players[pt[k].id].alive)
-                    glColor3f(0.6F, 0.6F, 0.6F);
-                else
-                    glColor3f(1.0F, 1.0F, 1.0F);
-                char id_str[16];
-                sprintf(id_str, "#%i", pt[k].id);
-                if (gamestate.gamemode_type == GAMEMODE_CTF &&
-                      ((HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL) &&
-                        (gamestate.gamemode.ctf.team_1_intel_location.held == pt[k].id)) ||
-                       (HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL) &&
-                        (gamestate.gamemode.ctf.team_2_intel_location.held == pt[k].id)))) {
-                    texture_draw(texture(TEXTURE_INTEL),
-                                 settings.window_width / 4.0F * mul
-                                     - font_length(1.0F * scale, players[pt[k].id].name, UTF8) - 27.0F * scale,
-                                 (427 - 16 * cntt[mul - 1]) * scale, 16.0F * scale, 16.0F * scale);
-                }
-                font_render(settings.window_width / 4.0F * mul - font_length(1.0F * scale, players[pt[k].id].name, UTF8),
-                            (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, players[pt[k].id].name, UTF8);
-                font_render(settings.window_width / 4.0F * mul + 8.82F * scale, (427 - 16 * cntt[mul - 1]) * scale,
-                            1.0F * scale, id_str, ASCII);
-                if (mul != 2) {
-                    sprintf(id_str, "%i", pt[k].score);
-                    font_render(settings.window_width / 4.0F * mul + 44.1F * scale,
-                                (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, id_str, ASCII);
-                }
-                cntt[mul - 1]++;
-            }
-        }
-
-        int is_local = (camera.mode == CAMERAMODE_FPS) || (cameracontroller_bodyview_player == local_player.id);
-        int local_id = (camera.mode == CAMERAMODE_FPS) ? local_player.id : cameracontroller_bodyview_player;
-
-        if (camera.mode == CAMERAMODE_BODYVIEW
-           || (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode)) {
-            if (cameracontroller_bodyview_player != local_player.id) {
-                font_select(FONT_SMALLFNT);
-                switch (players[cameracontroller_bodyview_player].team) {
-                    case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
-                    case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
-                }
-                font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F, 1.0F * scale,
-                              players[cameracontroller_bodyview_player].name, UTF8);
-            }
+            font_centered(settings.window_width / 2.0F, settings.window_height * 0.92F, 1.0F * scale, ping_str, ASCII);
             font_select(FONT_FIXEDSYS);
-            glColor3f(1.0F, 1.0F, 0.0F);
-            font_centered(settings.window_width / 2.0F, settings.window_height, 1.0F * scale,
-                          "Click to switch players", ASCII);
-            if (window_time() - local_player.death_time <= local_player.respawn_time) {
-                glColor3f(1.0F, 0.0F, 0.0F);
-                int cnt = local_player.respawn_time - (int)(window_time() - local_player.death_time);
-                char coin[16];
-                sprintf(coin, "Respawn in %i s", cnt);
-                font_centered(settings.window_width / 2.0F,
-                              48.0F * scale * (cameracontroller_bodyview_mode ? 2.0F : 1.0F), 3.0F * scale, coin, ASCII);
-                if (local_player.respawn_cnt_last != cnt) {
-                    if (cnt < 4)
-                        sound_create(SOUND_LOCAL, sound(cnt == 1 ? SOUND_BEEP1 : SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
-
-                    local_player.respawn_cnt_last = cnt;
-                }
-            }
-            glColor3f(1.0F, 1.0F, 1.0F);
         }
 
-        if (camera.mode == CAMERAMODE_FPS
-           || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
-               && cameracontroller_bodyview_mode)) {
-            glColor3f(1.0F, 1.0F, 1.0F);
+        char score_str[8];
+        glColorRGB3i(gamestate.team_1.color);
 
-            if (players[local_id].held_item == TOOL_GUN &&
-                HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY) &&
-                players[local_id].alive) {
-                Texture * zoom;
-                switch (players[local_id].weapon) {
-                    case WEAPON_RIFLE:   zoom = texture(TEXTURE_ZOOM_SEMI);    break;
-                    case WEAPON_SMG:     zoom = texture(TEXTURE_ZOOM_SMG);     break;
-                    case WEAPON_SHOTGUN: zoom = texture(TEXTURE_ZOOM_SHOTGUN); break;
-                }
-
-                float last_shot = is_local ? weapon_last_shot : players[local_id].gun_shoot_timer;
-                float zoom_factor = fmax(0.25F * (1.0F - ((window_time() - last_shot) / weapon_delay(players[local_id].weapon))) + 1.0F, 1.0F);
-                float aspect_ratio = texture_width(zoom) / texture_height(zoom);
-
-                texture_draw(zoom, (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
-                             settings.window_height * (zoom_factor * 0.5F + 0.5F),
-                             settings.window_height * aspect_ratio * zoom_factor, settings.window_height * zoom_factor);
-                texture_draw_sector(zoom, 0, settings.window_height * (zoom_factor * 0.5F + 0.5F),
-                                    (settings.window_width - settings.window_height * aspect_ratio * zoom_factor)
-                                        / 2.0F,
-                                    settings.window_height * zoom_factor, 0.0F, 0.0F, 1.0F / texture_width(zoom), 1.0F);
-                texture_draw_sector(
-                    zoom, (settings.window_width + settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
-                    settings.window_height * (zoom_factor * 0.5F + 0.5F),
-                    (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
-                    settings.window_height * zoom_factor, (texture_width(zoom) - 1) / texture_width(zoom), 0.0F,
-                    1.0F / texture_width(zoom), 1.0F
-                );
-            } else {
-                texture_draw(
-                    texture(HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1),
-                    (settings.window_width - 32) / 2.0F, (settings.window_height + 32) / 2.0F, 32, 32
-                );
+        switch (gamestate.gamemode_type) {
+            case GAMEMODE_CTF:
+                sprintf(score_str, "%i/%i", gamestate.gamemode.ctf.team_1_score,
+                        gamestate.gamemode.ctf.capture_limit);
+                break;
+            case GAMEMODE_TC: {
+                int t = 0;
+                for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++)
+                    if (gamestate.gamemode.tc.territory[k].team == TEAM_1)
+                        t++;
+                sprintf(score_str, "%i/%i", t, gamestate.gamemode.tc.territory_count);
+                break;
             }
+        }
 
-            if (window_time() - local_player.last_damage_timer <= 0.5F && is_local) {
-                float ang = atan2(players[local_player.id].orientation.z, players[local_player.id].orientation.x)
-                          - atan2(camera.pos.z - local_player.last_damage.z, camera.pos.x - local_player.last_damage.x) + PI;
-                texture_draw_rotated(texture(TEXTURE_INDICATOR), settings.window_width / 2.0F, settings.window_height / 2.0F, 200, 200, ang);
+        font_centered(settings.window_width * 0.25F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team_1.name, UTF8);
+        font_centered(settings.window_width * 0.25F, settings.window_height - 47 * scale, 3.0F * scale, score_str, ASCII);
+
+        glColorRGB3i(gamestate.team_2.color);
+        switch (gamestate.gamemode_type) {
+            case GAMEMODE_CTF:
+                sprintf(score_str, "%i/%i", gamestate.gamemode.ctf.team_2_score,
+                        gamestate.gamemode.ctf.capture_limit);
+                break;
+            case GAMEMODE_TC: {
+                int t = 0;
+                for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++)
+                    if (gamestate.gamemode.tc.territory[k].team == TEAM_2)
+                        t++;
+                sprintf(score_str, "%i/%i", t, gamestate.gamemode.tc.territory_count);
+                break;
             }
+        }
 
-            int health = is_local ? (players[local_id].alive ? local_player.health : 0) : (players[local_id].alive ? 100 : 0);
+        font_centered(settings.window_width * 0.75F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team_2.name, UTF8);
+        font_centered(settings.window_width * 0.75F, settings.window_height - 47 * scale, 3.0F * scale, score_str, ASCII);
 
-            if (health <= 30)
-                glColor3f(1, 0, 0);
-            else
-                glColor3f(1, 1, 1);
+        PlayerTable pt[PLAYERS_MAX];
+        int connected = 0;
+        for (int k = 0; k < PLAYERS_MAX; k++) {
+            if (players[k].connected) {
+                pt[connected].id = k;
+                pt[connected++].score = players[k].score;
+            }
+        }
+        qsort(pt, connected, sizeof(PlayerTable), playertable_sort);
 
-            char hp[4]; sprintf(hp, "%i", health);
-            font_render(8.0F * scale, 32.0F * scale, 2.0F * scale, hp, ASCII);
-
-            char item_mini_str[32]; int off = 0;
-            glColor3f(1.0F, 1.0F, 1.0F);
-
-            switch (players[local_id].held_item) {
+        int cntt[3] = {0};
+        for (int k = 0; k < connected; k++) {
+            int mul = 0;
+            switch (players[pt[k].id].team) {
+                case TEAM_1: mul = 1; break;
+                case TEAM_2: mul = 3; break;
                 default:
-                case TOOL_BLOCK: off = 64 * scale;
-                case TOOL_SPADE:
-                    sprintf(item_mini_str, "%i", is_local ? local_player.blocks : 50);
-                    break;
-                case TOOL_GRENADE:
-                    sprintf(item_mini_str, "%i", is_local ? local_player.grenades : 3);
-                    break;
-                case TOOL_GUN: {
-                    int ammo = is_local ? local_player.ammo : players[local_id].ammo;
-                    int ammo_reserve = is_local ? local_player.ammo_reserved : players[local_id].ammo_reserved;
-                    sprintf(item_mini_str, "%02i/%02i", ammo, ammo_reserve);
-
-                    if (ammo == 0) glColor3f(1.0F, 0.0F, 0.0F);
-                    break;
-                }
+                case TEAM_SPECTATOR: mul = 2; break;
             }
-
-            font_render(settings.window_width - font_length(2.0F * scale, item_mini_str, ASCII) - 8.0F * scale - off, 32.0F * scale, 2.0F * scale, item_mini_str, ASCII);
-
-            glColor3f(1.0F, 1.0F, 1.0F);
-            if (players[local_id].held_item == TOOL_BLOCK) {
-                if (local_player.color[X] >= 0 && local_player.color[Y] >= 0) {
-                    unsigned char g = (((int) (window_time() * 4)) & 1) * 0xFF; glColor3ub(g, g, g);
-                    texture_draw_empty(
-                        settings.window_width + (local_player.color[X] * 8 - 65) * scale,
-                        (65 - local_player.color[Y] * 8) * scale, 8 * scale, 8 * scale
-                    );
-                }
-
+            if (pt[k].id == local_player.id)
+                glColor3f(1.0F, 1.0F, 0.0F);
+            else if (!players[pt[k].id].alive)
+                glColor3f(0.6F, 0.6F, 0.6F);
+            else
                 glColor3f(1.0F, 1.0F, 1.0F);
-
-                texture_draw(texture_color_selection, settings.window_width - 64 * scale, 64 * scale, 64 * scale, 64 * scale);
+            char id_str[16];
+            sprintf(id_str, "#%i", pt[k].id);
+            if (gamestate.gamemode_type == GAMEMODE_CTF &&
+                  ((HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL) &&
+                    (gamestate.gamemode.ctf.team_1_intel_location.held == pt[k].id)) ||
+                   (HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL) &&
+                    (gamestate.gamemode.ctf.team_2_intel_location.held == pt[k].id)))) {
+                texture_draw(texture(TEXTURE_INTEL),
+                             settings.window_width / 4.0F * mul
+                                 - font_length(1.0F * scale, players[pt[k].id].name, UTF8) - 27.0F * scale,
+                             (427 - 16 * cntt[mul - 1]) * scale, 16.0F * scale, 16.0F * scale);
             }
+            font_render(settings.window_width / 4.0F * mul - font_length(1.0F * scale, players[pt[k].id].name, UTF8),
+                        (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, players[pt[k].id].name, UTF8);
+            font_render(settings.window_width / 4.0F * mul + 8.82F * scale, (427 - 16 * cntt[mul - 1]) * scale,
+                        1.0F * scale, id_str, ASCII);
+            if (mul != 2) {
+                sprintf(id_str, "%i", pt[k].score);
+                font_render(settings.window_width / 4.0F * mul + 44.1F * scale,
+                            (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, id_str, ASCII);
+            }
+            cntt[mul - 1]++;
         }
+    }
 
-        if (camera.mode != CAMERAMODE_SELECTION) {
-            int chat_y = 8 * 18.0F * scale;
+    int is_local = (camera.mode == CAMERAMODE_FPS) || (cameracontroller_bodyview_player == local_player.id);
+    int local_id = (camera.mode == CAMERAMODE_FPS) ? local_player.id : cameracontroller_bodyview_player;
 
+    if (camera.mode == CAMERAMODE_BODYVIEW
+       || (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode)) {
+        if (cameracontroller_bodyview_player != local_player.id) {
             font_select(FONT_SMALLFNT);
-
-            if (settings.chat_shadow) {
-                float chat_width = 0;
-                int chat_height = 0;
-                for (int k = 0; k < 6; k++) {
-                    if ((window_time() - chat_timer[0][k + 1] < 10.0F || chat_input_mode != CHAT_NO_INPUT)
-                       && strlen(chat[0][k + 1]) > 0) {
-                        chat_width = fmaxf(font_length(1.0F * scale, chat[0][k + 1], UTF8), chat_width);
-                        chat_height = k + 1;
-                    }
-                }
-
-                if (chat_input_mode != CHAT_NO_INPUT) {
-                    chat_height += 2;
-                    chat_width = fmaxf(
-                        font_length(1.0F * scale, chat[0][0], UTF8),
-                        fmaxf(settings.window_width / 2.0F, chat_width)
-                    );
-                }
-
-                if (chat_height > 0) {
-                    glColor4f(0, 0, 0, 0.5F);
-                    glEnable(GL_BLEND);
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                    if (chat_input_mode == CHAT_NO_INPUT) {
-                        texture_draw_empty(3.0F * scale, chat_y,
-                                           chat_width + 16.0F * scale, 18.0F * scale * chat_height);
-                    } else {
-                        texture_draw_empty(3.0F * scale, chat_y + 36.0F * scale,
-                                           chat_width + 16.0F * scale, 18.0F * scale * chat_height);
-                    }
-                    glDisable(GL_BLEND);
-                }
-            }
-
-            glColor3f(1.0F, 1.0F, 1.0F);
-
-            if (chat_input_mode != CHAT_NO_INPUT) {
-                switch (chat_input_mode) {
-                    case CHAT_ALL_INPUT:
-                        font_render(11.0F * scale, chat_y + 36.0F * scale, 1.0F * scale,
-                                    "Global:", ASCII);
-                        break;
-                    case CHAT_TEAM_INPUT:
-                        font_render(11.0F * scale, chat_y + 36.0F * scale, 1.0F * scale,
-                                    "Team:", ASCII);
-                        break;
-                }
-                int l = strlen(chat[0][0]);
-                chat[0][0][l] = '_';
-                chat[0][0][l + 1] = 0;
-
-                font_render(11.0F * scale, chat_y + 18.0F * scale, 1.0F * scale, chat[0][0], UTF8);
-                chat[0][0][l] = 0;
-            }
-
-            float top = settings.window_height - 11.0F * scale;
-
-            if (window_key_down(WINDOW_KEY_DEBUG)) {
-                char buff[64]; FontType old = font_select(FONT_SMALLFNT);
-                glColor3f(1.0F, 1.0F, 1.0F);
-
-                sprintf(buff, "TigerSpades %s (%s)", BETTERSPADES_VERSION, GIT_COMMIT_HASH);
-                font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
-
-                sprintf(buff, "%i ms, %i fps", network_ping(), (int) fps);
-                font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
-
-                Vector3f r = camera.mode == CAMERAMODE_FPS ? players[local_player.id].pos
-                                                           : camera.pos;
-
-                sprintf(buff, "XYZ: %.02f / %.02f / %.02f", r.x, r.y, r.z);
-                font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
-
-                Vector3f o = camera.mode == CAMERAMODE_FPS ? players[local_player.id].orientation
-                                                           : camera_orientation();
-
-                sprintf(buff, "Facing: %.04f / %.04f / %.04f", o.x, o.y, o.z);
-                font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
-
-                sprintf(
-                    buff, "RGB: #%02X%02X%02X",
-                    players[local_player.id].block.r,
-                    players[local_player.id].block.g,
-                    players[local_player.id].block.b
-                );
-                font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
-
-                font_select(old);
-            }
-
-            for (int k = 0; k < 6; k++) {
-                if (window_time() - chat_timer[0][k + 1] < 10.0F || chat_input_mode != CHAT_NO_INPUT) {
-                    glColor3ub(chat_color[0][k + 1].r, chat_color[0][k + 1].g, chat_color[0][k + 1].b);
-
-                    font_render(11.0F * scale, chat_y - 18.0F * scale * k, 1.0F * scale, chat[0][k + 1], UTF8);
-                }
-
-                if (window_time() - chat_timer[1][k + 1] < 10.0F) {
-                    glColor3ub(chat_color[1][k + 1].r, chat_color[1][k + 1].g, chat_color[1][k + 1].b);
-
-                    font_render(11.0F * scale, top - 18.0F * scale * k, 1.0F * scale, chat[1][k + 1], UTF8);
-                }
-            }
-
-            font_select(FONT_FIXEDSYS);
-            glColor3f(1.0F, 1.0F, 1.0F);
-        } else {
-            glColor3f(1.0F, 1.0F, 1.0F);
-            texture_draw(texture(TEXTURE_SPLASH), (settings.window_width - 240 * scale) * 0.5F, settings.window_height - 1 * scale, 240 * scale, 180 * scale);
-            glColor3f(1.0F, 1.0F, 0.0F);
-            font_centered(settings.window_width / 2.0F, settings.window_height - 180 * scale, 2 * scale, "CONTROLS", ASCII);
-            char help_str[2][12][16] = {{"Movement", "Weapons", "Reload", "Jump", "Crouch", "Sneak",
-                                         "Sprint", "Map", "Change Team", "Change Weapon", "Global Chat",
-                                         "Team Chat"},
-                                        {"W S A D", "1-4 / Wheel", "R", "Space", "CTRL", "V",
-                                         "SHIFT", "M", ",", ".", "T", "Y"}};
-
-            for (int k = 0; k < 12; k++) {
-                font_render(settings.window_width / 2.0F - font_length(1.0F * scale, help_str[0][k], ASCII),
-                            settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[0][k], ASCII);
-                font_render(settings.window_width / 2.0F + font_length(1.0F * scale, " ", ASCII),
-                            settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[1][k], ASCII);
-            }
-
-            glColor3f(1.0F, 1.0F, 1.0F);
-        }
-
-        if (gamestate.gamemode_type == GAMEMODE_TC && gamestate.progressbar.tent < gamestate.gamemode.tc.territory_count
-           && gamestate.gamemode.tc.territory[gamestate.progressbar.tent].team
-               != gamestate.progressbar.team_capturing) {
-            float p = clamp(0.0F, 1.0F, gamestate.progressbar.progress + 0.05F * gamestate.progressbar.rate * (window_time() - gamestate.progressbar.update));
-
-            float l = norm3f(gamestate.gamemode.tc.territory[gamestate.progressbar.tent].pos.x,
-                             63.0F - gamestate.gamemode.tc.territory[gamestate.progressbar.tent].pos.z,
-                             gamestate.gamemode.tc.territory[gamestate.progressbar.tent].pos.y,
-                             players[local_player.id].pos.x,
-                             players[local_player.id].pos.y,
-                             players[local_player.id].pos.z);
-
-            if (p < 1.0F && l < 20.0F * 20.0F) {
-                switch (gamestate.gamemode.tc.territory[gamestate.progressbar.tent].team) {
-                    case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
-                    case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
-                    default: glColor3ub(0, 0, 0);
-                }
-                texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F + 440.0F * scale * p,
-                             settings.window_height * 0.25F, 440.0F * scale * (1.0F - p), 20.0F * scale);
-
-                switch (gamestate.progressbar.team_capturing) {
-                    case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
-                    case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
-                    default: glColor3ub(0, 0, 0);
-                }
-                texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F,
-                             settings.window_height * 0.25F, 440.0F * scale * p, 20.0F * scale);
-            }
-        }
-
-        // draw the minimap
-        if (camera.mode != CAMERAMODE_SELECTION) {
-            glColor3f(1.0F, 1.0F, 1.0F);
-            // large
-            if (window_key_down(WINDOW_KEY_MAP)) {
-                float minimap_x = (settings.window_width  - (map_size_x + 1) * scale) / 2.0F;
-                float minimap_y = (settings.window_height - (map_size_z + 1) * scale) / 2.0F + (map_size_z + 1) * scale;
-
-                texture_draw(texture_minimap, minimap_x, minimap_y, 512 * scale, 512 * scale);
-
-                font_select(FONT_SMALLFNT);
-                char c[2] = {0};
-                for (int k = 0; k < 8; k++) {
-                    c[0] = 'A' + k; font_centered(minimap_x + (64 * k + 32) * scale, minimap_y + 16.0F * scale, 1.0F * scale, c, ASCII);
-                    c[0] = '1' + k; font_centered(minimap_x - 8 * scale, minimap_y - (64 * k + 32 - 4) * scale, 1.0F * scale, c, ASCII);
-                }
-                font_select(FONT_FIXEDSYS);
-
-                tracer_minimap(1, scale, minimap_x, minimap_y);
-
-                if (gamestate.gamemode_type == GAMEMODE_CTF) {
-                    if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL)) {
-                        glColorRGB3i(gamestate.team_1.color);
-                        texture_draw_rotated(
-                            texture(TEXTURE_INTEL), minimap_x + gamestate.gamemode.ctf.team_1_intel_location.dropped.x * scale,
-                            minimap_y - gamestate.gamemode.ctf.team_1_intel_location.dropped.y * scale, 16 * scale,
-                            16 * scale, 0.0F
-                        );
-                    }
-
-                    if (map_object_visible(gamestate.gamemode.ctf.team_1_base.x, 0.0F, gamestate.gamemode.ctf.team_1_base.y)) {
-                        glColorRGB3ib(gamestate.team_1.color, 0.94F);
-                        texture_draw_rotated(
-                            texture(TEXTURE_MEDICAL), minimap_x + gamestate.gamemode.ctf.team_1_base.x * scale,
-                            minimap_y - gamestate.gamemode.ctf.team_1_base.y * scale, 16 * scale, 16 * scale, 0.0F
-                        );
-                    }
-
-                    if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL)) {
-                        glColorRGB3i(gamestate.team_2.color);
-                        texture_draw_rotated(
-                            texture(TEXTURE_INTEL), minimap_x + gamestate.gamemode.ctf.team_2_intel_location.dropped.x * scale,
-                            minimap_y - gamestate.gamemode.ctf.team_2_intel_location.dropped.y * scale, 16 * scale, 16 * scale, 0.0F
-                        );
-                    }
-
-                    if (map_object_visible(gamestate.gamemode.ctf.team_2_base.x, 0.0F, gamestate.gamemode.ctf.team_2_base.y)) {
-                        glColorRGB3ib(gamestate.team_2.color, 0.94F);
-                        texture_draw_rotated(
-                            texture(TEXTURE_MEDICAL), minimap_x + gamestate.gamemode.ctf.team_2_base.x * scale,
-                            minimap_y - gamestate.gamemode.ctf.team_2_base.y * scale, 16 * scale, 16 * scale, 0.0F
-                        );
-                    }
-                }
-
-                if (gamestate.gamemode_type == GAMEMODE_TC) {
-                    for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++) {
-                        switch (gamestate.gamemode.tc.territory[k].team) {
-                            case TEAM_1: glColorRGB3ib(gamestate.team_1.color, 0.94F); break;
-                            case TEAM_2: glColorRGB3ib(gamestate.team_2.color, 0.94F); break;
-                            default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
-                        }
-
-                        texture_draw_rotated(
-                            texture(TEXTURE_COMMAND), minimap_x + gamestate.gamemode.tc.territory[k].pos.x * scale,
-                            minimap_y - gamestate.gamemode.tc.territory[k].pos.y * scale, 12 * scale, 12 * scale, 0.0F
-                        );
-                    }
-                }
-
-                for (int k = 0; k < PLAYERS_MAX; k++) {
-                #if HACKS_ENABLED && HACK_MAPHACK
-                    if (players[k].connected && players[k].alive && k != local_player.id)
-                #else
-                    if (players[k].connected && players[k].alive && k != local_player.id && players[k].team != TEAM_SPECTATOR
-                    && (players[k].team == players[local_player.id].team || camera.mode == CAMERAMODE_SPECTATOR))
-                #endif
-                    {
-                        switch (players[k].team) {
-                            case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
-                            case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
-                        }
-                        float ang = -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
-                        texture_draw_rotated(texture(TEXTURE_PLAYER), minimap_x + players[k].pos.x * scale,
-                                             minimap_y - players[k].pos.z * scale, 16 * scale, 16 * scale, ang);
-                    }
-                }
-
-                glColor3f(0.0F, 1.0F, 1.0F);
-                texture_draw_rotated(texture(TEXTURE_PLAYER), minimap_x + camera.pos.x * scale, minimap_y - camera.pos.z * scale,
-                                     16 * scale, 16 * scale, camera.rot.x + PI);
-                glColor3f(1.0F, 1.0F, 1.0F);
-            } else if (settings.show_minimap) {
-                // minimized, top right
-                float view_x = camera.pos.x - 64.0F; // min(max(camera.pos.x-64.0F,0.0F),map_size_x+1-128.0F);
-                float view_z = camera.pos.z - 64.0F; // min(max(camera.pos.z-64.0F,0.0F),map_size_z+1-128.0F);
-
-                switch (players[local_player.id].team) {
-                    case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
-                    case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
-                    case TEAM_SPECTATOR: default: glColor3f(0.0F, 0.0F, 0.0F); // same as chat
-                }
-
-                float minimap_x = settings.window_width - 143 * scale;
-                float minimap_y = settings.window_height - 15 * scale;
-
-                char sector_str[3] = {(int)(camera.pos.x / 64.0F) + 'A', (int)(camera.pos.z / 64.0F) + '1', 0};
-                font_centered(minimap_x + 64 * scale, minimap_y - 129 * scale, 2.0F * scale, sector_str, ASCII);
-
-                glColor3ub(0, 0, 0);
-                texture_draw_empty(minimap_x - 1 * scale, minimap_y + 1 * scale, 130 * scale, 130 * scale);
-                glColor3f(1.0F, 1.0F, 1.0F);
-
-                texture_draw_sector(texture_minimap, minimap_x, minimap_y, 128 * scale,
-                                    128 * scale, (camera.pos.x - 64.0F) / 512.0F, (camera.pos.z - 64.0F) / 512.0F, 0.25F,
-                                    0.25F);
-
-                tracer_minimap(0, scale, view_x, view_z);
-
-                if (gamestate.gamemode_type == GAMEMODE_CTF) {
-                    float tent1_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.ctf.team_1_base.x) - view_x;
-                    float tent1_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.ctf.team_2_base.y) - view_z;
-
-                    float tent2_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.ctf.team_2_base.x) - view_x;
-                    float tent2_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.ctf.team_2_base.y) - view_z;
-
-                    if (map_object_visible(gamestate.gamemode.ctf.team_1_base.x, 0.0F,
-                                           gamestate.gamemode.ctf.team_1_base.y)) {
-                        glColorRGB3ib(gamestate.team_1.color, 0.94F);
-                        texture_draw_rotated(texture(TEXTURE_MEDICAL), minimap_x + tent1_x * scale,
-                                             minimap_y - tent1_y * scale, 16 * scale, 16 * scale, 0.0F);
-                    }
-
-                    if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL)) {
-                        float intel_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.ctf.team_1_intel_location.dropped.x) - view_x;
-                        float intel_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.ctf.team_1_intel_location.dropped.y) - view_z;
-
-                        glColorRGB3i(gamestate.team_1.color);
-                        texture_draw_rotated(texture(TEXTURE_INTEL), minimap_x + intel_x * scale,
-                                             minimap_y - intel_y * scale, 16 * scale, 16 * scale, 0.0F);
-                    }
-
-                    if (map_object_visible(gamestate.gamemode.ctf.team_2_base.x, 0.0F,
-                                          gamestate.gamemode.ctf.team_2_base.y)) {
-                        glColorRGB3ib(gamestate.team_2.color, 0.94F);
-                        texture_draw_rotated(texture(TEXTURE_MEDICAL), minimap_x + tent2_x * scale,
-                                             minimap_y - tent2_y * scale, 16 * scale, 16 * scale, 0.0F);
-                    }
-
-                    if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL)) {
-                        float intel_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.ctf.team_2_intel_location.dropped.x) - view_x;
-                        float intel_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.ctf.team_2_intel_location.dropped.y) - view_z;
-
-                        glColorRGB3i(gamestate.team_2.color);
-                        texture_draw_rotated(texture(TEXTURE_INTEL), minimap_x + intel_x * scale,
-                                             minimap_y - intel_y * scale, 16 * scale, 16 * scale, 0.0F);
-                    }
-                }
-
-                if (gamestate.gamemode_type == GAMEMODE_TC) {
-                    for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++) {
-                        switch (gamestate.gamemode.tc.territory[k].team) {
-                            case TEAM_1: glColorRGB3ib(gamestate.team_1.color, 0.94F); break;
-                            case TEAM_2: glColorRGB3ib(gamestate.team_2.color, 0.94F); break;
-                            default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
-                        }
-
-                        float t_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.tc.territory[k].pos.x) - view_x;
-                        float t_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.tc.territory[k].pos.y) - view_z;
-                        texture_draw_rotated(texture(TEXTURE_COMMAND), minimap_x + t_x * scale,
-                                             minimap_y - t_y * scale, 12 * scale, 12 * scale, 0.0F);
-                    }
-                }
-
-                for (int k = 0; k < PLAYERS_MAX; k++) {
-                #if HACKS_ENABLED && HACK_MAPHACK
-                    if (players[k].connected && players[k].alive)
-                #else
-                    if (players[k].connected && players[k].alive
-                       && (players[k].team == players[local_player.id].team
-                           || (camera.mode == CAMERAMODE_SPECTATOR
-                               && (k == local_player.id || players[k].team != TEAM_SPECTATOR))))
-                #endif
-                    {
-                        if (k == local_player.id) {
-                            glColor3ub(0, 255, 255);
-                        } else {
-                            switch (players[k].team) {
-                                case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
-                                case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
-                            }
-                        }
-
-                        float player_x = ((k == local_player.id) ? camera.pos.x : players[k].pos.x) - view_x;
-                        float player_y = ((k == local_player.id) ? camera.pos.z : players[k].pos.z) - view_z;
-                        if (player_x > 0.0F && player_x < 128.0F && player_y > 0.0F && player_y < 128.0F) {
-                            float ang = (k == local_player.id) ?
-                                camera.rot.x + PI :
-                                -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
-                            texture_draw_rotated(texture(TEXTURE_PLAYER),
-                                                 minimap_x + player_x * scale,
-                                                 minimap_y - player_y * scale, 16 * scale, 16 * scale, ang);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (player_intersection_type >= 0
-           && (players[local_player.id].team == TEAM_SPECTATOR ||
-               players[player_intersection_player].team == players[local_player.id].team)) {
-            font_select(FONT_SMALLFNT);
-
-            char * th[4] = {"torso", "head", "arms", "legs"}; char str[32];
-            switch (players[player_intersection_player].team) {
+            switch (players[cameracontroller_bodyview_player].team) {
                 case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
                 case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
-                default: glColor3f(1.0F, 1.0F, 1.0F);
             }
-            sprintf(str, "%s (%s)", players[player_intersection_player].name, th[player_intersection_type]);
-            font_centered(settings.window_width / 2.0F, settings.window_height * 0.2F, 1.0F * scale, str, UTF8);
-            font_select(FONT_FIXEDSYS);
+            font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F, 1.0F * scale,
+                          players[cameracontroller_bodyview_player].name, UTF8);
+        }
+        font_select(FONT_FIXEDSYS);
+        glColor3f(1.0F, 1.0F, 0.0F);
+        font_centered(settings.window_width / 2.0F, settings.window_height, 1.0F * scale,
+                      "Click to switch players", ASCII);
+        if (window_time() - local_player.death_time <= local_player.respawn_time) {
+            glColor3f(1.0F, 0.0F, 0.0F);
+            int cnt = local_player.respawn_time - (int)(window_time() - local_player.death_time);
+            char coin[16];
+            sprintf(coin, "Respawn in %i s", cnt);
+            font_centered(settings.window_width / 2.0F,
+                          48.0F * scale * (cameracontroller_bodyview_mode ? 2.0F : 1.0F), 3.0F * scale, coin, ASCII);
+            if (local_player.respawn_cnt_last != cnt) {
+                if (cnt < 4)
+                    sound_create(SOUND_LOCAL, sound(cnt == 1 ? SOUND_BEEP1 : SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
+
+                local_player.respawn_cnt_last = cnt;
+            }
+        }
+        glColor3f(1.0F, 1.0F, 1.0F);
+    }
+
+    if (camera.mode == CAMERAMODE_FPS
+       || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
+           && cameracontroller_bodyview_mode)) {
+        glColor3f(1.0F, 1.0F, 1.0F);
+
+        if (players[local_id].held_item == TOOL_GUN &&
+            HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY) &&
+            players[local_id].alive) {
+            Texture * zoom;
+            switch (players[local_id].weapon) {
+                case WEAPON_RIFLE:   zoom = texture(TEXTURE_ZOOM_SEMI);    break;
+                case WEAPON_SMG:     zoom = texture(TEXTURE_ZOOM_SMG);     break;
+                case WEAPON_SHOTGUN: zoom = texture(TEXTURE_ZOOM_SHOTGUN); break;
+            }
+
+            float last_shot = is_local ? weapon_last_shot : players[local_id].gun_shoot_timer;
+            float zoom_factor = fmax(0.25F * (1.0F - ((window_time() - last_shot) / weapon_delay(players[local_id].weapon))) + 1.0F, 1.0F);
+            float aspect_ratio = texture_width(zoom) / texture_height(zoom);
+
+            texture_draw(zoom, (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+                         settings.window_height * (zoom_factor * 0.5F + 0.5F),
+                         settings.window_height * aspect_ratio * zoom_factor, settings.window_height * zoom_factor);
+            texture_draw_sector(zoom, 0, settings.window_height * (zoom_factor * 0.5F + 0.5F),
+                                (settings.window_width - settings.window_height * aspect_ratio * zoom_factor)
+                                    / 2.0F,
+                                settings.window_height * zoom_factor, 0.0F, 0.0F, 1.0F / texture_width(zoom), 1.0F);
+            texture_draw_sector(
+                zoom, (settings.window_width + settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+                settings.window_height * (zoom_factor * 0.5F + 0.5F),
+                (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+                settings.window_height * zoom_factor, (texture_width(zoom) - 1) / texture_width(zoom), 0.0F,
+                1.0F / texture_width(zoom), 1.0F
+            );
+        } else {
+            texture_draw(
+                texture(HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1),
+                (settings.window_width - 32) / 2.0F, (settings.window_height + 32) / 2.0F, 32, 32
+            );
         }
 
-        if (window_time() - chat_popup_timer < chat_popup_duration) {
-            glColor3ub(chat_popup_color.r, chat_popup_color.g, chat_popup_color.b);
-            font_render((settings.window_width - font_length(3.0F * scale, chat_popup, UTF8)) / 2.0F,
-                        settings.window_height * 0.65F, 3.0F * scale, chat_popup, UTF8);
+        if (window_time() - local_player.last_damage_timer <= 0.5F && is_local) {
+            float ang = atan2(players[local_player.id].orientation.z, players[local_player.id].orientation.x)
+                      - atan2(camera.pos.z - local_player.last_damage.z, camera.pos.x - local_player.last_damage.x) + PI;
+            texture_draw_rotated(texture(TEXTURE_INDICATOR), settings.window_width / 2.0F, settings.window_height / 2.0F, 200, 200, ang);
+        }
+
+        int health = is_local ? (players[local_id].alive ? local_player.health : 0) : (players[local_id].alive ? 100 : 0);
+
+        if (health <= 30)
+            glColor3f(1, 0, 0);
+        else
+            glColor3f(1, 1, 1);
+
+        char hp[4]; sprintf(hp, "%i", health);
+        font_render(8.0F * scale, 32.0F * scale, 2.0F * scale, hp, ASCII);
+
+        char item_mini_str[32]; int off = 0;
+        glColor3f(1.0F, 1.0F, 1.0F);
+
+        switch (players[local_id].held_item) {
+            default:
+            case TOOL_BLOCK: off = 64 * scale;
+            case TOOL_SPADE:
+                sprintf(item_mini_str, "%i", is_local ? local_player.blocks : 50);
+                break;
+            case TOOL_GRENADE:
+                sprintf(item_mini_str, "%i", is_local ? local_player.grenades : 3);
+                break;
+            case TOOL_GUN: {
+                int ammo = is_local ? local_player.ammo : players[local_id].ammo;
+                int ammo_reserve = is_local ? local_player.ammo_reserved : players[local_id].ammo_reserved;
+                sprintf(item_mini_str, "%02i/%02i", ammo, ammo_reserve);
+
+                if (ammo == 0) glColor3f(1.0F, 0.0F, 0.0F);
+                break;
+            }
+        }
+
+        font_render(settings.window_width - font_length(2.0F * scale, item_mini_str, ASCII) - 8.0F * scale - off, 32.0F * scale, 2.0F * scale, item_mini_str, ASCII);
+
+        glColor3f(1.0F, 1.0F, 1.0F);
+        if (players[local_id].held_item == TOOL_BLOCK) {
+            if (local_player.color[X] >= 0 && local_player.color[Y] >= 0) {
+                unsigned char g = (((int) (window_time() * 4)) & 1) * 0xFF; glColor3ub(g, g, g);
+                texture_draw_empty(
+                    settings.window_width + (local_player.color[X] * 8 - 65) * scale,
+                    (65 - local_player.color[Y] * 8) * scale, 8 * scale, 8 * scale
+                );
+            }
+
+            glColor3f(1.0F, 1.0F, 1.0F);
+
+            texture_draw(texture_color_selection, settings.window_width - 64 * scale, 64 * scale, 64 * scale, 64 * scale);
+        }
+    }
+
+    if (camera.mode != CAMERAMODE_SELECTION) {
+        int chat_y = 8 * 18.0F * scale;
+
+        font_select(FONT_SMALLFNT);
+
+        if (settings.chat_shadow) {
+            float chat_width = 0;
+            int chat_height = 0;
+            for (int k = 0; k < 6; k++) {
+                if ((window_time() - chat_timer[0][k + 1] < 10.0F || chat_input_mode != CHAT_NO_INPUT)
+                   && strlen(chat[0][k + 1]) > 0) {
+                    chat_width = fmaxf(font_length(1.0F * scale, chat[0][k + 1], UTF8), chat_width);
+                    chat_height = k + 1;
+                }
+            }
+
+            if (chat_input_mode != CHAT_NO_INPUT) {
+                chat_height += 2;
+                chat_width = fmaxf(
+                    font_length(1.0F * scale, chat[0][0], UTF8),
+                    fmaxf(settings.window_width / 2.0F, chat_width)
+                );
+            }
+
+            if (chat_height > 0) {
+                glColor4f(0, 0, 0, 0.5F);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                if (chat_input_mode == CHAT_NO_INPUT) {
+                    texture_draw_empty(3.0F * scale, chat_y,
+                                       chat_width + 16.0F * scale, 18.0F * scale * chat_height);
+                } else {
+                    texture_draw_empty(3.0F * scale, chat_y + 36.0F * scale,
+                                       chat_width + 16.0F * scale, 18.0F * scale * chat_height);
+                }
+                glDisable(GL_BLEND);
+            }
+        }
+
+        glColor3f(1.0F, 1.0F, 1.0F);
+
+        if (chat_input_mode != CHAT_NO_INPUT) {
+            switch (chat_input_mode) {
+                case CHAT_ALL_INPUT:
+                    font_render(11.0F * scale, chat_y + 36.0F * scale, 1.0F * scale,
+                                "Global:", ASCII);
+                    break;
+                case CHAT_TEAM_INPUT:
+                    font_render(11.0F * scale, chat_y + 36.0F * scale, 1.0F * scale,
+                                "Team:", ASCII);
+                    break;
+            }
+            int l = strlen(chat[0][0]);
+            chat[0][0][l] = '_';
+            chat[0][0][l + 1] = 0;
+
+            font_render(11.0F * scale, chat_y + 18.0F * scale, 1.0F * scale, chat[0][0], UTF8);
+            chat[0][0][l] = 0;
+        }
+
+        float top = settings.window_height - 11.0F * scale;
+
+        if (window_key_down(WINDOW_KEY_DEBUG)) {
+            char buff[64]; FontType old = font_select(FONT_SMALLFNT);
+            glColor3f(1.0F, 1.0F, 1.0F);
+
+            sprintf(buff, "TigerSpades %s (%s)", BETTERSPADES_VERSION, GIT_COMMIT_HASH);
+            font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+            sprintf(buff, "%i ms, %i fps", network_ping(), (int) fps);
+            font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+            Vector3f r = camera.mode == CAMERAMODE_FPS ? players[local_player.id].pos
+                                                       : camera.pos;
+
+            sprintf(buff, "XYZ: %.02f / %.02f / %.02f", r.x, r.y, r.z);
+            font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+            Vector3f o = camera.mode == CAMERAMODE_FPS ? players[local_player.id].orientation
+                                                       : camera_orientation();
+
+            sprintf(buff, "Facing: %.04f / %.04f / %.04f", o.x, o.y, o.z);
+            font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+            sprintf(
+                buff, "RGB: #%02X%02X%02X",
+                players[local_player.id].block.r,
+                players[local_player.id].block.g,
+                players[local_player.id].block.b
+            );
+            font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+            font_select(old);
+        }
+
+        for (int k = 0; k < 6; k++) {
+            if (window_time() - chat_timer[0][k + 1] < 10.0F || chat_input_mode != CHAT_NO_INPUT) {
+                glColor3ub(chat_color[0][k + 1].r, chat_color[0][k + 1].g, chat_color[0][k + 1].b);
+
+                font_render(11.0F * scale, chat_y - 18.0F * scale * k, 1.0F * scale, chat[0][k + 1], UTF8);
+            }
+
+            if (window_time() - chat_timer[1][k + 1] < 10.0F) {
+                glColor3ub(chat_color[1][k + 1].r, chat_color[1][k + 1].g, chat_color[1][k + 1].b);
+
+                font_render(11.0F * scale, top - 18.0F * scale * k, 1.0F * scale, chat[1][k + 1], UTF8);
+            }
+        }
+
+        font_select(FONT_FIXEDSYS);
+        glColor3f(1.0F, 1.0F, 1.0F);
+    } else {
+        glColor3f(1.0F, 1.0F, 1.0F);
+        texture_draw(texture(TEXTURE_SPLASH), (settings.window_width - 240 * scale) * 0.5F, settings.window_height - 1 * scale, 240 * scale, 180 * scale);
+        glColor3f(1.0F, 1.0F, 0.0F);
+        font_centered(settings.window_width / 2.0F, settings.window_height - 180 * scale, 2 * scale, "CONTROLS", ASCII);
+        char help_str[2][12][16] = {{"Movement", "Weapons", "Reload", "Jump", "Crouch", "Sneak",
+                                     "Sprint", "Map", "Change Team", "Change Weapon", "Global Chat",
+                                     "Team Chat"},
+                                    {"W S A D", "1-4 / Wheel", "R", "Space", "CTRL", "V",
+                                     "SHIFT", "M", ",", ".", "T", "Y"}};
+
+        for (int k = 0; k < 12; k++) {
+            font_render(settings.window_width / 2.0F - font_length(1.0F * scale, help_str[0][k], ASCII),
+                        settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[0][k], ASCII);
+            font_render(settings.window_width / 2.0F + font_length(1.0F * scale, " ", ASCII),
+                        settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[1][k], ASCII);
         }
 
         glColor3f(1.0F, 1.0F, 1.0F);
     }
+
+    if (gamestate.gamemode_type == GAMEMODE_TC && gamestate.progressbar.tent < gamestate.gamemode.tc.territory_count
+       && gamestate.gamemode.tc.territory[gamestate.progressbar.tent].team
+           != gamestate.progressbar.team_capturing) {
+        float p = clamp(0.0F, 1.0F, gamestate.progressbar.progress + 0.05F * gamestate.progressbar.rate * (window_time() - gamestate.progressbar.update));
+
+        float l = norm3f(gamestate.gamemode.tc.territory[gamestate.progressbar.tent].pos.x,
+                         63.0F - gamestate.gamemode.tc.territory[gamestate.progressbar.tent].pos.z,
+                         gamestate.gamemode.tc.territory[gamestate.progressbar.tent].pos.y,
+                         players[local_player.id].pos.x,
+                         players[local_player.id].pos.y,
+                         players[local_player.id].pos.z);
+
+        if (p < 1.0F && l < 20.0F * 20.0F) {
+            switch (gamestate.gamemode.tc.territory[gamestate.progressbar.tent].team) {
+                case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
+                case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
+                default: glColor3ub(0, 0, 0);
+            }
+            texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F + 440.0F * scale * p,
+                         settings.window_height * 0.25F, 440.0F * scale * (1.0F - p), 20.0F * scale);
+
+            switch (gamestate.progressbar.team_capturing) {
+                case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
+                case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
+                default: glColor3ub(0, 0, 0);
+            }
+            texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F,
+                         settings.window_height * 0.25F, 440.0F * scale * p, 20.0F * scale);
+        }
+    }
+
+    // draw the minimap
+    if (camera.mode != CAMERAMODE_SELECTION) {
+        glColor3f(1.0F, 1.0F, 1.0F);
+        // large
+        if (window_key_down(WINDOW_KEY_MAP)) {
+            float minimap_x = (settings.window_width  - (map_size_x + 1) * scale) / 2.0F;
+            float minimap_y = (settings.window_height - (map_size_z + 1) * scale) / 2.0F + (map_size_z + 1) * scale;
+
+            texture_draw(texture_minimap, minimap_x, minimap_y, 512 * scale, 512 * scale);
+
+            font_select(FONT_SMALLFNT);
+            char c[2] = {0};
+            for (int k = 0; k < 8; k++) {
+                c[0] = 'A' + k; font_centered(minimap_x + (64 * k + 32) * scale, minimap_y + 16.0F * scale, 1.0F * scale, c, ASCII);
+                c[0] = '1' + k; font_centered(minimap_x - 8 * scale, minimap_y - (64 * k + 32 - 4) * scale, 1.0F * scale, c, ASCII);
+            }
+            font_select(FONT_FIXEDSYS);
+
+            tracer_minimap(1, scale, minimap_x, minimap_y);
+
+            if (gamestate.gamemode_type == GAMEMODE_CTF) {
+                if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL)) {
+                    glColorRGB3i(gamestate.team_1.color);
+                    texture_draw_rotated(
+                        texture(TEXTURE_INTEL), minimap_x + gamestate.gamemode.ctf.team_1_intel_location.dropped.x * scale,
+                        minimap_y - gamestate.gamemode.ctf.team_1_intel_location.dropped.y * scale, 16 * scale,
+                        16 * scale, 0.0F
+                    );
+                }
+
+                if (map_object_visible(gamestate.gamemode.ctf.team_1_base.x, 0.0F, gamestate.gamemode.ctf.team_1_base.y)) {
+                    glColorRGB3ib(gamestate.team_1.color, 0.94F);
+                    texture_draw_rotated(
+                        texture(TEXTURE_MEDICAL), minimap_x + gamestate.gamemode.ctf.team_1_base.x * scale,
+                        minimap_y - gamestate.gamemode.ctf.team_1_base.y * scale, 16 * scale, 16 * scale, 0.0F
+                    );
+                }
+
+                if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL)) {
+                    glColorRGB3i(gamestate.team_2.color);
+                    texture_draw_rotated(
+                        texture(TEXTURE_INTEL), minimap_x + gamestate.gamemode.ctf.team_2_intel_location.dropped.x * scale,
+                        minimap_y - gamestate.gamemode.ctf.team_2_intel_location.dropped.y * scale, 16 * scale, 16 * scale, 0.0F
+                    );
+                }
+
+                if (map_object_visible(gamestate.gamemode.ctf.team_2_base.x, 0.0F, gamestate.gamemode.ctf.team_2_base.y)) {
+                    glColorRGB3ib(gamestate.team_2.color, 0.94F);
+                    texture_draw_rotated(
+                        texture(TEXTURE_MEDICAL), minimap_x + gamestate.gamemode.ctf.team_2_base.x * scale,
+                        minimap_y - gamestate.gamemode.ctf.team_2_base.y * scale, 16 * scale, 16 * scale, 0.0F
+                    );
+                }
+            }
+
+            if (gamestate.gamemode_type == GAMEMODE_TC) {
+                for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++) {
+                    switch (gamestate.gamemode.tc.territory[k].team) {
+                        case TEAM_1: glColorRGB3ib(gamestate.team_1.color, 0.94F); break;
+                        case TEAM_2: glColorRGB3ib(gamestate.team_2.color, 0.94F); break;
+                        default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
+                    }
+
+                    texture_draw_rotated(
+                        texture(TEXTURE_COMMAND), minimap_x + gamestate.gamemode.tc.territory[k].pos.x * scale,
+                        minimap_y - gamestate.gamemode.tc.territory[k].pos.y * scale, 12 * scale, 12 * scale, 0.0F
+                    );
+                }
+            }
+
+            for (int k = 0; k < PLAYERS_MAX; k++) {
+            #if HACKS_ENABLED && HACK_MAPHACK
+                if (players[k].connected && players[k].alive && k != local_player.id)
+            #else
+                if (players[k].connected && players[k].alive && k != local_player.id && players[k].team != TEAM_SPECTATOR
+                && (players[k].team == players[local_player.id].team || camera.mode == CAMERAMODE_SPECTATOR))
+            #endif
+                {
+                    switch (players[k].team) {
+                        case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
+                        case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
+                    }
+                    float ang = -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
+                    texture_draw_rotated(texture(TEXTURE_PLAYER), minimap_x + players[k].pos.x * scale,
+                                         minimap_y - players[k].pos.z * scale, 16 * scale, 16 * scale, ang);
+                }
+            }
+
+            glColor3f(0.0F, 1.0F, 1.0F);
+            texture_draw_rotated(texture(TEXTURE_PLAYER), minimap_x + camera.pos.x * scale, minimap_y - camera.pos.z * scale,
+                                 16 * scale, 16 * scale, camera.rot.x + PI);
+            glColor3f(1.0F, 1.0F, 1.0F);
+        } else if (settings.show_minimap) {
+            // minimized, top right
+            float view_x = camera.pos.x - 64.0F; // min(max(camera.pos.x-64.0F,0.0F),map_size_x+1-128.0F);
+            float view_z = camera.pos.z - 64.0F; // min(max(camera.pos.z-64.0F,0.0F),map_size_z+1-128.0F);
+
+            switch (players[local_player.id].team) {
+                case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
+                case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
+                case TEAM_SPECTATOR: default: glColor3f(0.0F, 0.0F, 0.0F); // same as chat
+            }
+
+            float minimap_x = settings.window_width - 143 * scale;
+            float minimap_y = settings.window_height - 15 * scale;
+
+            char sector_str[3] = {(int)(camera.pos.x / 64.0F) + 'A', (int)(camera.pos.z / 64.0F) + '1', 0};
+            font_centered(minimap_x + 64 * scale, minimap_y - 129 * scale, 2.0F * scale, sector_str, ASCII);
+
+            glColor3ub(0, 0, 0);
+            texture_draw_empty(minimap_x - 1 * scale, minimap_y + 1 * scale, 130 * scale, 130 * scale);
+            glColor3f(1.0F, 1.0F, 1.0F);
+
+            texture_draw_sector(texture_minimap, minimap_x, minimap_y, 128 * scale,
+                                128 * scale, (camera.pos.x - 64.0F) / 512.0F, (camera.pos.z - 64.0F) / 512.0F, 0.25F,
+                                0.25F);
+
+            tracer_minimap(0, scale, view_x, view_z);
+
+            if (gamestate.gamemode_type == GAMEMODE_CTF) {
+                float tent1_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.ctf.team_1_base.x) - view_x;
+                float tent1_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.ctf.team_2_base.y) - view_z;
+
+                float tent2_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.ctf.team_2_base.x) - view_x;
+                float tent2_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.ctf.team_2_base.y) - view_z;
+
+                if (map_object_visible(gamestate.gamemode.ctf.team_1_base.x, 0.0F,
+                                       gamestate.gamemode.ctf.team_1_base.y)) {
+                    glColorRGB3ib(gamestate.team_1.color, 0.94F);
+                    texture_draw_rotated(texture(TEXTURE_MEDICAL), minimap_x + tent1_x * scale,
+                                         minimap_y - tent1_y * scale, 16 * scale, 16 * scale, 0.0F);
+                }
+
+                if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL)) {
+                    float intel_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.ctf.team_1_intel_location.dropped.x) - view_x;
+                    float intel_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.ctf.team_1_intel_location.dropped.y) - view_z;
+
+                    glColorRGB3i(gamestate.team_1.color);
+                    texture_draw_rotated(texture(TEXTURE_INTEL), minimap_x + intel_x * scale,
+                                         minimap_y - intel_y * scale, 16 * scale, 16 * scale, 0.0F);
+                }
+
+                if (map_object_visible(gamestate.gamemode.ctf.team_2_base.x, 0.0F,
+                                      gamestate.gamemode.ctf.team_2_base.y)) {
+                    glColorRGB3ib(gamestate.team_2.color, 0.94F);
+                    texture_draw_rotated(texture(TEXTURE_MEDICAL), minimap_x + tent2_x * scale,
+                                         minimap_y - tent2_y * scale, 16 * scale, 16 * scale, 0.0F);
+                }
+
+                if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL)) {
+                    float intel_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.ctf.team_2_intel_location.dropped.x) - view_x;
+                    float intel_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.ctf.team_2_intel_location.dropped.y) - view_z;
+
+                    glColorRGB3i(gamestate.team_2.color);
+                    texture_draw_rotated(texture(TEXTURE_INTEL), minimap_x + intel_x * scale,
+                                         minimap_y - intel_y * scale, 16 * scale, 16 * scale, 0.0F);
+                }
+            }
+
+            if (gamestate.gamemode_type == GAMEMODE_TC) {
+                for (int k = 0; k < gamestate.gamemode.tc.territory_count; k++) {
+                    switch (gamestate.gamemode.tc.territory[k].team) {
+                        case TEAM_1: glColorRGB3ib(gamestate.team_1.color, 0.94F); break;
+                        case TEAM_2: glColorRGB3ib(gamestate.team_2.color, 0.94F); break;
+                        default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
+                    }
+
+                    float t_x = clamp(view_x, view_x + 128.0F, gamestate.gamemode.tc.territory[k].pos.x) - view_x;
+                    float t_y = clamp(view_z, view_z + 128.0F, gamestate.gamemode.tc.territory[k].pos.y) - view_z;
+                    texture_draw_rotated(texture(TEXTURE_COMMAND), minimap_x + t_x * scale,
+                                         minimap_y - t_y * scale, 12 * scale, 12 * scale, 0.0F);
+                }
+            }
+
+            for (int k = 0; k < PLAYERS_MAX; k++) {
+            #if HACKS_ENABLED && HACK_MAPHACK
+                if (players[k].connected && players[k].alive)
+            #else
+                if (players[k].connected && players[k].alive
+                   && (players[k].team == players[local_player.id].team
+                       || (camera.mode == CAMERAMODE_SPECTATOR
+                           && (k == local_player.id || players[k].team != TEAM_SPECTATOR))))
+            #endif
+                {
+                    if (k == local_player.id) {
+                        glColor3ub(0, 255, 255);
+                    } else {
+                        switch (players[k].team) {
+                            case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
+                            case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
+                        }
+                    }
+
+                    float player_x = ((k == local_player.id) ? camera.pos.x : players[k].pos.x) - view_x;
+                    float player_y = ((k == local_player.id) ? camera.pos.z : players[k].pos.z) - view_z;
+                    if (player_x > 0.0F && player_x < 128.0F && player_y > 0.0F && player_y < 128.0F) {
+                        float ang = (k == local_player.id) ?
+                            camera.rot.x + PI :
+                            -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
+                        texture_draw_rotated(texture(TEXTURE_PLAYER),
+                                             minimap_x + player_x * scale,
+                                             minimap_y - player_y * scale, 16 * scale, 16 * scale, ang);
+                    }
+                }
+            }
+        }
+    }
+
+    if (player_intersection_type >= 0
+       && (players[local_player.id].team == TEAM_SPECTATOR ||
+           players[player_intersection_player].team == players[local_player.id].team)) {
+        font_select(FONT_SMALLFNT);
+
+        char * th[4] = {"torso", "head", "arms", "legs"}; char str[32];
+        switch (players[player_intersection_player].team) {
+            case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
+            case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
+            default: glColor3f(1.0F, 1.0F, 1.0F);
+        }
+        sprintf(str, "%s (%s)", players[player_intersection_player].name, th[player_intersection_type]);
+        font_centered(settings.window_width / 2.0F, settings.window_height * 0.2F, 1.0F * scale, str, UTF8);
+        font_select(FONT_FIXEDSYS);
+    }
+
+    if (window_time() - chat_popup_timer < chat_popup_duration) {
+        glColor3ub(chat_popup_color.r, chat_popup_color.g, chat_popup_color.b);
+        font_render((settings.window_width - font_length(3.0F * scale, chat_popup, UTF8)) / 2.0F,
+                    settings.window_height * 0.65F, 3.0F * scale, chat_popup, UTF8);
+    }
+
+    glColor3f(1.0F, 1.0F, 1.0F);
 
 #ifdef USE_TOUCH
     glColor3f(1.0F, 1.0F, 1.0F);
@@ -2042,6 +2038,8 @@ void load_map(const char * filepath) {
     hud_change(&hud_ingame);
 }
 
+const char * hud_serverlist_popup = NULL;
+
 static void server_c(char * address, char * name, Version version) {
     if (file_exists(address)) load_map(address);
     else {
@@ -2056,6 +2054,8 @@ static void server_c(char * address, char * name, Version version) {
 
         if (network_connect_string(address, version))
             hud_change(&hud_mapload);
+        else
+            hud_serverlist_popup = "Unable to initiate connection";
     }
 }
 
@@ -2149,8 +2149,6 @@ static void hud_sort_button_render(mu_Context * ctx, float scale, const char * n
     mu_text_color_default(ctx);
 }
 
-const char * hud_serverlist_popup = NULL;
-
 static void hud_serverlist_render(mu_Context * ctx, float scale) {
     char total_str[128]; sprintf(total_str, server_count > 0 ? "%i players on %i servers" : "No servers", player_count, server_count);
 
@@ -2234,7 +2232,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
                     else
                         strcpy(total_str, "-");
 
-                    mu_push_id(ctx, serverlist[k], sizeof(ServerEntry *));
+                    mu_push_id(ctx, &serverlist[k], sizeof(ServerEntry *));
 
                     bool join = false;
 
@@ -2275,8 +2273,8 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
                     }
 
                     sprintf(total_str, "%i", serverlist[k]->ping);
-                    if (mu_button_ex(ctx, (serverlist[k]->ping >= 0) ? total_str : "?", 0,
-                                    MU_OPT_NOFRAME | MU_OPT_ALIGNCENTER))
+                    if (mu_button_ex(ctx, serverlist[k]->ping >= 0 ? total_str : "?", 0,
+                                     MU_OPT_NOFRAME | MU_OPT_ALIGNCENTER))
                         join = true;
 
                     mu_pop_id(ctx);

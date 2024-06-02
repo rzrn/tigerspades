@@ -237,185 +237,183 @@ void display() {
 
         camera_ExtractFrustum();
 
-        {
-            glx_enable_sphericalfog();
-            drawScene();
+        glx_enable_sphericalfog();
+        drawScene();
 
-            int render_fpv = (camera.mode == CAMERAMODE_FPS)
-                || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
-                    && cameracontroller_bodyview_mode);
-            int is_local = (camera.mode == CAMERAMODE_FPS) || (cameracontroller_bodyview_player == local_player.id);
-            int local_id = (camera.mode == CAMERAMODE_FPS) ? local_player.id : cameracontroller_bodyview_player;
+        int render_fpv = (camera.mode == CAMERAMODE_FPS)
+            || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
+                && cameracontroller_bodyview_mode);
+        int is_local = (camera.mode == CAMERAMODE_FPS) || (cameracontroller_bodyview_player == local_player.id);
+        int local_id = (camera.mode == CAMERAMODE_FPS) ? local_player.id : cameracontroller_bodyview_player;
 
-            if (players[local_player.id].items_show && window_time() - players[local_player.id].items_show_start >= 0.5F)
-                players[local_player.id].items_show = 0;
+        if (players[local_player.id].items_show && window_time() - players[local_player.id].items_show_start >= 0.5F)
+            players[local_player.id].items_show = 0;
 
-            if (camera.mode == CAMERAMODE_FPS) {
-                weapon_update();
+        if (camera.mode == CAMERAMODE_FPS) {
+            weapon_update();
 
-                if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
-                   (players[local_player.id].held_item == TOOL_BLOCK) &&
-                   (window_time() - players[local_player.id].item_showup >= 0.5F) &&
-                   (local_player.blocks > 0)) {
-                    int * pos = camera_terrain_pick(0);
-                    if (pos != NULL && pos[1] > 1
-                       && norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[0], pos[1], pos[2]) < 25.0F
-                       && !(pos[0] == (int) camera.pos.x && pos[1] == (int) camera.pos.y + 0 && pos[2] == (int) camera.pos.z)
-                       && !(pos[0] == (int) camera.pos.x && pos[1] == (int) camera.pos.y - 1 && pos[2] == (int) camera.pos.z)) {
-                        players[local_player.id].item_showup = window_time();
-                        local_player.blocks = max(local_player.blocks - 1, 0);
+            if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
+               (players[local_player.id].held_item == TOOL_BLOCK) &&
+               (window_time() - players[local_player.id].item_showup >= 0.5F) &&
+               (local_player.blocks > 0)) {
+                int * pos = camera_terrain_pick(0);
+                if (pos != NULL && pos[1] > 1
+                   && norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[0], pos[1], pos[2]) < 25.0F
+                   && !(pos[0] == (int) camera.pos.x && pos[1] == (int) camera.pos.y + 0 && pos[2] == (int) camera.pos.z)
+                   && !(pos[0] == (int) camera.pos.x && pos[1] == (int) camera.pos.y - 1 && pos[2] == (int) camera.pos.z)) {
+                    players[local_player.id].item_showup = window_time();
+                    local_player.blocks = max(local_player.blocks - 1, 0);
 
-                        PacketBlockAction contained;
-                        contained.player_id   = local_player.id;
-                        contained.action_type = ACTION_BUILD;
-                        contained.pos.x       = pos[0];
-                        contained.pos.y       = pos[2];
-                        contained.pos.z       = 63 - pos[1];
-                        sendPacketBlockAction(&contained, 0);
-                    }
-                }
-
-                if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
-                   (players[local_player.id].held_item == TOOL_GRENADE) &&
-                   (window_time() - players[local_player.id].start.lmb > 3.0F)) {
-                    local_player.grenades = max(local_player.grenades - 1, 0);
-                    PacketGrenade contained;
+                    PacketBlockAction contained;
                     contained.player_id   = local_player.id;
-                    contained.pos         = htonv3f(players[local_player.id].pos);
-                    contained.vel         = (Vector3f) {0.0F, 0.0F, 0.0F};
-                    contained.fuse_length = 0.0F;
-
-                    sendPacketGrenade(&contained, 0);
-                    handlePacketGrenade(&contained); // see “src/hud.c”
-
-                    players[local_player.id].start.lmb = window_time();
+                    contained.action_type = ACTION_BUILD;
+                    contained.pos.x       = pos[0];
+                    contained.pos.y       = pos[2];
+                    contained.pos.z       = 63 - pos[1];
+                    sendPacketBlockAction(&contained, 0);
                 }
             }
 
-            int * pos = NULL;
-            switch (players[local_id].held_item) {
-                case TOOL_BLOCK:
-                    if (!HASBIT(players[local_id].input.keys, INPUT_SPRINT) && render_fpv) {
-                        if (is_local)
-                            pos = camera_terrain_pick(0);
-                        else
-                            pos = camera_terrain_pickEx(
-                                0, camera.pos.x, camera.pos.y, camera.pos.z, players[local_id].orientation_smooth.x,
-                                players[local_id].orientation_smooth.y, players[local_id].orientation_smooth.z);
-                    }
-                    break;
-                default: pos = NULL;
+            if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
+               (players[local_player.id].held_item == TOOL_GRENADE) &&
+               (window_time() - players[local_player.id].start.lmb > 3.0F)) {
+                local_player.grenades = max(local_player.grenades - 1, 0);
+                PacketGrenade contained;
+                contained.player_id   = local_player.id;
+                contained.pos         = htonv3f(players[local_player.id].pos);
+                contained.vel         = (Vector3f) {0.0F, 0.0F, 0.0F};
+                contained.fuse_length = 0.0F;
+
+                sendPacketGrenade(&contained, 0);
+                handlePacketGrenade(&contained); // see “src/hud.c”
+
+                players[local_player.id].start.lmb = window_time();
             }
+        }
 
-            if (pos != NULL && pos[1] > 1 && norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
-                matrix_upload();
-                glColor3f(1.0F, 0.0F, 0.0F);
-                glLineWidth(1.0F);
-                glDisable(GL_DEPTH_TEST);
-                glDepthMask(GL_FALSE);
-                Vector3i cubes[64];
-                int amount = 0;
-                if (is_local && local_player.drag_active && HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY)
-                   && players[local_player.id].held_item == TOOL_BLOCK) {
-                    amount = map_cube_line(local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
-                                           pos[0], pos[2], 63 - pos[1], cubes);
-                } else {
-                    amount = 1;
-                    cubes[0].x = pos[0];
-                    cubes[0].y = pos[2];
-                    cubes[0].z = 63 - pos[1];
+        int * pos = NULL;
+        switch (players[local_id].held_item) {
+            case TOOL_BLOCK:
+                if (!HASBIT(players[local_id].input.keys, INPUT_SPRINT) && render_fpv) {
+                    if (is_local)
+                        pos = camera_terrain_pick(0);
+                    else
+                        pos = camera_terrain_pickEx(
+                            0, camera.pos.x, camera.pos.y, camera.pos.z, players[local_id].orientation_smooth.x,
+                            players[local_id].orientation_smooth.y, players[local_id].orientation_smooth.z);
                 }
-                while (amount > 0) {
-                    int tmp = cubes[amount - 1].y;
-                    cubes[amount - 1].y = 63 - cubes[amount - 1].z;
-                    cubes[amount - 1].z = tmp;
+                break;
+            default: pos = NULL;
+        }
 
-                    if (amount <= (is_local ? local_player.blocks : 50))
-                        glColor3f(1.0F, 1.0F, 1.0F);
-
-                    short vertices[72] = {cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-
-                                          cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-
-                                          cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                          cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1};
-                    glEnableClientState(GL_VERTEX_ARRAY);
-                    glVertexPointer(3, GL_SHORT, 0, vertices);
-                    glDrawArrays(GL_LINES, 0, 24);
-                    glDisableClientState(GL_VERTEX_ARRAY);
-                    amount--;
-                }
-                glEnable(GL_DEPTH_TEST);
-                glDepthMask(GL_TRUE);
-            }
-
-            if (window_time() - players[local_player.id].item_disabled < 0.3F) {
-                players[local_player.id].item_showup = window_time();
-                if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY))
-                    players[local_player.id].start.lmb = window_time() + 0.5F;
-                if (HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY))
-                    players[local_player.id].start.rmb = window_time() + 0.5F;
+        if (pos != NULL && pos[1] > 1 && norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
+            matrix_upload();
+            glColor3f(1.0F, 0.0F, 0.0F);
+            glLineWidth(1.0F);
+            glDisable(GL_DEPTH_TEST);
+            glDepthMask(GL_FALSE);
+            Vector3i cubes[64];
+            int amount = 0;
+            if (is_local && local_player.drag_active && HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY)
+               && players[local_player.id].held_item == TOOL_BLOCK) {
+                amount = map_cube_line(local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
+                                       pos[0], pos[2], 63 - pos[1], cubes);
             } else {
-                if (hud_active->render_localplayer) {
-                    float tmp2 = players[local_player.id].physics.eye.y;
-                    players[local_player.id].physics.eye.y = last_cy;
-                    if (camera.mode == CAMERAMODE_FPS)
-                        glDepthRange(0.0F, 0.05F);
-                    matrix_push(matrix_projection);
-                    matrix_translate(matrix_projection, 0.0F, -0.25F, 0.0F);
-                    matrix_upload_p();
-#ifdef OPENGL_ES
-                    if (camera.mode == CAMERAMODE_FPS)
-                        glx_disable_sphericalfog();
-#endif
-                    player_render(&players[local_player.id], local_player.id);
-#ifdef OPENGL_ES
-                    if (camera.mode == CAMERAMODE_FPS)
-                        glx_enable_sphericalfog();
-#endif
-                    matrix_pop(matrix_projection);
-                    glDepthRange(0.0F, 1.0F);
-                    players[local_player.id].physics.eye.y = tmp2;
-                }
+                amount = 1;
+                cubes[0].x = pos[0];
+                cubes[0].y = pos[2];
+                cubes[0].z = 63 - pos[1];
             }
+            while (amount > 0) {
+                int tmp = cubes[amount - 1].y;
+                cubes[amount - 1].y = 63 - cubes[amount - 1].z;
+                cubes[amount - 1].z = tmp;
 
-            matrix_upload_p();
-            matrix_upload();
-            player_render_all();
+                if (amount <= (is_local ? local_player.blocks : 50))
+                    glColor3f(1.0F, 1.0F, 1.0F);
 
-            matrix_upload();
-            map_collapsing_render();
-            matrix_upload();
+                short vertices[72] = {cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+
+                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+
+                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1};
+                glEnableClientState(GL_VERTEX_ARRAY);
+                glVertexPointer(3, GL_SHORT, 0, vertices);
+                glDrawArrays(GL_LINES, 0, 24);
+                glDisableClientState(GL_VERTEX_ARRAY);
+                amount--;
+            }
+            glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
+        }
+
+        if (window_time() - players[local_player.id].item_disabled < 0.3F) {
+            players[local_player.id].item_showup = window_time();
+            if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY))
+                players[local_player.id].start.lmb = window_time() + 0.5F;
+            if (HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY))
+                players[local_player.id].start.rmb = window_time() + 0.5F;
+        } else {
+            if (hud_active->render_localplayer) {
+                float tmp2 = players[local_player.id].physics.eye.y;
+                players[local_player.id].physics.eye.y = last_cy;
+                if (camera.mode == CAMERAMODE_FPS)
+                    glDepthRange(0.0F, 0.05F);
+                matrix_push(matrix_projection);
+                matrix_translate(matrix_projection, 0.0F, -0.25F, 0.0F);
+                matrix_upload_p();
+#ifdef OPENGL_ES
+                if (camera.mode == CAMERAMODE_FPS)
+                    glx_disable_sphericalfog();
+#endif
+                player_render(&players[local_player.id], local_player.id);
+#ifdef OPENGL_ES
+                if (camera.mode == CAMERAMODE_FPS)
+                    glx_enable_sphericalfog();
+#endif
+                matrix_pop(matrix_projection);
+                glDepthRange(0.0F, 1.0F);
+                players[local_player.id].physics.eye.y = tmp2;
+            }
+        }
+
+        matrix_upload_p();
+        matrix_upload();
+        player_render_all();
+
+        matrix_upload();
+        map_collapsing_render();
+        matrix_upload();
 
 #if !(HACKS_ENABLED && HACK_NOCLIP)
-            if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z))
-                glClear(GL_COLOR_BUFFER_BIT);
+        if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z))
+            glClear(GL_COLOR_BUFFER_BIT);
 #endif
 
-            glx_disable_sphericalfog();
-            if (settings.smooth_fog)
-                glDisable(GL_FOG);
-        }
+        glx_disable_sphericalfog();
+        if (settings.smooth_fog)
+            glDisable(GL_FOG);
     }
 
     if (hud_active->render_3D)

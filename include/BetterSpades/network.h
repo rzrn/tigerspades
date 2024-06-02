@@ -41,15 +41,14 @@ int network_identifier_split(char * addr, Address *);
 int network_connect(Address *);
 int network_connect_string(char * addr, Version);
 int network_update(void);
-int network_status(void);
 void network_init(void);
 
 void network_join_game(unsigned char team, unsigned char weapon);
 
 extern void (*packets[256])(uint8_t * data, int len);
-extern int network_connected;
-extern int network_logged_in;
-extern int network_map_transfer;
+
+extern bool network_connected, network_map_transfer, network_logged_in;
+
 extern int network_received_packets;
 
 extern float network_pos_update;

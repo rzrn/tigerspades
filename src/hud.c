@@ -154,7 +154,7 @@ static void hud_ingame_render3D() {
     matrix_identity(matrix_view);
     matrix_upload_p();
 
-    if (!network_map_transfer) {
+    {
         if (camera.mode == CAMERAMODE_FPS && players[local_player.id].items_show) {
             static kv6 * const model_spade = &model[MODEL_SPADE];
 
@@ -459,15 +459,11 @@ static int hud_ingame_onscreencontrol(int index, char * str, int activate) {
 }
 
 static void hud_ingame_render(mu_Context * ctx, float scale) {
-    // window_mousemode(camera.mode==CAMERAMODE_SELECTION?WINDOW_CURSOR_ENABLED:WINDOW_CURSOR_DISABLED);
     hud_active->render_localplayer = players[local_player.id].team != TEAM_SPECTATOR
         && (screen_current == SCREEN_NONE || camera.mode != CAMERAMODE_FPS);
 
     if (window_key_down(WINDOW_KEY_NETWORKSTATS)) {
-        if (network_map_transfer)
-            glColor3f(1.0F, 1.0F, 1.0F);
-        else
-            glColor3f(0.0F, 0.0F, 0.0F);
+        glColor3f(0.0F, 0.0F, 0.0F);
 
         glEnable(GL_DEPTH_TEST);
         glColorMask(0, 0, 0, 0);
@@ -520,33 +516,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         glColor3f(1.0F, 1.0F, 1.0F);
     }
 
-    if (network_map_transfer) {
-        glColor3f(1.0F, 1.0F, 1.0F);
-        texture_draw(
-            texture(TEXTURE_SPLASH), (settings.window_width - settings.window_height * 4.0F / 3.0F * 0.7F) * 0.5F,
-            settings.window_height - 40 * scale, settings.window_height * 4.0F / 3.0F * 0.7F, settings.window_height * 0.7F
-        );
-
-        float p = (compressed_chunk_data_estimate > 0) ? ((float) compressed_chunk_data_offset / (float) compressed_chunk_data_estimate) : 0.0F;
-        p = clamp(0.0F, 1.0F, p);
-
-        glColor3ub(68, 68, 68);
-        texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F + 440.0F * scale * p,
-                     settings.window_height * 0.25F, 440.0F * scale * (1.0F - p), 20.0F * scale);
-        glColor3ub(255, 255, 50);
-        texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F, settings.window_height * 0.25F,
-                     440.0F * scale * p, 20.0F * scale);
-        glColor3ub(69, 69, 69);
-
-        char str[128];
-        sprintf(str, "Receiving %i KiB / %i KiB", compressed_chunk_data_offset / 1024, compressed_chunk_data_estimate / 1024);
-        font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F - 20.0F * scale, 2.0F * scale, str, ASCII);
-
-        font_select(FONT_SMALLFNT);
-        glColor3f(1.0F, 1.0F, 0.0F);
-        font_render(0.0F, 16.0F * scale, 1.0F * scale, "Created by ByteBit, visit https://github.com/xtreme8000/BetterSpades", ASCII);
-        font_select(FONT_FIXEDSYS);
-    } else {
+    {
         if (window_key_down(WINDOW_KEY_HIDEHUD))
             return;
 
@@ -1965,6 +1935,76 @@ HUD hud_ingame = {
     NULL,
 };
 
+/*       HUD_LOADING START             */
+
+static void hud_mapload_init() {
+    window_mousemode(WINDOW_CURSOR_ENABLED);
+}
+
+#define lengthof(x) (sizeof(x) / sizeof(x[0]))
+
+static void hud_mapload_render(mu_Context * ctx, float scale) {
+    glColor3f(1.0F, 1.0F, 1.0F);
+    texture_draw(
+        texture(TEXTURE_SPLASH), (settings.window_width - settings.window_height * 4.0F / 3.0F * 0.7F) * 0.5F,
+        settings.window_height - 40 * scale, settings.window_height * 4.0F / 3.0F * 0.7F, settings.window_height * 0.7F
+    );
+
+    if (network_map_transfer) {
+        float progress = compressed_chunk_data_estimate > 0 ? ((float) compressed_chunk_data_offset / (float) compressed_chunk_data_estimate) : 0.0F;
+        progress = clamp(0.0F, 1.0F, progress);
+
+        glColor3ub(68, 68, 68);
+        texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F + 440.0F * scale * progress,
+                     settings.window_height * 0.25F, 440.0F * scale * (1.0F - progress), 20.0F * scale);
+        glColor3ub(255, 255, 50);
+        texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F, settings.window_height * 0.25F,
+                     440.0F * scale * progress, 20.0F * scale);
+    }
+
+    char buff[128];
+    if (network_map_transfer)
+        sprintf(buff, "Receiving %i KiB / %i KiB", compressed_chunk_data_offset / 1024, compressed_chunk_data_estimate / 1024);
+    else {
+        static const char * suffix[] = {"   ", ".  ", ".. ", "..."};
+        size_t index = ((size_t) (window_time() / 0.2F)) % lengthof(suffix);
+
+        sprintf(buff, "Connecting%s", suffix[index]);
+    }
+
+    glColor3ub(69, 69, 69);
+    font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F - 20.0F * scale, 2.0F * scale, buff, ASCII);
+
+    font_select(FONT_SMALLFNT);
+    glColor3f(1.0F, 1.0F, 0.0F);
+    font_render(0.0F, 16.0F * scale, 1.0F * scale, "Created by ByteBit, visit https://github.com/xtreme8000/BetterSpades", ASCII);
+    font_select(FONT_FIXEDSYS);
+}
+
+static void hud_mapload_keyboard(int key, int action, int mods, int internal) {
+    if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE) {
+        network_disconnect();
+        hud_change(&hud_serverlist);
+    }
+}
+
+HUD hud_mapload = {
+    .init                = hud_mapload_init,
+    .render_3D           = NULL,
+    .render_2D           = hud_mapload_render,
+    .input_keyboard      = hud_mapload_keyboard,
+    .input_mouselocation = NULL,
+    .input_mouseclick    = NULL,
+    .input_mousescroll   = NULL,
+    .input_touch         = NULL,
+    .focus               = NULL,
+    .hover               = NULL,
+    .ui_images           = NULL,
+    .render_world        = false,
+    .render_localplayer  = false,
+    .ctx                 = NULL,
+};
+
 /*         HUD_SERVERLIST START        */
 static char serverlist_input[128];
 
@@ -2015,7 +2055,7 @@ static void server_c(char * address, char * name, Version version) {
         }
 
         if (network_connect_string(address, version))
-            hud_change(&hud_ingame);
+            hud_change(&hud_mapload);
     }
 }
 

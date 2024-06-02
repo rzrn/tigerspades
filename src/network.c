@@ -44,9 +44,10 @@
 
 void (*packets[256])(uint8_t * data, int len) = {NULL};
 
-int network_connected = 0;
-int network_logged_in = 0;
-int network_map_transfer = 0;
+bool network_connected    = false;
+bool network_map_transfer = false;
+bool network_logged_in    = false;
+
 int network_received_packets = 0;
 int network_map_cached = 0;
 
@@ -103,9 +104,10 @@ static void printJoinMsg(int team, char * name) {
 static uint8_t network_buffer[512];
 
 static void network_send(int id, int len) {
-    if (network_connected) {
+    if (peer != NULL) {
         network_stats[0].outgoing += len + 1;
         network_buffer[0] = id;
+
         enet_peer_send(peer, 0, enet_packet_create(network_buffer, len + 1, ENET_PACKET_FLAG_RELIABLE));
     }
 }
@@ -561,14 +563,15 @@ void getPacketCreatePlayer(uint8_t * data, int len) {
             if (p.team == TEAM_SPECTATOR)
                 camera.pos = ntohv3f(p.pos);
 
-            camera.mode            = (p.team == TEAM_SPECTATOR) ? CAMERAMODE_SPECTATOR : CAMERAMODE_FPS;
-            camera.rot.x           = (p.team == TEAM_1) ? 0.5F * PI : 1.5F * PI;
+            camera.mode            = p.team == TEAM_SPECTATOR ? CAMERAMODE_SPECTATOR : CAMERAMODE_FPS;
+            camera.rot.x           = p.team == TEAM_1 ? 0.5F * PI : 1.5F * PI;
             camera.rot.y           = 0.5F * PI;
-            network_logged_in      = 1;
             local_player.health    = 100;
             local_player.blocks    = 50;
             local_player.grenades  = 3;
             local_player.last_tool = TOOL_GUN;
+
+            network_logged_in = true;
 
             weapon_set(false);
         }
@@ -651,9 +654,11 @@ void getPacketStateData(uint8_t * data, int len) {
         screen_current = SCREEN_TEAM_SELECT;
     }
 
+    network_map_transfer = false;
     camera.mode          = CAMERAMODE_SELECTION;
-    network_map_transfer = 0;
     chat_popup_duration  = 0;
+
+    hud_change(&hud_ingame);
 
     log_info("Map data was %i bytes", compressed_chunk_data_offset);
     if (!network_map_cached) {
@@ -779,9 +784,12 @@ void getPacketMapStart(uint8_t * data, int len) {
     compressed_chunk_data      = malloc(compressed_chunk_data_size);
     CHECK_ALLOCATION_ERROR(compressed_chunk_data)
     compressed_chunk_data_offset = 0;
-    network_logged_in            = 0;
-    network_map_transfer         = 1;
-    network_map_cached           = 0;
+
+    network_logged_in    = false;
+    network_map_transfer = true;
+    network_map_cached   = 0;
+
+    hud_change(&hud_mapload);
 
     if (len == sizePacketMapStart075) {
         READPACKET(PacketMapStart075, p, data);
@@ -812,7 +820,7 @@ void getPacketMapStart(uint8_t * data, int len) {
 
     trajectories_reset();
 
-    player_init(); camera.mode = CAMERAMODE_SELECTION;
+    player_init();
 }
 
 void getPacketMapChunk(uint8_t * data, int len) {
@@ -1098,67 +1106,53 @@ void network_updateColor() {
 }
 
 unsigned int network_ping() {
-    return network_connected ? peer->roundTripTime : 0;
+    return peer != NULL ? peer->roundTripTime : 0;
 }
 
 void network_disconnect() {
-    if (network_connected) {
+    if (peer != NULL) {
+        network_map_transfer = false;
+        network_logged_in    = false;
+
         enet_peer_disconnect(peer, 0);
-        network_connected = 0;
-        network_logged_in = 0;
 
         ENetEvent event;
         while (enet_host_service(client, &event, 3000) > 0) {
             switch (event.type) {
                 case ENET_EVENT_TYPE_RECEIVE: enet_packet_destroy(event.packet); break;
-                case ENET_EVENT_TYPE_DISCONNECT: return;
+                case ENET_EVENT_TYPE_DISCONNECT: goto fin;
                 default: break;
             }
         }
 
-        enet_peer_reset(peer);
+        fin: network_connected = false;
+        enet_peer_reset(peer); peer = NULL;
     }
 }
 
+float connection_timestamp = -INFINITY;
+
 int network_connect_sub(char * ip, int port, int version) {
+    network_map_transfer = false;
+    network_logged_in    = false;
+
     ENetAddress address;
-    ENetEvent event;
 
     enet_address_set_host(&address, ip);
     address.port = port;
     peer = enet_host_connect(client, &address, 1, version);
 
-    network_logged_in = 0;
+    if (peer == NULL) return 0;
+
     hud_serverlist_popup = NULL;
 
     network_custom_reason[0] = 0;
 
     memset(network_stats, 0, sizeof(NetworkStat) * 40);
 
-    if (peer == NULL) return 0;
+    connection_timestamp = window_time();
 
-    if (enet_host_service(client, &event, 2500) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
-        network_received_packets = 0;
-        network_connected = 1;
-
-        local_hit_effects = true;
-
-        float start = window_time();
-        while (window_time() - start < 1.0F) { // listen connection for 1s, check if server disconnects
-            if (!network_update()) {
-                enet_peer_reset(peer);
-                return 0;
-            }
-        }
-
-        return 1;
-    }
-
-    static const char popup[] = "No response";
-    hud_serverlist_popup = popup;
-
-    enet_peer_reset(peer);
-    return 0;
+    return 1;
 }
 
 const char * get_version_name(Version version) {
@@ -1171,23 +1165,23 @@ const char * get_version_name(Version version) {
 
 int network_connect(Address * addr) {
     log_info("Connecting to %s at port %i (protocol version %s)", addr->ip, addr->port, get_version_name(addr->version));
-    if (network_connected) network_disconnect();
+    if (peer != NULL) network_disconnect();
 
     switch (addr->version) {
         case VER075: {
             if (network_connect_sub(addr->ip, addr->port, VERSION_075)) return 1;
-            network_connected = 0; return 0;
+            return 0;
         }
 
         case VER076: {
             if (network_connect_sub(addr->ip, addr->port, VERSION_076)) return 1;
-            network_connected = 0; return 0;
+            return 0;
         }
 
         default: {
             if (network_connect_sub(addr->ip, addr->port, VERSION_075)) return 1;
             if (network_connect_sub(addr->ip, addr->port, VERSION_076)) return 1;
-            network_connected = 0; return 0;
+            return 0;
         }
     }
 }
@@ -1232,7 +1226,16 @@ int network_connect_string(char * str, Version version) {
 }
 
 int network_update() {
-    if (network_connected) {
+    if (peer != NULL) {
+        if (!network_connected && window_time() - connection_timestamp >= 2.5F) {
+            hud_serverlist_popup = "No response";
+            hud_change(&hud_serverlist);
+
+            enet_peer_reset(peer); peer = NULL;
+
+            return 0;
+        }
+
         if (window_time() - network_stats_last >= 1.0F) {
             for (int k = 39; k > 0; k--)
                 network_stats[k] = network_stats[k - 1];
@@ -1262,13 +1265,25 @@ int network_update() {
                     break;
                 }
 
+                case ENET_EVENT_TYPE_CONNECT: {
+                    network_received_packets = 0;
+                    network_connected        = true;
+                    local_hit_effects        = true;
+
+                    break;
+                }
+
                 case ENET_EVENT_TYPE_DISCONNECT: {
-                    hud_change(&hud_serverlist);
+                    network_connected    = false;
+                    network_map_transfer = false;
+                    network_logged_in    = false;
+
+                    enet_peer_reset(peer); peer = NULL;
+
                     hud_serverlist_popup = network_reason_disconnect(event.data);
+                    hud_change(&hud_serverlist);
+
                     log_error("server disconnected! reason: %s", network_reason_disconnect(event.data));
-                    event.peer->data = NULL;
-                    network_connected = 0;
-                    network_logged_in = 0;
 
                     return 0;
                 }
@@ -1341,10 +1356,6 @@ int network_update() {
     chunk_queue_blocks();
 
     return 1;
-}
-
-int network_status() {
-    return network_connected;
 }
 
 void network_init() {

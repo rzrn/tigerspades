@@ -39,8 +39,8 @@ typedef struct {
     void (*focus)(bool);
     void (*hover)(bool);
     Texture * (*ui_images)(int icon_id, bool * resize);
-    char render_world;
-    char render_localplayer;
+    bool render_world;
+    bool render_localplayer;
     mu_Context * ctx;
 } HUD;
 

@@ -206,19 +206,18 @@ void drawScene() {
 }
 
 void display() {
-    if (network_map_transfer) {
-        glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
-    } else {
+    if (hud_active->render_world)
         glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
-    }
+    else
+        glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (hud_active->render_world) {
         glEnable(GL_DEPTH_TEST);
         glDepthRange(0.0F, 1.0F);
 
         chunk_update_all();
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (settings.opengl14) {
             matrix_identity(matrix_projection);
@@ -238,7 +237,7 @@ void display() {
 
         camera_ExtractFrustum();
 
-        if (!network_map_transfer) {
+        {
             glx_enable_sphericalfog();
             drawScene();
 
@@ -718,10 +717,8 @@ void mouse_hover(WindowInstance * window, bool hovered) {
 }
 
 void mouse(WindowInstance * window, double x, double y) {
-    if (hud_active->input_mouselocation)
-        hud_active->input_mouselocation(x, y);
-    if (hud_active->ctx)
-        mu_input_mousemove(hud_active->ctx, x, y);
+    if (hud_active->input_mouselocation) hud_active->input_mouselocation(x, y);
+    if (hud_active->ctx) mu_input_mousemove(hud_active->ctx, x, y);
 }
 
 void mouse_scroll(WindowInstance * window, double xoffset, double yoffset) {
@@ -735,8 +732,10 @@ void mouse_scroll(WindowInstance * window, double xoffset, double yoffset) {
 void deinit() {
     rpc_deinit();
     ping_deinit();
+
     if (network_connected)
         network_disconnect();
+
     window_deinit();
     sound_deinit();
 }
@@ -874,7 +873,7 @@ int main(int argc, char ** argv) {
             exit(1);
         } else {
             log_info("Connection to %s successful", default_server);
-            hud_change(&hud_ingame);
+            hud_change(&hud_mapload);
         }
     }
 

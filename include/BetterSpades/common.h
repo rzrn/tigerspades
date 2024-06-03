@@ -31,7 +31,6 @@
 
 #ifdef __linux__
     #define OS_LINUX
-    #include <sys/sysinfo.h>
 #endif
 
 #ifdef __APPLE__
@@ -150,6 +149,8 @@ typedef enum {
 } Codepage;
 
 extern const TrueColor White, Black, Red, Green, Blue, Yellow, Cyan, Magenta, Sky;
+
+extern const RGB3i Gray;
 
 extern int chat_input_mode;
 extern float last_cy;

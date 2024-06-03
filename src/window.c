@@ -28,16 +28,17 @@
 #include <BetterSpades/gui.h>
 
 #ifdef OS_WINDOWS
-#include <sysinfoapi.h>
-#include <windows.h>
+    #include <sysinfoapi.h>
+    #include <windows.h>
 #endif
 
 #ifdef OS_LINUX
-#include <unistd.h>
+    #include <sys/sysinfo.h>
+    #include <unistd.h>
 #endif
 
 #ifdef OS_HAIKU
-#include <kernel/OS.h>
+    #include <kernel/OS.h>
 #endif
 
 void window_title(const char * suffix) {

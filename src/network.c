@@ -668,9 +668,7 @@ void getPacketStateData(uint8_t * data, int len) {
     local_player.grenades = 3;
     weapon_set(false);
 
-    players[local_player.id].block.r = 111;
-    players[local_player.id].block.g = 111;
-    players[local_player.id].block.b = 111;
+    players[local_player.id].block = Gray;
 
     if (default_team >= 0 && default_gun >= 0) {
         network_join_game(default_team, default_gun);

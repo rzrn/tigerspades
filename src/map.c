@@ -49,7 +49,7 @@ int map_size_x = 512;
 int map_size_y = 64;
 int map_size_z = 512;
 
-static struct libvxl_map map;
+static struct libvxl_map map = {.chunks = NULL};
 static pthread_rwlock_t map_lock;
 
 float fog_color[4] = {0.5F, 0.9098F, 1.0F, 1.0F};
@@ -505,7 +505,6 @@ void * falling_blocks_worker(void * user) {
 }
 
 void map_init() {
-    libvxl_create(&map, 512, 512, 64, NULL, 0);
     tesselator_create(&map_damaged_tesselator, VERTEX_INT, 0);
     pthread_rwlock_init(&map_lock, NULL);
 
@@ -520,6 +519,10 @@ void map_init() {
 
     pthread_t worker;
     pthread_create(&worker, NULL, falling_blocks_worker, NULL);
+}
+
+bool map_empty() {
+    return map.chunks == NULL;
 }
 
 int map_height_at(int x, int z) {

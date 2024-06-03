@@ -53,5 +53,6 @@ void map_collapsing_update(float dt);
 int map_height_at(int x, int z);
 void map_save_file(char * filename);
 void map_copy_blocks(struct libvxl_chunk_copy * copy, size_t x, size_t y);
+bool map_empty();
 
 #endif

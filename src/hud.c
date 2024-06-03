@@ -2024,13 +2024,13 @@ void load_map(const char * filepath) {
     free(data);
 
     chunk_rebuild_all();
-    camera.mode = CAMERAMODE_FPS;
 
     players[local_player.id].pos.x = map_size_x / 2.0F;
     players[local_player.id].pos.y = map_size_y - 1.0F;
     players[local_player.id].pos.z = map_size_z / 2.0F;
 
     local_hit_effects = true;
+    camera.mode = CAMERAMODE_FPS;
 
     window_title(filepath);
     hud_change(&hud_ingame);
@@ -2346,7 +2346,7 @@ static void hud_serverlist_touch(void * finger, int action, float x, float y, fl
 
 static void hud_serverlist_keyboard(int key, int action, int mods, int internal) {
     if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE)
-        hud_change(&hud_ingame);
+        if (!map_empty()) hud_change(&hud_ingame);
 }
 
 HUD hud_serverlist = {
@@ -2532,7 +2532,7 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
 
 static void hud_settings_keyboard(int key, int action, int mods, int internal) {
     if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE)
-        hud_change(&hud_ingame);
+        if (!map_empty()) hud_change(&hud_ingame);
 }
 
 static void hud_settings_touch(void * finger, int action, float x, float y, float dx, float dy) {
@@ -2692,7 +2692,7 @@ static void hud_controls_keyboard(int key, int action, int mods, int internal) {
         hud_controls_edit = NULL;
         config_save();
     } else if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE)
-        hud_change(&hud_ingame);
+        if (!map_empty()) hud_change(&hud_ingame);
 }
 
 HUD hud_controls = {

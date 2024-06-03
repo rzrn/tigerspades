@@ -353,6 +353,20 @@ void texture_gradient_fog(unsigned int * gradient) {
     }
 }
 
+void texture_minimap_clear() {
+    uint32_t * buff = malloc(map_size_x * map_size_z * sizeof(uint32_t));
+
+    for (size_t x = 0; x < map_size_x; x++) {
+        for (size_t z = 0; z < map_size_z; z++) {
+            uint32_t * out = buff + x + z * map_size_z;
+            writeRGBA(out, ISGRID(x, z) ? White : Sky);
+        }
+    }
+
+    texture_subimage(texture_minimap, 0, 0, map_size_x, map_size_z, buff);
+    free(buff);
+}
+
 void texture_init() {
     for (enum Texture i = TEXTURE_FIRST; i <= TEXTURE_LAST; i++)
         texture_load(i, TEXTURE_FILTER_NEAREST);

@@ -146,8 +146,8 @@ void chunk_draw_visible() {
         chunk_render(chunks_draw + k);
 }
 
-static __attribute__((always_inline)) inline bool solid_array_isair(struct libvxl_chunk_copy * blocks, uint32_t x,
-                                                                    int32_t y, uint32_t z) {
+static __attribute__((always_inline)) inline bool solid_array_isair(struct libvxl_chunk_copy * blocks,
+                                                                    uint32_t x, int32_t y, uint32_t z) {
     if (y < 0)
         return false;
     if (y >= map_size_y)
@@ -156,8 +156,8 @@ static __attribute__((always_inline)) inline bool solid_array_isair(struct libvx
     return !libvxl_copy_chunk_is_solid(blocks, x % map_size_x, z % map_size_z, map_size_y - 1 - y);
 }
 
-static __attribute__((always_inline)) inline float solid_sunblock(struct libvxl_chunk_copy * blocks, uint32_t x,
-                                                                  uint32_t y, uint32_t z) {
+static __attribute__((always_inline)) inline float solid_sunblock(struct libvxl_chunk_copy * blocks,
+                                                                  uint32_t x, uint32_t y, uint32_t z) {
     int dec = 18;
     int i = 127;
 
@@ -169,9 +169,6 @@ static __attribute__((always_inline)) inline float solid_sunblock(struct libvxl_
 
     return (float) i / 127.0F;
 }
-
-// This grid is 1 pixel off on the right and bottom, but I doubt no one will notice.
-#define ISGRID(x, z) ((x) % 64 == 0 || (z) % 64 == 0 || (x) == 511 || (z) == 511)
 
 void * chunk_generate(void * data) {
     pthread_detach(pthread_self());
@@ -816,18 +813,8 @@ void chunk_rebuild_all() {
         }
     }
 
-    uint32_t * buff = malloc(map_size_x * map_size_z * sizeof(uint32_t));
-
     // Clean up “texture_minimap” as it can hold previous map or GPU garbage.
-    for (size_t x = 0; x < map_size_x; x++) {
-        for (size_t z = 0; z < map_size_z; z++) {
-            uint32_t * out = buff + x + z * map_size_z;
-            writeRGBA(out, ISGRID(x, z) ? White : Sky);
-        }
-    }
-
-    texture_subimage(texture_minimap, 0, 0, map_size_x, map_size_z, buff);
-    free(buff);
+    texture_minimap_clear();
 }
 
 void chunk_block_update(int x, int y, int z) {

@@ -92,5 +92,9 @@ float texture_width(Texture *);
 float texture_height(Texture *);
 Texture * texture_alloc();
 void texture_subimage(Texture *, int xoffset, int yoffset, size_t width, size_t height, const void *);
+void texture_minimap_clear();
+
+// This grid is 1 pixel off on the right and bottom, but I doubt no one will notice.
+#define ISGRID(x, z) ((x) % 64 == 0 || (z) % 64 == 0 || (x) == 511 || (z) == 511)
 
 #endif

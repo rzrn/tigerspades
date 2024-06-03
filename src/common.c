@@ -11,6 +11,8 @@ const TrueColor Cyan    = {0x00, 0xFF, 0xFF, 0xFF};
 const TrueColor Magenta = {0xFF, 0x00, 0xFF, 0xFF};
 const TrueColor Sky     = {0x80, 0xE8, 0xFF, 0xFF};
 
+const RGB3i Gray = {111, 111, 111};
+
 void writeRGBA(uint32_t * dest, TrueColor color) {
     *((uint8_t*) dest + 0) = color.r;
     *((uint8_t*) dest + 1) = color.g;

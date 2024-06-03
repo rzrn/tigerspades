@@ -257,12 +257,11 @@ void display() {
                (window_time() - players[local_player.id].item_showup >= 0.5F) &&
                (local_player.blocks > 0)) {
                 int * pos = camera_terrain_pick(0);
-                if (pos != NULL && pos[1] > 1
+                if (pos != NULL && map_isdestructible(pos[0], pos[1], pos[2])
                    && norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[0], pos[1], pos[2]) < 25.0F
                    && !(pos[0] == (int) camera.pos.x && pos[1] == (int) camera.pos.y + 0 && pos[2] == (int) camera.pos.z)
                    && !(pos[0] == (int) camera.pos.x && pos[1] == (int) camera.pos.y - 1 && pos[2] == (int) camera.pos.z)) {
                     players[local_player.id].item_showup = window_time();
-                    local_player.blocks = max(local_player.blocks - 1, 0);
 
                     PacketBlockAction contained;
                     contained.player_id   = local_player.id;
@@ -270,7 +269,8 @@ void display() {
                     contained.pos.x       = pos[0];
                     contained.pos.y       = pos[2];
                     contained.pos.z       = 63 - pos[1];
-                    sendPacketBlockAction(&contained, 0);
+
+                    doPacketBlockAction(&contained);
                 }
             }
 
@@ -306,7 +306,8 @@ void display() {
             default: pos = NULL;
         }
 
-        if (pos != NULL && pos[1] > 1 && norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
+        if (pos != NULL && map_isdestructible(pos[X], pos[Y], pos[Z]) &&
+            norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
             matrix_upload();
             glColor3f(1.0F, 0.0F, 0.0F);
             glLineWidth(1.0F);

@@ -90,7 +90,16 @@ static inline Vector3f ntohov3f(const Vector3f v)
 static inline Vector3f htonov3f(const Vector3f v)
 { return (Vector3f) {.x = v.x, .y = v.z, .z = -v.y}; }
 
+void handlePacketBlockAction(PacketBlockAction *);
+void handlePacketBlockLine(PacketBlockLine *);
 void handlePacketGrenade(PacketGrenade *);
+
+void doPacketBlockAction(PacketBlockAction *);
+void doPacketBlockLine(PacketBlockLine *, int);
+
+void restock();
+
+bool map_isdestructible(int, int, int);
 
 #define PACKET_INCOMPLETE 0
 #define PACKET_EXTRA      0

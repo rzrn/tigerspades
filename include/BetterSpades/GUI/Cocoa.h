@@ -29,6 +29,12 @@
 #define TOOLKIT_KEY_F2           68
 #define TOOLKIT_KEY_F3           69
 #define TOOLKIT_KEY_F4           70
+#define TOOLKIT_KEY_F5           71
+#define TOOLKIT_KEY_F6           72
+#define TOOLKIT_KEY_F7           73
+#define TOOLKIT_KEY_F8           74
+#define TOOLKIT_KEY_F9           75
+#define TOOLKIT_KEY_F10          76
 #define TOOLKIT_KEY_YES          29
 #define TOOLKIT_KEY_NO           57
 #define TOOLKIT_KEY_VOLUME_UP    86

@@ -32,7 +32,7 @@
 float frustum[6][4];
 
 Camera camera = {
-    .mode       = CAMERAMODE_SPECTATOR,
+    .mode       = CAMERAMODE_FPS,
     .pos        = {256.0F, 60.0F, 256.0F},
     .v          = {0.0F, 0.0F, 0.0F},
     .movement   = {0.0F, 0.0F, 0.0F},

@@ -34,7 +34,7 @@
 #include <BetterSpades/entitysystem.h>
 #include <BetterSpades/opengl.h>
 
-bool local_hit_effects;
+bool local_hit_effects = true;
 
 EntitySystem particles;
 Tesselator particle_tesselator;

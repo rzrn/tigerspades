@@ -25,6 +25,12 @@
 #define TOOLKIT_KEY_F2           SDLK_F2
 #define TOOLKIT_KEY_F3           SDLK_F3
 #define TOOLKIT_KEY_F4           SDLK_F4
+#define TOOLKIT_KEY_F5           SDLK_F5
+#define TOOLKIT_KEY_F6           SDLK_F6
+#define TOOLKIT_KEY_F7           SDLK_F7
+#define TOOLKIT_KEY_F8           SDLK_F8
+#define TOOLKIT_KEY_F9           SDLK_F9
+#define TOOLKIT_KEY_F10          SDLK_F10
 #define TOOLKIT_KEY_YES          SDLK_y
 #define TOOLKIT_KEY_NO           SDLK_n
 #define TOOLKIT_KEY_VOLUME_UP    SDLK_KP_PLUS

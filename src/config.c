@@ -448,6 +448,14 @@ void config_reload() {
         config_register_key(WINDOW_KEY_TRACE_CLEAN,  TOOLKIT_KEY_F4,           "trace_clean",       0, "Clean up bullets");
     }
 
+    CATEGORY("Local game") {
+        config_register_key(WINDOW_KEY_CYCLE_CAMERA, TOOLKIT_KEY_F2,           "cycle_camera",      0, "Change camera mode");
+        config_register_key(WINDOW_KEY_TOGGLE_ALIVE, TOOLKIT_KEY_F4,           "toggle_alive",      0, "Toggle aliveness");
+        config_register_key(WINDOW_KEY_RESPAWN,      TOOLKIT_KEY_F7,           "respawn",           0, "Respawn");
+        config_register_key(WINDOW_KEY_RESTOCK,      TOOLKIT_KEY_F8,           "restock",           0, "Restock");
+        config_register_key(WINDOW_KEY_TEAM_COLOR,   TOOLKIT_KEY_F10,          "team_color",        0, "Change team color");
+    }
+
     CATEGORY(NULL) {
         config_register_key(WINDOW_KEY_SHIFT,        TOOLKIT_KEY_SPRINT,       NULL,                0, NULL);
         config_register_key(WINDOW_KEY_BACKSPACE,    TOOLKIT_KEY_BACKSPACE,    NULL,                0, NULL);

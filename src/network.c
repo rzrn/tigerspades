@@ -101,6 +101,10 @@ static void printJoinMsg(int team, char * name) {
     chat_add(0, Red, buff, sizeof(buff), UTF8);
 }
 
+bool map_isdestructible(int x, int y, int z) {
+    return y > 1 || !network_connected;
+}
+
 static uint8_t network_buffer[512];
 
 static void network_send(int id, int len) {
@@ -222,11 +226,10 @@ void getPacketExistingPlayer(uint8_t * data, int len) {
     }
 }
 
-void getPacketBlockAction(uint8_t * data, int len) {
-    READPACKET(PacketBlockAction, p, data);
-    int x = p.pos.x, y = p.pos.y, z = p.pos.z;
+void handlePacketBlockAction(PacketBlockAction * p) {
+    int x = p->pos.x, y = p->pos.y, z = p->pos.z;
 
-    switch (p.action_type) {
+    switch (p->action_type) {
         case ACTION_DESTROY: {
             if (63 - z > 0) {
                 TrueColor col = map_get(x, 63 - z, y);
@@ -276,13 +279,13 @@ void getPacketBlockAction(uint8_t * data, int len) {
         }
 
         case ACTION_BUILD: {
-            if (p.player_id < PLAYERS_MAX) {
+            if (p->player_id < PLAYERS_MAX) {
                 bool play_sound = map_isair(x, 63 - z, y);
 
                 TrueColor color = {
-                    .r = players[p.player_id].block.r,
-                    .g = players[p.player_id].block.g,
-                    .b = players[p.player_id].block.b,
+                    .r = players[p->player_id].block.r,
+                    .g = players[p->player_id].block.g,
+                    .b = players[p->player_id].block.b,
                     .a = 255
                 };
 
@@ -294,18 +297,16 @@ void getPacketBlockAction(uint8_t * data, int len) {
     }
 }
 
-void getPacketBlockLine(uint8_t * data, int len) {
-    READPACKET(PacketBlockLine, p, data);
+void handlePacketBlockLine(PacketBlockLine * p) {
+    if (p->player_id >= PLAYERS_MAX) return;
 
-    if (p.player_id >= PLAYERS_MAX) return;
-
-    int sx = p.start.x, sy = p.start.y, sz = p.start.z;
-    int ex = p.end.x,   ey = p.end.y,   ez = p.end.z;
+    int sx = p->start.x, sy = p->start.y, sz = p->start.z;
+    int ex = p->end.x,   ey = p->end.y,   ez = p->end.z;
 
     TrueColor color = {
-        players[p.player_id].block.r,
-        players[p.player_id].block.g,
-        players[p.player_id].block.b,
+        players[p->player_id].block.r,
+        players[p->player_id].block.g,
+        players[p->player_id].block.b,
         255
     };
 
@@ -328,6 +329,35 @@ void getPacketBlockLine(uint8_t * data, int len) {
         (63 - sz + 63 - ez) * 0.5F + 0.5F,
         (sy + ey) * 0.5F + 0.5F
     );
+}
+
+void doPacketBlockAction(PacketBlockAction * p) {
+    if (p->action_type == ACTION_BUILD)
+        local_player.blocks = max(local_player.blocks - 1, 0);
+
+    if (network_connected)
+        sendPacketBlockAction(p, 0);
+    else
+        handlePacketBlockAction(p);
+}
+
+void doPacketBlockLine(PacketBlockLine * p, int amount) {
+    local_player.blocks -= amount;
+
+    if (network_connected)
+        sendPacketBlockLine(p, 0);
+    else
+        handlePacketBlockLine(p);
+}
+
+void getPacketBlockLine(uint8_t * data, int len) {
+    READPACKET(PacketBlockLine, p, data);
+    handlePacketBlockLine(&p);
+}
+
+void getPacketBlockAction(uint8_t * data, int len) {
+    READPACKET(PacketBlockAction, p, data);
+    handlePacketBlockAction(&p);
 }
 
 void getPacketChatMessage(uint8_t * data, int len) {
@@ -975,13 +1005,17 @@ void getPacketIntelDrop(uint8_t * data, int len) {
     }
 }
 
-void getPacketRestock(uint8_t * data, int len) {
+void restock() {
     local_player.health   = 100;
     local_player.blocks   = 50;
     local_player.grenades = 3;
     weapon_set(true);
 
     sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
+}
+
+void getPacketRestock(uint8_t * data, int len) {
+    restock();
 }
 
 void getPacketFogColor(uint8_t * data, int len) {
@@ -1308,7 +1342,6 @@ int network_update() {
                 PacketWeaponInput contained;
                 contained.player_id = local_player.id;
                 contained.input     = players[local_player.id].input.buttons;
-
                 sendPacketWeaponInput(&contained, 0);
 
                 network_buttons_last = players[local_player.id].input.buttons;
@@ -1318,7 +1351,6 @@ int network_update() {
                 PacketSetTool contained;
                 contained.player_id = local_player.id;
                 contained.tool      = players[local_player.id].held_item;
-
                 sendPacketSetTool(&contained, 0);
 
                 network_tool_last = players[local_player.id].held_item;

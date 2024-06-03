@@ -595,7 +595,7 @@ void map_set(int x, int y, int z, TrueColor * color) {
         chunk_block_update(x, y, 0);
 }
 
-// Copyright (c) Mathias Kaerlev 2011-2012 (but might be original code by Ben himself)
+// Copyright © Mathias Kaerlev 2011–2012 (but might be original code by Ben himself)
 int map_cube_line(int x1, int y1, int z1, int x2, int y2, int z2, Vector3i * cube_array) {
     Vector3i c, d;
     long ixi, iyi, izi, dx, dy, dz, dxi, dyi, dzi;
@@ -626,23 +626,23 @@ int map_cube_line(int x1, int y1, int z1, int x2, int y2, int z2, Vector3i * cub
     if ((abs(d.x) >= abs(d.y)) && (abs(d.x) >= abs(d.z))) {
         dxi = 1024;
         dx = 512;
-        dyi = (long)(!d.y ? 0x3fffffff / 512 : abs(d.x * 1024 / d.y));
+        dyi = (long) (!d.y ? 0x3fffffff / 512 : abs(d.x * 1024 / d.y));
         dy = dyi / 2;
-        dzi = (long)(!d.z ? 0x3fffffff / 512 : abs(d.x * 1024 / d.z));
+        dzi = (long) (!d.z ? 0x3fffffff / 512 : abs(d.x * 1024 / d.z));
         dz = dzi / 2;
     } else if (abs(d.y) >= abs(d.z)) {
         dyi = 1024;
         dy = 512;
-        dxi = (long)(!d.x ? 0x3fffffff / 512 : abs(d.y * 1024 / d.x));
+        dxi = (long) (!d.x ? 0x3fffffff / 512 : abs(d.y * 1024 / d.x));
         dx = dxi / 2;
-        dzi = (long)(!d.z ? 0x3fffffff / 512 : abs(d.y * 1024 / d.z));
+        dzi = (long) (!d.z ? 0x3fffffff / 512 : abs(d.y * 1024 / d.z));
         dz = dzi / 2;
     } else {
         dzi = 1024;
         dz = 512;
-        dxi = (long)(!d.x ? 0x3fffffff / 512 : abs(d.z * 1024 / d.x));
+        dxi = (long) (!d.x ? 0x3fffffff / 512 : abs(d.z * 1024 / d.x));
         dx = dxi / 2;
-        dyi = (long)(!d.y ? 0x3fffffff / 512 : abs(d.z * 1024 / d.y));
+        dyi = (long) (!d.y ? 0x3fffffff / 512 : abs(d.z * 1024 / d.y));
         dy = dyi / 2;
     }
     if (ixi >= 0)

@@ -19,6 +19,7 @@
 
 #include <math.h>
 
+#include <BetterSpades/network.h>
 #include <BetterSpades/window.h>
 #include <BetterSpades/particle.h>
 #include <BetterSpades/matrix.h>
@@ -155,14 +156,25 @@ void grenade_render() {
 TrueColor gray = {0x50, 0x50, 0x50, 0xFF};
 
 bool grenade_update_single(void * obj, void * user) {
-    Grenade * g = (Grenade*) obj;
-    float dt = *((float*) user);
+    Grenade * g = (Grenade *) obj;
+    float dt = *((float *) user);
 
     if (window_time() - g->created > g->fuse_length) {
         sound_create(SOUND_WORLD, sound(grenade_inwater(g) ? SOUND_EXPLODE_WATER : SOUND_EXPLODE), g->pos.x, g->pos.y,
                      g->pos.z);
         particle_create(grenade_inwater(g) ? map_get(g->pos.x, 0, g->pos.z) : gray, g->pos.x, g->pos.y + 1.5F,
                         g->pos.z, 20.0F, 1.5F, 64, 0.1F, 0.5F);
+
+        if (!network_connected) {
+            PacketBlockAction contained;
+            contained.player_id   = local_player.id;
+            contained.action_type = ACTION_GRENADE;
+            contained.pos.x       = g->pos.x;
+            contained.pos.y       = g->pos.z;
+            contained.pos.z       = 63 - g->pos.y;
+
+            doPacketBlockAction(&contained);
+        }
 
         return true;
     } else {

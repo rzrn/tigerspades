@@ -347,17 +347,16 @@ void player_render_all() {
                         if (k == local_player.id)
                             map_damage(hit.x, hit.y, hit.z, 50);
 
-                        if (k == local_player.id && map_damage_action(hit.x, hit.y, hit.z) && hit.y > 1) {
+                        if (k == local_player.id && map_damage_action(hit.x, hit.y, hit.z) && map_isdestructible(hit.x, hit.y, hit.z)) {
                             PacketBlockAction contained;
                             contained.action_type = ACTION_DESTROY;
                             contained.player_id   = local_player.id;
                             contained.pos.x       = hit.x;
                             contained.pos.y       = hit.z;
                             contained.pos.z       = 63 - hit.y;
-                            sendPacketBlockAction(&contained, 0);
 
+                            doPacketBlockAction(&contained);
                             local_player.blocks = min(local_player.blocks + 1, 50);
-                            // read_PacketBlockAction(&blk,sizeof(blk));
                         } else {
                             particle_create(map_get(hit.x, hit.y, hit.z), hit.xb + 0.5F, hit.yb + 0.5F, hit.zb + 0.5F,
                                             2.5F, 1.0F, 4, 0.1F, 0.25F);
@@ -396,8 +395,10 @@ void player_render_all() {
                (window_time() - players[k].spade_use_timer > 1.0F)) {
                 if (players[k].spade_used) {
                     camera_hit_fromplayer(&hit, k, 4.0F);
-                    if (hit.type == CAMERA_HITTYPE_BLOCK && hit.y > 1) {
+
+                    if (hit.type == CAMERA_HITTYPE_BLOCK && map_isdestructible(hit.x, hit.y, hit.z)) {
                         sound_create(SOUND_WORLD, sound(SOUND_HITGROUND), hit.x + 0.5F, hit.y + 0.5F, hit.z + 0.5F);
+
                         if (k == local_player.id) {
                             PacketBlockAction contained;
                             contained.action_type = ACTION_SPADE;
@@ -405,7 +406,8 @@ void player_render_all() {
                             contained.pos.x       = hit.x;
                             contained.pos.y       = hit.z;
                             contained.pos.z       = 63 - hit.y;
-                            sendPacketBlockAction(&contained, 0);
+
+                            doPacketBlockAction(&contained);
                         }
                     } else {
                         sound_create_sticky(sound(SOUND_SPADE_WOOSH), players + k, k);

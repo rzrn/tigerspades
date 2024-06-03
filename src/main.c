@@ -857,7 +857,7 @@ int main(int argc, char ** argv) {
         window_swapping(0);
 
     if (default_server != NULL) {
-        if (!network_connect_string(default_server, UNKNOWN)) {
+        if (!network_connect_string(default_server, VER07X)) {
             log_error("Error: Connection failed (use --help for instructions)");
             exit(1);
         } else {

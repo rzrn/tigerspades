@@ -28,14 +28,14 @@
 #include <BetterSpades/hud.h>
 
 typedef struct {
-    int     current, max;
-    char    name[32];
-    char    map[21];
-    char    gamemode[8];
-    int     ping;
-    char    identifier[32];
-    char    country[4];
-    Version version;
+    int         current, max;
+    char        name[32];
+    char        map[21];
+    char        gamemode[8];
+    int         ping;
+    char        identifier[32];
+    char        country[4];
+    GameVersion version;
 } ServerEntry;
 
 typedef struct News {

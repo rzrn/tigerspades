@@ -138,8 +138,8 @@ typedef enum {
 } ChatInputMode;
 
 typedef enum {
-    VER075, VER076, UNKNOWN
-} Version;
+    VER075, VER076, VER07X
+} GameVersion;
 
 typedef enum {
     UTF8, ASCII, CP437, CP1252

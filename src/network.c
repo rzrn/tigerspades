@@ -72,19 +72,19 @@ ENetPeer * peer;
 
 char network_custom_reason[128];
 
-const char * network_reason_disconnect(int code) {
+const char * network_reason_disconnect(ErrorCode code) {
     if (*network_custom_reason)
         return network_custom_reason;
 
     switch (code) {
-        case 1:  return "Banned";
-        case 2:  return "Connection limit";
-        case 3:  return "Wrong protocol";
-        case 4:  return "Server full";
-        case 5:  return "Server shutdown";
-        case 10: return "Kicked";
-        case 20: return "Invalid name";
-        default: return "Unknown";
+        case ERROR_BANNED:               return "Banned";
+        case ERROR_TOO_MANY_CONNECTIONS: return "Connection limit";
+        case ERROR_WRONG_PROTOCOL:       return "Wrong protocol";
+        case ERROR_FULL:                 return "Server full";
+        case ERROR_SHUTDOWN:             return "Server shutdown";
+        case ERROR_KICKED:               return "Kicked";
+        case ERROR_INVALID_NAME:         return "Invalid name";
+        default:                         return "Unknown";
     }
 }
 
@@ -1166,7 +1166,7 @@ void network_disconnect() {
 
 float connection_timestamp = -INFINITY;
 
-int network_connect_sub(char * ip, int port, int version) {
+int network_connect_sub(char * ip, int port, ProtocolVersion version) {
     network_map_transfer = false;
     network_logged_in    = false;
 
@@ -1189,7 +1189,7 @@ int network_connect_sub(char * ip, int port, int version) {
     return 1;
 }
 
-const char * get_version_name(Version version) {
+const char * get_version_name(GameVersion version) {
     switch (version) {
         case VER075: return "0.75";
         case VER076: return "0.76";
@@ -1197,27 +1197,20 @@ const char * get_version_name(Version version) {
     }
 }
 
+static Address network_address;
+
 int network_connect(Address * addr) {
+    network_address = *addr;
+
     log_info("Connecting to %s at port %i (protocol version %s)", addr->ip, addr->port, get_version_name(addr->version));
     if (peer != NULL) network_disconnect();
 
-    switch (addr->version) {
-        case VER075: {
-            if (network_connect_sub(addr->ip, addr->port, VERSION_075)) return 1;
-            return 0;
-        }
-
-        case VER076: {
-            if (network_connect_sub(addr->ip, addr->port, VERSION_076)) return 1;
-            return 0;
-        }
-
-        default: {
-            if (network_connect_sub(addr->ip, addr->port, VERSION_075)) return 1;
-            if (network_connect_sub(addr->ip, addr->port, VERSION_076)) return 1;
-            return 0;
-        }
-    }
+    return network_connect_sub(addr->ip, addr->port,
+        addr->version == VER075 ? VERSION_075 :
+        addr->version == VER076 ? VERSION_076 :
+        addr->version == VER07X ? VERSION_075 :
+                                  VERSION_075
+    );
 }
 
 int network_identifier_split(char * str, Address * addr) {
@@ -1243,18 +1236,18 @@ int network_identifier_split(char * str, Address * addr) {
         addr->version = VER075;
     else if (strcmp(str + len - 5, ":0.76") == 0)
         addr->version = VER076;
-    else addr->version = UNKNOWN;
+    else addr->version = VER07X;
 
     return 1;
 }
 
-int network_connect_string(char * str, Version version) {
+int network_connect_string(char * str, GameVersion version) {
     Address addr;
 
     if (!network_identifier_split(str, &addr))
         return 0;
 
-    if (version != UNKNOWN) addr.version = version;
+    if (version != VER07X) addr.version = version;
 
     return network_connect(&addr);
 }
@@ -1314,12 +1307,17 @@ int network_update() {
 
                     enet_peer_reset(peer); peer = NULL;
 
-                    hud_serverlist_popup = network_reason_disconnect(event.data);
+                    log_error("Disconnected: %s", network_reason_disconnect(event.data));
+
+                    if (event.data == ERROR_WRONG_PROTOCOL && network_address.version == VER07X) {
+                        if (network_connect_sub(network_address.ip, network_address.port, VERSION_076)) // retry
+                            goto exit;
+                    }
+
                     hud_change(&hud_serverlist);
+                    hud_serverlist_popup = network_reason_disconnect(event.data);
 
-                    log_error("server disconnected! reason: %s", network_reason_disconnect(event.data));
-
-                    return 0;
+                    exit: return 0;
                 }
 
                 default: break;

@@ -2043,7 +2043,7 @@ void load_map(const char * filepath) {
 
 const char * hud_serverlist_popup = NULL;
 
-static void server_c(char * address, char * name, Version version) {
+static void server_c(char * address, char * name, GameVersion version) {
     if (file_exists(address)) load_map(address);
     else {
         window_title(name);
@@ -2155,7 +2155,7 @@ static void hud_sort_button_render(mu_Context * ctx, float scale, const char * n
 static void hud_serverlist_render(mu_Context * ctx, float scale) {
     char total_str[128]; sprintf(total_str, server_count > 0 ? "%i players on %i servers" : "No servers", player_count, server_count);
 
-    char * join_address = NULL, * join_name = NULL; Version join_version = UNKNOWN;
+    char * join_address = NULL, * join_name = NULL; GameVersion join_version = VER07X;
 
     if (hud_header_render(ctx, scale, total_str)) {
         mu_layout_row(ctx, 1, (int[]) {-1}, settings.window_height * 0.3F);

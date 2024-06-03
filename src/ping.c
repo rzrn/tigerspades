@@ -74,7 +74,7 @@ static void serverlist_clear() {
     pthread_mutex_unlock(&serverlist_lock);
 }
 
-Version json_get_game_version(const JSON_Object * obj) {
+GameVersion json_get_game_version(const JSON_Object * obj) {
     const char * game_version = json_object_get_string(obj, "game_version");
 
     if (game_version != NULL) {
@@ -85,7 +85,7 @@ Version json_get_game_version(const JSON_Object * obj) {
             return VER076;
     }
 
-    return UNKNOWN;
+    return VER07X;
 }
 
 #define IPKEY(addr) (((uint64_t) addr.host << 16) | (addr.port));

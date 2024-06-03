@@ -3,10 +3,10 @@
 
 #include <AceOfSpades/types.h>
 
-enum {
+typedef enum {
     VERSION_075 = 3,
     VERSION_076 = 4
-};
+} ProtocolVersion;
 
 typedef enum {
     // Client <-> Server
@@ -57,6 +57,17 @@ typedef enum {
     idPacketHandshakeReturn  = 32,
     idPacketVersionSend      = 34,
 } PacketId;
+
+typedef enum {
+    ERROR_UNDEFINED            = 0,
+    ERROR_BANNED               = 1,
+    ERROR_TOO_MANY_CONNECTIONS = 2,
+    ERROR_WRONG_PROTOCOL       = 3,
+    ERROR_FULL                 = 4,
+    ERROR_SHUTDOWN             = 5,
+    ERROR_KICKED               = 10,
+    ERROR_INVALID_NAME         = 20,
+} ErrorCode;
 
 enum {
     INPUT_UP     = 0,

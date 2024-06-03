@@ -29,9 +29,9 @@
 #define SETBIT(dest, bit, value) { dest &= MASKOFF(bit); dest |= (value << bit); }
 #define HASBIT(dest, bit) ((dest) & MASKON(bit))
 
-typedef struct { char ip[32]; int port; Version version; } Address;
+typedef struct { char ip[32]; int port; GameVersion version; } Address;
 
-const char * network_reason_disconnect(int code);
+const char * network_reason_disconnect(ErrorCode code);
 
 unsigned int network_ping(void);
 
@@ -39,7 +39,7 @@ void network_updateColor(void);
 void network_disconnect(void);
 int network_identifier_split(char * addr, Address *);
 int network_connect(Address *);
-int network_connect_string(char * addr, Version);
+int network_connect_string(char * addr, GameVersion);
 int network_update(void);
 void network_init(void);
 

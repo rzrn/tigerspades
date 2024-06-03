@@ -373,9 +373,9 @@ static int hud_ingame_onscreencontrol(int index, char * str, int activate) {
                     if (str)
                         strcpy(str, "T-Chat");
                     if (activate == 0)
-                        hud_ingame_keyboard(WINDOW_KEY_YES, WINDOW_RELEASE, 0, 0);
+                        hud_ingame_keyboard(WINDOW_KEY_TEAM_CHAT, WINDOW_RELEASE, 0, 0);
                     if (activate == 1)
-                        hud_ingame_keyboard(WINDOW_KEY_YES, WINDOW_PRESS, 0, 0);
+                        hud_ingame_keyboard(WINDOW_KEY_TEAM_CHAT, WINDOW_PRESS, 0, 0);
                     return 1;
                 case 2:
                     if (str)
@@ -1514,7 +1514,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 strcpy(chat[0][0], "/");
             }
 
-            if (key == WINDOW_KEY_YES) {
+            if (key == WINDOW_KEY_TEAM_CHAT) {
                 window_textinput(1);
                 chat_input_mode = CHAT_TEAM_INPUT;
                 chat[0][0][0] = 0;

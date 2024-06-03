@@ -460,12 +460,7 @@ void config_reload() {
         config_register_key(WINDOW_KEY_SHIFT,        TOOLKIT_KEY_SHIFT,        NULL,                0, NULL);
         config_register_key(WINDOW_KEY_BACKSPACE,    TOOLKIT_KEY_BACKSPACE,    NULL,                0, NULL);
         config_register_key(WINDOW_KEY_ENTER,        TOOLKIT_KEY_ENTER,        NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_F1,           TOOLKIT_KEY_F1,           NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_F2,           TOOLKIT_KEY_F2,           NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_F3,           TOOLKIT_KEY_F3,           NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_F4,           TOOLKIT_KEY_F4,           NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_YES,          TOOLKIT_KEY_Y,            NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_NO,           TOOLKIT_KEY_N,            NULL,                0, NULL);
+        config_register_key(WINDOW_KEY_TEAM_CHAT,    TOOLKIT_KEY_Y,            NULL,                0, NULL);
         config_register_key(WINDOW_KEY_V,            TOOLKIT_KEY_V,            NULL,                0, NULL);
         config_register_key(WINDOW_KEY_SELECT1,      TOOLKIT_KEY_1,            NULL,                0, NULL);
         config_register_key(WINDOW_KEY_SELECT2,      TOOLKIT_KEY_2,            NULL,                0, NULL);

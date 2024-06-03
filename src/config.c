@@ -432,6 +432,7 @@ void config_reload() {
         config_register_key(WINDOW_KEY_VOLUME_UP,    TOOLKIT_KEY_ADD,          "volume_up",         0, "Volume up");
         config_register_key(WINDOW_KEY_VOLUME_DOWN,  TOOLKIT_KEY_SUBTRACT,     "volume_down",       0, "Volume down");
         config_register_key(WINDOW_KEY_CHAT,         TOOLKIT_KEY_T,            "chat_global",       0, "Chat");
+        config_register_key(WINDOW_KEY_TEAM_CHAT,    TOOLKIT_KEY_Y,            "chat_team",         0, "Team chat");
         config_register_key(WINDOW_KEY_FULLSCREEN,   TOOLKIT_KEY_F11,          "fullscreen",        0, "Fullscreen");
         config_register_key(WINDOW_KEY_SCREENSHOT,   TOOLKIT_KEY_F5,           "screenshot",        0, "Screenshot");
         config_register_key(WINDOW_KEY_CHANGETEAM,   TOOLKIT_KEY_COMMA,        "change_team",       0, "Team select");
@@ -460,7 +461,6 @@ void config_reload() {
         config_register_key(WINDOW_KEY_SHIFT,        TOOLKIT_KEY_SHIFT,        NULL,                0, NULL);
         config_register_key(WINDOW_KEY_BACKSPACE,    TOOLKIT_KEY_BACKSPACE,    NULL,                0, NULL);
         config_register_key(WINDOW_KEY_ENTER,        TOOLKIT_KEY_ENTER,        NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_TEAM_CHAT,    TOOLKIT_KEY_Y,            NULL,                0, NULL);
         config_register_key(WINDOW_KEY_V,            TOOLKIT_KEY_V,            NULL,                0, NULL);
         config_register_key(WINDOW_KEY_SELECT1,      TOOLKIT_KEY_1,            NULL,                0, NULL);
         config_register_key(WINDOW_KEY_SELECT2,      TOOLKIT_KEY_2,            NULL,                0, NULL);

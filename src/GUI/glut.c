@@ -170,11 +170,15 @@ void window_mouse_motion(int x, int y) {
     } else mouse(hud_window, x, y);
 }
 
-void window_fromsettings() {
-    if (settings.fullscreen)
+void window_videomode(bool fullscreen) {
+    if (fullscreen)
         glutFullScreen();
     else
         glutReshapeWindow(settings.window_width, settings.window_height);
+}
+
+void window_fromsettings() {
+    window_videomode(settings.fullscreen);
 
     reshape(hud_window, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }
@@ -199,35 +203,31 @@ void window_deinit() {
 void window_keyname(int keycode, char * output, size_t length) {
     if (keycode == 0) { output[0] = '?'; output[1] = 0; return; }
 
-    #if defined(OS_WINDOWS)
-        GetKeyNameTextA(glfwGetKeyScancode(keycode) << 16, output, length);
-    #else
-        char * keyname = NULL;
+    char * keyname = NULL;
 
-        if (keycode & GLUT_SPECIAL_MASK)
-            keyname = glut_special_key_name(keycode & ~GLUT_SPECIAL_MASK);
-        else switch (keycode) {
-            case 0:  keyname = "Null";      break;
-            case 7:  keyname = "Beep";      break;
-            case 8:  keyname = "Backspace"; break;
-            case 9:  keyname = "Tab";       break;
-            case 10: keyname = "Enter";     break;
-            case 13: keyname = "Enter";     break;
-            case 27: keyname = "Escape";    break;
-            case 32: keyname = "Space";     break;
-            default: {
-                static char buf[2];
-                buf[0] = keycode;
-                buf[1] = 0;
-                keyname = buf;
-            }
+    if (keycode & GLUT_SPECIAL_MASK)
+        keyname = glut_special_key_name(keycode & ~GLUT_SPECIAL_MASK);
+    else switch (keycode) {
+        case 0:  keyname = "Null";      break;
+        case 7:  keyname = "Beep";      break;
+        case 8:  keyname = "Backspace"; break;
+        case 9:  keyname = "Tab";       break;
+        case 10: keyname = "Enter";     break;
+        case 13: keyname = "Enter";     break;
+        case 27: keyname = "Escape";    break;
+        case 32: keyname = "Space";     break;
+        default: {
+            static char buf[2];
+            buf[0] = keycode;
+            buf[1] = 0;
+            keyname = buf;
         }
+    }
 
-        if (keyname != NULL && *keyname != 0)
-            strnzcpy(output, keyname, length);
-        else
-            snprintf(output, length, "#%x", keycode);
-    #endif
+    if (keyname != NULL && *keyname != 0)
+        strnzcpy(output, keyname, length);
+    else
+        snprintf(output, length, "#%x", keycode);
 }
 
 void window_entry(int state) {

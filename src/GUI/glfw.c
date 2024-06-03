@@ -259,21 +259,26 @@ void window_mouseloc(double * x, double * y) {
     glfwGetCursorPos(hud_window->impl, x, y);
 }
 
+void window_videomode(bool fullscreen) {
+    const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+    if (fullscreen)
+        glfwSetWindowMonitor(hud_window->impl, glfwGetPrimaryMonitor(), 0, 0,
+                             settings.window_width, settings.window_height, mode->refreshRate);
+    else
+        glfwSetWindowMonitor(hud_window->impl, NULL,
+                             (mode->width - settings.window_width) / 2,
+                             (mode->height - settings.window_height) / 2,
+                             settings.window_width, settings.window_height, 0);
+}
+
 void window_fromsettings() {
     glfwWindowHint(GLFW_SAMPLES, settings.multisamples);
     glfwSetWindowSize(hud_window->impl, settings.window_width, settings.window_height);
 
-    const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    if (settings.fullscreen)
-        glfwSetWindowMonitor(hud_window->impl, glfwGetPrimaryMonitor(), 0, 0, settings.window_width,
-                             settings.window_height, mode->refreshRate);
-    else
-        glfwSetWindowMonitor(hud_window->impl, NULL, (mode->width - settings.window_width) / 2,
-                             (mode->height - settings.window_height) / 2,
-                             settings.window_width, settings.window_height, 0);
+    window_videomode(settings.fullscreen);
 
     int width, height; glfwGetWindowSize(hud_window->impl, &width, &height);
-
     reshape(hud_window, width, height);
 }
 

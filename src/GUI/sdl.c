@@ -91,6 +91,13 @@ void window_mouseloc(double * x, double * y) {
     *x = mx; *y = my;
 }
 
+void window_videomode(bool fullscreen) {
+    if (fullscreen)
+        SDL_SetWindowFullscreen(hud_window->impl, SDL_WINDOW_FULLSCREEN);
+    else
+        SDL_SetWindowFullscreen(hud_window->impl, 0);
+}
+
 void window_fromsettings() {
     SDL_SetWindowSize(hud_window->impl, settings.window_width, settings.window_height);
 
@@ -99,13 +106,9 @@ void window_fromsettings() {
     if (settings.vsync > 1)
         window_swapping(0);
 
-    if (settings.fullscreen)
-        SDL_SetWindowFullscreen(hud_window->impl, SDL_WINDOW_FULLSCREEN);
-    else
-        SDL_SetWindowFullscreen(hud_window->impl, 0);
+    window_videomode(settings.fullscreen);
 
     int width, height; SDL_GetWindowSize(hud_window->impl, &width, &height);
-
     reshape(hud_window, width, height);
 }
 

@@ -50,7 +50,6 @@
 #include <BetterSpades/unicode.h>
 #include <BetterSpades/main.h>
 #include <BetterSpades/opengl.h>
-#include <BetterSpades/gui.h>
 
 int fps = 0;
 
@@ -634,19 +633,10 @@ void keys(WindowInstance * window, int key, int action, int mods) {
     if (action == WINDOW_RELEASE && !config_key(key)->toggle)
         window_pressed_keys[key] = 0;
 
-#ifdef USE_GLFW
     if (key == WINDOW_KEY_FULLSCREEN && action == WINDOW_PRESS) { // switch between fullscreen
-        const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        if (!settings.fullscreen) {
-            glfwSetWindowMonitor(window->impl, glfwGetPrimaryMonitor(), 0, 0, mode->width, mode->height,
-                                 mode->refreshRate);
-            settings.fullscreen = 1;
-        } else {
-            glfwSetWindowMonitor(window->impl, NULL, (mode->width - 800) / 2, (mode->height - 600) / 2, 800, 600, 0);
-            settings.fullscreen = 0;
-        }
+        settings.fullscreen = !settings.fullscreen;
+        window_videomode(settings.fullscreen);
     }
-#endif
 
     if (key == WINDOW_KEY_SCREENSHOT && action == WINDOW_PRESS) { // take screenshot
         time_t pic_time;

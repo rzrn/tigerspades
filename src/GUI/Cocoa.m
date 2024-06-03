@@ -316,6 +316,9 @@ void window_mouseloc(double * x, double * y) {
     *y = viewRect.size.height - locationInView.y;
 }
 
+void window_videomode(bool fullscreen) {
+}
+
 void window_fromsettings() {
     NSSize newSize = {.width = settings.window_width, .height = settings.window_height};
     [window setContentSize:newSize];

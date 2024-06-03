@@ -111,8 +111,6 @@ typedef struct {
 
 extern int window_pressed_keys[];
 
-#define WINDOW_NOMOUSELOC -1
-
 float window_time(void);
 
 enum {
@@ -131,6 +129,7 @@ void window_mousemode(int mode);
 void window_mouseloc(double * x, double * y);
 void window_setmouseloc(double x, double y);
 void window_swapping(int value);
+void window_videomode(bool fullscreen);
 void window_fromsettings(void);
 void window_deinit(void);
 int window_cpucores();

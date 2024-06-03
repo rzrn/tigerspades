@@ -27,7 +27,7 @@
 #include <BetterSpades/map.h>
 
 float weapon_reload_start, weapon_last_shot;
-unsigned char weapon_reload_inprogress = 0;
+bool weapon_reload_inprogress = false;
 
 void weapon_update() {
     float t, delay = weapon_delay(players[local_player.id].weapon);
@@ -50,7 +50,7 @@ void weapon_update() {
                     weapon_reload_start = window_time();
                     wav = sound(SOUND_SHOTGUN_RELOAD);
                 } else {
-                    weapon_reload_inprogress = 0;
+                    weapon_reload_inprogress = false;
                     wav = sound(SOUND_SHOTGUN_COCK);
                 }
 
@@ -59,14 +59,14 @@ void weapon_update() {
         } else if (window_time() - weapon_reload_start >= t) {
             local_player.ammo += bullets;
             local_player.ammo_reserved -= bullets;
-            weapon_reload_inprogress = 0;
+            weapon_reload_inprogress = false;
         }
 
         if (players[local_player.id].held_item == TOOL_GUN) {
             players[local_player.id].item_disabled    = weapon_reload_inprogress ? window_time() : 0;
             players[local_player.id].items_show_start = window_time();
             players[local_player.id].items_show       = 1;
-        }
+        } else weapon_reload_inprogress = false;
     } else {
         if (screen_current == SCREEN_NONE && window_time() - players[local_player.id].item_disabled >= 0.5F) {
             if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
@@ -206,7 +206,7 @@ void weapon_set(bool restock) {
     if (!restock) local_player.ammo = weapon_ammo(players[local_player.id].weapon);
 
     local_player.ammo_reserved = weapon_ammo_reserved(players[local_player.id].weapon);
-    weapon_reload_inprogress = 0;
+    weapon_reload_inprogress = false;
 }
 
 void weapon_reload() {
@@ -214,7 +214,7 @@ void weapon_reload() {
         return;
 
     weapon_reload_start = window_time();
-    weapon_reload_inprogress = 1;
+    weapon_reload_inprogress = true;
 
     sound_create(SOUND_LOCAL, weapon_sound_reload(players[local_player.id].weapon),
         players[local_player.id].pos.x,
@@ -232,14 +232,14 @@ void weapon_reload() {
 
 void weapon_reload_abort() {
     if (weapon_reload_inprogress && players[local_player.id].weapon == WEAPON_SHOTGUN) {
-        weapon_reload_inprogress               = 0;
+        weapon_reload_inprogress               = false;
         players[local_player.id].items_show    = 0;
         players[local_player.id].item_showup   = 0;
         players[local_player.id].item_disabled = 0;
     }
 }
 
-int weapon_reloading() {
+bool weapon_reloading() {
     return weapon_reload_inprogress;
 }
 

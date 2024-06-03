@@ -67,8 +67,8 @@ int compressed_chunk_data_estimate = 0;
 NetworkStat network_stats[40];
 float network_stats_last = 0.0F;
 
-ENetHost * client;
-ENetPeer * peer;
+ENetHost * client = NULL;
+ENetPeer * peer = NULL;
 
 char network_custom_reason[128];
 
@@ -1143,6 +1143,17 @@ unsigned int network_ping() {
     return peer != NULL ? peer->roundTripTime : 0;
 }
 
+static inline int network_destroy() {
+    network_connected    = false;
+    network_map_transfer = false;
+    network_logged_in    = false;
+
+    if (peer != NULL) { enet_peer_reset(peer); peer = NULL; }
+    if (client != NULL) { enet_host_destroy(client); client = NULL; }
+
+    return 0;
+}
+
 void network_disconnect() {
     if (peer != NULL) {
         network_map_transfer = false;
@@ -1159,8 +1170,7 @@ void network_disconnect() {
             }
         }
 
-        fin: network_connected = false;
-        enet_peer_reset(peer); peer = NULL;
+        fin: network_destroy();
     }
 }
 
@@ -1172,14 +1182,17 @@ int network_connect_sub(char * ip, int port, ProtocolVersion version) {
 
     ENetAddress address;
 
-    enet_address_set_host(&address, ip);
-    address.port = port;
-    peer = enet_host_connect(client, &address, 1, version);
+    client = enet_host_create(NULL, 1, 1, 0, 0); // limit bandwidth here if you want to
+    if (client == NULL) return network_destroy();
 
-    if (peer == NULL) return 0;
+    enet_host_compress_with_range_coder(client);
+
+    enet_address_set_host(&address, ip); address.port = port;
+
+    peer = enet_host_connect(client, &address, 1, version);
+    if (peer == NULL) return network_destroy();
 
     hud_serverlist_popup = NULL;
-
     network_custom_reason[0] = 0;
 
     memset(network_stats, 0, sizeof(NetworkStat) * 40);
@@ -1232,11 +1245,9 @@ int network_identifier_split(char * str, Address * addr) {
         sprintf(addr->ip, "%i.%i.%i.%i", ip & 255, (ip >> 8) & 255, (ip >> 16) & 255, (ip >> 24) & 255);
     }
 
-    if (strcmp(str + len - 5, ":0.75") == 0)
-        addr->version = VER075;
-    else if (strcmp(str + len - 5, ":0.76") == 0)
-        addr->version = VER076;
-    else addr->version = VER07X;
+    addr->version = strcmp(str + len - 5, ":0.75") == 0 ? VER075 :
+                    strcmp(str + len - 5, ":0.76") == 0 ? VER076 :
+                                                          VER07X;
 
     return 1;
 }
@@ -1255,10 +1266,10 @@ int network_connect_string(char * str, GameVersion version) {
 int network_update() {
     if (peer != NULL) {
         if (!network_connected && window_time() - connection_timestamp >= 2.5F) {
+            network_destroy();
+
             hud_serverlist_popup = "No response";
             hud_change(&hud_serverlist);
-
-            enet_peer_reset(peer); peer = NULL;
 
             return 0;
         }
@@ -1301,11 +1312,7 @@ int network_update() {
                 }
 
                 case ENET_EVENT_TYPE_DISCONNECT: {
-                    network_connected    = false;
-                    network_map_transfer = false;
-                    network_logged_in    = false;
-
-                    enet_peer_reset(peer); peer = NULL;
+                    network_destroy();
 
                     log_error("Disconnected: %s", network_reason_disconnect(event.data));
 
@@ -1390,8 +1397,6 @@ int network_update() {
 
 void network_init() {
     enet_initialize();
-    client = enet_host_create(NULL, 1, 1, 0, 0); // limit bandwidth here if you want to
-    enet_host_compress_with_range_coder(client);
 
     packets[idPacketPositionData]                  = getPacketPositionData;
     packets[idPacketOrientationData]               = getPacketOrientationData;

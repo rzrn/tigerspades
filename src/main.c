@@ -256,18 +256,18 @@ void display() {
                (window_time() - players[local_player.id].item_showup >= 0.5F) &&
                (local_player.blocks > 0)) {
                 int * pos = camera_terrain_pick(0);
-                if (pos != NULL && isdestructible(pos[0], pos[1], pos[2])
-                   && norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[0], pos[1], pos[2]) < 25.0F
-                   && !(pos[0] == (int) camera.pos.x && pos[1] == (int) camera.pos.y + 0 && pos[2] == (int) camera.pos.z)
-                   && !(pos[0] == (int) camera.pos.x && pos[1] == (int) camera.pos.y - 1 && pos[2] == (int) camera.pos.z)) {
+                if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z])
+                   && norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[X], pos[Y], pos[Z]) < 25.0F
+                   && !(pos[X] == (int) camera.pos.x && pos[Y] == (int) camera.pos.y + 0 && pos[Z] == (int) camera.pos.z)
+                   && !(pos[X] == (int) camera.pos.x && pos[Y] == (int) camera.pos.y - 1 && pos[Z] == (int) camera.pos.z)) {
                     players[local_player.id].item_showup = window_time();
 
                     PacketBlockAction contained;
                     contained.player_id   = local_player.id;
                     contained.action_type = ACTION_BUILD;
-                    contained.pos.x       = pos[0];
-                    contained.pos.y       = pos[2];
-                    contained.pos.z       = 63 - pos[1];
+                    contained.pos.x       = pos[X];
+                    contained.pos.y       = pos[Z];
+                    contained.pos.z       = 63 - pos[Y];
 
                     doPacketBlockAction(&contained);
                 }

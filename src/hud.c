@@ -1940,6 +1940,13 @@ static void hud_mapload_init() {
 
 #define lengthof(x) (sizeof(x) / sizeof(x[0]))
 
+static inline const char * ellipsis() {
+    static const char * suffix[] = {"   ", ".  ", ".. ", "..."};
+    size_t index = ((size_t) (window_time() / 0.2F)) % lengthof(suffix);
+
+    return suffix[index];
+}
+
 static void hud_mapload_render(mu_Context * ctx, float scale) {
     glColor3f(1.0F, 1.0F, 1.0F);
     texture_draw(
@@ -1962,12 +1969,10 @@ static void hud_mapload_render(mu_Context * ctx, float scale) {
     char buff[128];
     if (network_map_transfer)
         sprintf(buff, "Receiving %i KiB / %i KiB", compressed_chunk_data_offset / 1024, compressed_chunk_data_estimate / 1024);
-    else {
-        static const char * suffix[] = {"   ", ".  ", ".. ", "..."};
-        size_t index = ((size_t) (window_time() / 0.2F)) % lengthof(suffix);
-
-        sprintf(buff, "Connecting%s", suffix[index]);
-    }
+    else if (network_connected)
+        sprintf(buff, "Awaiting for state%s", ellipsis());
+    else
+        sprintf(buff, "Connecting%s", ellipsis());
 
     glColor3ub(69, 69, 69);
     font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F - 20.0F * scale, 2.0F * scale, buff, ASCII);

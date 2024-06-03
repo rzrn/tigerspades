@@ -261,6 +261,11 @@ static inline bool has_npot_textures() {
     return strstr((const char *) glGetString(GL_EXTENSIONS), "ARB_texture_non_power_of_two") != NULL;
 }
 
+#define BYTE0(col) ((col) & 0xFF)
+#define BYTE1(col) (((col) >> 8) & 0xFF)
+#define BYTE2(col) (((col) >> 16) & 0xFF)
+#define BYTE3(col) (((col) >> 24) & 0xFF)
+
 void texture_resize_pow2(Texture * t, const char * name, int min_size) {
     if (!t->pixels) return;
 

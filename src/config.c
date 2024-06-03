@@ -399,14 +399,14 @@ void config_reload() {
         list_clear(&config_keys);
 
     CATEGORY("Movement") {
-        config_register_key(WINDOW_KEY_UP,           TOOLKIT_KEY_UP,           "move_forward",      0, "Forward");
-        config_register_key(WINDOW_KEY_DOWN,         TOOLKIT_KEY_DOWN,         "move_backward",     0, "Backward");
-        config_register_key(WINDOW_KEY_LEFT,         TOOLKIT_KEY_LEFT,         "move_left",         0, "Left");
-        config_register_key(WINDOW_KEY_RIGHT,        TOOLKIT_KEY_RIGHT,        "move_right",        0, "Right");
-        config_register_key(WINDOW_KEY_SPACE,        TOOLKIT_KEY_JUMP,         "jump",              0, "Jump");
-        config_register_key(WINDOW_KEY_SPRINT,       TOOLKIT_KEY_SPRINT,       "sprint",            0, "Sprint");
-        config_register_key(WINDOW_KEY_CROUCH,       TOOLKIT_KEY_CROUCH,       "crouch",            0, "Crouch");
-        config_register_key(WINDOW_KEY_SNEAK,        TOOLKIT_KEY_SNEAK,        "sneak",             0, "Sneak");
+        config_register_key(WINDOW_KEY_UP,           TOOLKIT_KEY_W,            "move_forward",      0, "Forward");
+        config_register_key(WINDOW_KEY_LEFT,         TOOLKIT_KEY_A,            "move_left",         0, "Left");
+        config_register_key(WINDOW_KEY_DOWN,         TOOLKIT_KEY_S,            "move_backward",     0, "Backward");
+        config_register_key(WINDOW_KEY_RIGHT,        TOOLKIT_KEY_D,            "move_right",        0, "Right");
+        config_register_key(WINDOW_KEY_SPACE,        TOOLKIT_KEY_SPACE,        "jump",              0, "Jump");
+        config_register_key(WINDOW_KEY_SPRINT,       TOOLKIT_KEY_SHIFT,        "sprint",            0, "Sprint");
+        config_register_key(WINDOW_KEY_CROUCH,       TOOLKIT_KEY_CONTROL,      "crouch",            0, "Crouch");
+        config_register_key(WINDOW_KEY_SNEAK,        TOOLKIT_KEY_V,            "sneak",             0, "Sneak");
     }
 
     CATEGORY("Block") {
@@ -414,36 +414,36 @@ void config_reload() {
         config_register_key(WINDOW_KEY_CURSOR_DOWN,  TOOLKIT_KEY_CURSOR_DOWN,  "cube_color_down",   0, "Color down");
         config_register_key(WINDOW_KEY_CURSOR_LEFT,  TOOLKIT_KEY_CURSOR_LEFT,  "cube_color_left",   0, "Color left");
         config_register_key(WINDOW_KEY_CURSOR_RIGHT, TOOLKIT_KEY_CURSOR_RIGHT, "cube_color_right",  0, "Color right");
-        config_register_key(WINDOW_KEY_PICKCOLOR,    TOOLKIT_KEY_PICKCOLOR,    "cube_color_sample", 0, "Pick color");
+        config_register_key(WINDOW_KEY_PICKCOLOR,    TOOLKIT_KEY_E,            "cube_color_sample", 0, "Pick color");
     }
 
     CATEGORY("Tools & Weapons") {
-        config_register_key(WINDOW_KEY_TOOL1,        TOOLKIT_KEY_TOOL1,        "tool_spade",        0, "Select spade");
-        config_register_key(WINDOW_KEY_TOOL2,        TOOLKIT_KEY_TOOL2,        "tool_block",        0, "Select block");
-        config_register_key(WINDOW_KEY_TOOL3,        TOOLKIT_KEY_TOOL3,        "tool_gun",          0, "Select gun");
-        config_register_key(WINDOW_KEY_TOOL4,        TOOLKIT_KEY_TOOL4,        "tool_grenade",      0, "Select grenade");
-        config_register_key(WINDOW_KEY_RELOAD,       TOOLKIT_KEY_RELOAD,       "reload",            0, "Reload");
-        config_register_key(WINDOW_KEY_CHANGEWEAPON, TOOLKIT_KEY_CHANGEWEAPON, "change_weapon",     0, "Gun select");
-        config_register_key(WINDOW_KEY_LASTTOOL,     TOOLKIT_KEY_LASTTOOL,     "last_tool",         0, "Last tool");
+        config_register_key(WINDOW_KEY_TOOL1,        TOOLKIT_KEY_1,            "tool_spade",        0, "Select spade");
+        config_register_key(WINDOW_KEY_TOOL2,        TOOLKIT_KEY_2,            "tool_block",        0, "Select block");
+        config_register_key(WINDOW_KEY_TOOL3,        TOOLKIT_KEY_3,            "tool_gun",          0, "Select gun");
+        config_register_key(WINDOW_KEY_TOOL4,        TOOLKIT_KEY_4,            "tool_grenade",      0, "Select grenade");
+        config_register_key(WINDOW_KEY_RELOAD,       TOOLKIT_KEY_R,            "reload",            0, "Reload");
+        config_register_key(WINDOW_KEY_CHANGEWEAPON, TOOLKIT_KEY_PERIOD,       "change_weapon",     0, "Gun select");
+        config_register_key(WINDOW_KEY_LASTTOOL,     TOOLKIT_KEY_Q,            "last_tool",         0, "Last tool");
     }
 
     CATEGORY("Game") {
         config_register_key(WINDOW_KEY_ESCAPE,       TOOLKIT_KEY_ESCAPE,       "quit_game",         0, "Quit");
-        config_register_key(WINDOW_KEY_VOLUME_UP,    TOOLKIT_KEY_VOLUME_UP,    "volume_up",         0, "Volume up");
-        config_register_key(WINDOW_KEY_VOLUME_DOWN,  TOOLKIT_KEY_VOLUME_DOWN,  "volume_down",       0, "Volume down");
-        config_register_key(WINDOW_KEY_CHAT,         TOOLKIT_KEY_CHAT,         "chat_global",       0, "Chat");
-        config_register_key(WINDOW_KEY_FULLSCREEN,   TOOLKIT_KEY_FULLSCREEN,   "fullscreen",        0, "Fullscreen");
-        config_register_key(WINDOW_KEY_SCREENSHOT,   TOOLKIT_KEY_SCREENSHOT,   "screenshot",        0, "Screenshot");
-        config_register_key(WINDOW_KEY_CHANGETEAM,   TOOLKIT_KEY_CHANGETEAM,   "change_team",       0, "Team select");
-        config_register_key(WINDOW_KEY_COMMAND,      TOOLKIT_KEY_COMMAND,      "chat_command",      0, "Command");
-        config_register_key(WINDOW_KEY_HIDEHUD,      TOOLKIT_KEY_HIDEHUD,      "hide_hud",          1, "Hide HUD");
-        config_register_key(WINDOW_KEY_SAVE_MAP,     TOOLKIT_KEY_SAVE_MAP,     "save_map",          0, "Save map");
+        config_register_key(WINDOW_KEY_VOLUME_UP,    TOOLKIT_KEY_ADD,          "volume_up",         0, "Volume up");
+        config_register_key(WINDOW_KEY_VOLUME_DOWN,  TOOLKIT_KEY_SUBTRACT,     "volume_down",       0, "Volume down");
+        config_register_key(WINDOW_KEY_CHAT,         TOOLKIT_KEY_T,            "chat_global",       0, "Chat");
+        config_register_key(WINDOW_KEY_FULLSCREEN,   TOOLKIT_KEY_F11,          "fullscreen",        0, "Fullscreen");
+        config_register_key(WINDOW_KEY_SCREENSHOT,   TOOLKIT_KEY_F5,           "screenshot",        0, "Screenshot");
+        config_register_key(WINDOW_KEY_CHANGETEAM,   TOOLKIT_KEY_COMMA,        "change_team",       0, "Team select");
+        config_register_key(WINDOW_KEY_COMMAND,      TOOLKIT_KEY_SLASH,        "chat_command",      0, "Command");
+        config_register_key(WINDOW_KEY_HIDEHUD,      TOOLKIT_KEY_F6,           "hide_hud",          1, "Hide HUD");
+        config_register_key(WINDOW_KEY_SAVE_MAP,     TOOLKIT_KEY_F9,           "save_map",          0, "Save map");
     }
 
     CATEGORY("Information") {
         config_register_key(WINDOW_KEY_TAB,          TOOLKIT_KEY_TAB,          "view_score",        0, "Score");
-        config_register_key(WINDOW_KEY_MAP,          TOOLKIT_KEY_MAP,          "view_map",          1, "Map");
-        config_register_key(WINDOW_KEY_NETWORKSTATS, TOOLKIT_KEY_NETWORKSTATS, "network_stats",     1, "Network stats");
+        config_register_key(WINDOW_KEY_MAP,          TOOLKIT_KEY_M,            "view_map",          1, "Map");
+        config_register_key(WINDOW_KEY_NETWORKSTATS, TOOLKIT_KEY_F12,          "network_stats",     1, "Network stats");
         config_register_key(WINDOW_KEY_DEBUG,        TOOLKIT_KEY_F3,           "debug",             1, "Debug screen");
         config_register_key(WINDOW_KEY_TRACE_CLEAN,  TOOLKIT_KEY_F4,           "trace_clean",       0, "Clean up bullets");
     }
@@ -457,19 +457,19 @@ void config_reload() {
     }
 
     CATEGORY(NULL) {
-        config_register_key(WINDOW_KEY_SHIFT,        TOOLKIT_KEY_SPRINT,       NULL,                0, NULL);
+        config_register_key(WINDOW_KEY_SHIFT,        TOOLKIT_KEY_SHIFT,        NULL,                0, NULL);
         config_register_key(WINDOW_KEY_BACKSPACE,    TOOLKIT_KEY_BACKSPACE,    NULL,                0, NULL);
         config_register_key(WINDOW_KEY_ENTER,        TOOLKIT_KEY_ENTER,        NULL,                0, NULL);
         config_register_key(WINDOW_KEY_F1,           TOOLKIT_KEY_F1,           NULL,                0, NULL);
         config_register_key(WINDOW_KEY_F2,           TOOLKIT_KEY_F2,           NULL,                0, NULL);
         config_register_key(WINDOW_KEY_F3,           TOOLKIT_KEY_F3,           NULL,                0, NULL);
         config_register_key(WINDOW_KEY_F4,           TOOLKIT_KEY_F4,           NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_YES,          TOOLKIT_KEY_YES,          NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_NO,           TOOLKIT_KEY_NO,           NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_V,            TOOLKIT_KEY_SNEAK,        NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_SELECT1,      TOOLKIT_KEY_SELECT1,      NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_SELECT2,      TOOLKIT_KEY_SELECT2,      NULL,                0, NULL);
-        config_register_key(WINDOW_KEY_SELECT3,      TOOLKIT_KEY_SELECT3,      NULL,                0, NULL);
+        config_register_key(WINDOW_KEY_YES,          TOOLKIT_KEY_Y,            NULL,                0, NULL);
+        config_register_key(WINDOW_KEY_NO,           TOOLKIT_KEY_N,            NULL,                0, NULL);
+        config_register_key(WINDOW_KEY_V,            TOOLKIT_KEY_V,            NULL,                0, NULL);
+        config_register_key(WINDOW_KEY_SELECT1,      TOOLKIT_KEY_1,            NULL,                0, NULL);
+        config_register_key(WINDOW_KEY_SELECT2,      TOOLKIT_KEY_2,            NULL,                0, NULL);
+        config_register_key(WINDOW_KEY_SELECT3,      TOOLKIT_KEY_3,            NULL,                0, NULL);
     }
 
     char * fin = (char *) file_load(config_filepath);

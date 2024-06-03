@@ -322,7 +322,7 @@ void weapon_shoot() {
             case CAMERA_HITTYPE_BLOCK: {
                 map_damage(hit.x, hit.y, hit.z, weapon_block_damage(players[local_player.id].weapon));
 
-                if (map_damage_action(hit.x, hit.y, hit.z) && map_isdestructible(hit.x, hit.y, hit.z)) {
+                if (map_damage_action(hit.x, hit.y, hit.z) && isdestructible(hit.x, hit.y, hit.z)) {
                     PacketBlockAction contained;
                     contained.action_type = ACTION_DESTROY;
                     contained.player_id   = local_player.id;

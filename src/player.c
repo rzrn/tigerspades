@@ -347,7 +347,7 @@ void player_render_all() {
                         if (k == local_player.id)
                             map_damage(hit.x, hit.y, hit.z, 50);
 
-                        if (k == local_player.id && map_damage_action(hit.x, hit.y, hit.z) && map_isdestructible(hit.x, hit.y, hit.z)) {
+                        if (k == local_player.id && map_damage_action(hit.x, hit.y, hit.z) && isdestructible(hit.x, hit.y, hit.z)) {
                             PacketBlockAction contained;
                             contained.action_type = ACTION_DESTROY;
                             contained.player_id   = local_player.id;
@@ -396,7 +396,7 @@ void player_render_all() {
                 if (players[k].spade_used) {
                     camera_hit_fromplayer(&hit, k, 4.0F);
 
-                    if (hit.type == CAMERA_HITTYPE_BLOCK && map_isdestructible(hit.x, hit.y, hit.z)) {
+                    if (hit.type == CAMERA_HITTYPE_BLOCK && isdestructible(hit.x, hit.y, hit.z)) {
                         sound_create(SOUND_WORLD, sound(SOUND_HITGROUND), hit.x + 0.5F, hit.y + 0.5F, hit.z + 0.5F);
 
                         if (k == local_player.id) {

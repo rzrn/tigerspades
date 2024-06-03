@@ -63,11 +63,11 @@ void camera_overflow_adjust() {
     if (camera.rot.y > 3.14F)
         camera.rot.y = 3.14F;
 
-    if (camera.rot.x > DOUBLEPI)
-        camera.rot.x -= DOUBLEPI;
+    if (camera.rot.x > TAU)
+        camera.rot.x -= TAU;
 
     if (camera.rot.x < 0.0F)
-        camera.rot.x += DOUBLEPI;
+        camera.rot.x += TAU;
 }
 
 void camera_apply() {

@@ -816,14 +816,19 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
         if (chat_input_mode != CHAT_NO_INPUT) {
             switch (chat_input_mode) {
-                case CHAT_ALL_INPUT:
+                case CHAT_ALL_INPUT: {
                     font_render(11.0F * scale, chat_y + 36.0F * scale, 1.0F * scale,
                                 "Global:", ASCII);
                     break;
-                case CHAT_TEAM_INPUT:
+                }
+
+                case CHAT_TEAM_INPUT: {
                     font_render(11.0F * scale, chat_y + 36.0F * scale, 1.0F * scale,
                                 "Team:", ASCII);
                     break;
+                }
+
+                default: break;
             }
             int l = strlen(chat[0][0]);
             chat[0][0][l] = '_';
@@ -1042,7 +1047,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             float minimap_x = settings.window_width - 143 * scale;
             float minimap_y = settings.window_height - 15 * scale;
 
-            char sector_str[3] = {(int)(camera.pos.x / 64.0F) + 'A', (int)(camera.pos.z / 64.0F) + '1', 0};
+            char sector_str[3] = {sector1f(camera.pos.x), sector2f(camera.pos.z), 0};
             font_centered(minimap_x + 64 * scale, minimap_y - 129 * scale, 2.0F * scale, sector_str, ASCII);
 
             glColor3ub(0, 0, 0);
@@ -1278,7 +1283,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
 
         if (local_player.drag_active && action == WINDOW_RELEASE && players[local_player.id].held_item == TOOL_BLOCK) {
             int * pos = camera_terrain_pick(0);
-            if (pos != NULL && map_isdestructible(pos[X], pos[Y], pos[Z]) &&
+            if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
                 norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
                 int amount = map_cube_line(local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
                                            pos[0], pos[2], 63 - pos[1], NULL);
@@ -1301,7 +1306,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
            && window_time() - players[local_player.id].item_showup >= 0.5F) {
             int * pos = camera_terrain_pick(0);
 
-            if (pos != NULL && map_isdestructible(pos[X], pos[Y], pos[Z]) &&
+            if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
                 norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[X], pos[Y], pos[Z]) < 25.0F) {
                 local_player.drag_active = 1;
                 local_player.drag.x = pos[X];
@@ -2166,17 +2171,20 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
                 mu_layout_begin_column(ctx);
                 float size = settings.window_height * 0.3F - ctx->text_height(ctx->style->font) * 4.125F;
                 mu_layout_row(ctx, 1, (int[]) {size * current->tile_size}, size);
+
                 if (mu_button_ex(ctx, NULL, 32 + index, MU_OPT_NOFRAME)) {
                     if (!strncmp("aos://", current->url, 6)) {
                         join_address = current->url;
                         join_name    = current->caption;
                     } else file_url(current->url);
                 }
+
                 mu_layout_height(ctx, 0);
-                mu_text_color(ctx, BYTE0(current->color), BYTE1(current->color), BYTE2(current->color));
+                mu_text_color(ctx, current->color.r, current->color.g, current->color.b);
                 mu_text(ctx, current->caption);
                 mu_text_color_default(ctx);
                 mu_layout_end_column(ctx);
+
                 index++;
                 current = current->next;
             }

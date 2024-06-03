@@ -124,21 +124,18 @@ static inline float angle3f(float x1, float y1, float z1, float x2, float y2, fl
 static inline float hypot2f(float x, float y) { return sqrtf(x * x + y * y); }
 static inline float hypot3f(float x, float y, float z) { return sqrtf(x * x + y * y + z * z); }
 
-#define BYTE0(col) ((col) & 0xFF)
-#define BYTE1(col) (((col) >> 8) & 0xFF)
-#define BYTE2(col) (((col) >> 16) & 0xFF)
-#define BYTE3(col) (((col) >> 24) & 0xFF)
-
-#define PI       3.1415F
-#define DOUBLEPI (PI * 2.0F)
-#define HALFPI   (PI * 0.5F)
-#define EPSILON  0.005F
+#define PI      3.14159265F
+#define TAU     (PI * 2.0F)
+#define HALFPI  (PI * 0.5F)
+#define EPSILON 0.005F
 
 #define MOUSE_SENSITIVITY 0.002F
 
-#define CHAT_NO_INPUT   0
-#define CHAT_ALL_INPUT  1
-#define CHAT_TEAM_INPUT 2
+typedef enum {
+    CHAT_NO_INPUT   = 0,
+    CHAT_ALL_INPUT  = 1,
+    CHAT_TEAM_INPUT = 2,
+} ChatInputMode;
 
 typedef enum {
     VER075, VER076, UNKNOWN
@@ -152,7 +149,7 @@ extern const TrueColor White, Black, Red, Green, Blue, Yellow, Cyan, Magenta, Sk
 
 extern const RGB3i Gray;
 
-extern int chat_input_mode;
+extern ChatInputMode chat_input_mode;
 extern float last_cy;
 
 extern int fps;

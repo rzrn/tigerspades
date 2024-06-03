@@ -298,8 +298,10 @@ void * ping_update(void * data) {
                     if (json_object_get_string(s, "url"))
                         strncpy(current->url, json_object_get_string(s, "url"), sizeof(current->url) - 1);
 
+                    int color = json_object_get_number(s, "color");
+
                     current->tile_size = json_object_get_number(s, "tilesize");
-                    current->color     = json_object_get_number(s, "color");
+                    current->color     = (RGB3i) {.r = color & 0xFF, .g = (color >> 8) & 0xFF, .b = (color >> 16) & 0xFF};
                     current->image     = NULL;
 
                     if (json_object_get_string(s, "image")) {

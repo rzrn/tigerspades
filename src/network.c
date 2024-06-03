@@ -47,9 +47,9 @@ void (*packets[256])(uint8_t * data, int len) = {NULL};
 bool network_connected    = false;
 bool network_map_transfer = false;
 bool network_logged_in    = false;
+bool network_map_cached   = false;
 
 int network_received_packets = 0;
-int network_map_cached = 0;
 
 Vector3f network_pos_last, network_orient_last;
 
@@ -101,7 +101,7 @@ static void printJoinMsg(int team, char * name) {
     chat_add(0, Red, buff, sizeof(buff), UTF8);
 }
 
-bool map_isdestructible(int x, int y, int z) {
+bool isdestructible(int x, int y, int z) {
     return y > 1 || !network_connected;
 }
 
@@ -815,7 +815,7 @@ void getPacketMapStart(uint8_t * data, int len) {
 
     network_logged_in    = false;
     network_map_transfer = true;
-    network_map_cached   = 0;
+    network_map_cached   = false;
 
     hud_change(&hud_mapload);
 
@@ -832,10 +832,11 @@ void getPacketMapStart(uint8_t * data, int len) {
         sprintf(filename, "cache/%08X.vxl", p.crc32);
 
         if (file_exists(filename)) {
-            network_map_cached = 1;
+            network_map_cached = true;
             void * mapd = file_load(filename);
             map_vxl_load(mapd, file_size(filename));
             free(mapd);
+
             chunk_rebuild_all();
         }
 
@@ -883,8 +884,6 @@ void getPacketTerritoryCapture(uint8_t * data, int len) {
     if (gamestate.gamemode_type == GAMEMODE_TC && p.tent < gamestate.gamemode.tc.territory_count) {
         gamestate.gamemode.tc.territory[p.tent].team = TEAM(p.team);
         sound_create(SOUND_LOCAL, sound(p.winning ? SOUND_HORN : SOUND_PICKUP), 0.0F, 0.0F, 0.0F);
-        char x = (int) (gamestate.gamemode.tc.territory[p.tent].pos.x / 64.0F) + 'A';
-        char y = (int) (gamestate.gamemode.tc.territory[p.tent].pos.y / 64.0F) + '1';
 
         char * team_name = NULL;
 
@@ -895,6 +894,9 @@ void getPacketTerritoryCapture(uint8_t * data, int len) {
 
         if (team_name != NULL) {
             char capture_str[128];
+
+            char x = sector1f(gamestate.gamemode.tc.territory[p.tent].pos.x);
+            char y = sector2f(gamestate.gamemode.tc.territory[p.tent].pos.y);
 
             sprintf(capture_str, "%s have captured %c%c", team_name, x, y);
             chat_add(0, Red, capture_str, sizeof(capture_str), UTF8);

@@ -43,7 +43,7 @@ typedef struct News {
     char caption[65];
     char url[129];
     float tile_size;
-    int color;
+    RGB3i color;
     struct News * next;
 } News;
 

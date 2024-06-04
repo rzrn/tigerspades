@@ -304,6 +304,6 @@ size_t strsize(const char *, size_t maxsize);
 #define HACK_HEADSHOT 0 // │ Kinda         │ No           │ It’s hard to determine actual headshot in the presence of non-zero ping. │
 #define HACK_NOCLIP   0 // │ Yes           │ Yes          │ Some servers don’t check walking in the walls.                           │
                         // └───────────────┴──────────────┴──────────────────────────────────────────────────────────────────────────┘
-#define HACKS_ENABLED (HACK_NORELOAD || HACK_NORECOIL || HACK_NOSPREAD || HACK_WALLHACK || HACK_MAPHACK || HACK_NOFOG || HACK_ESP || HACK_HEADSHOT || HACK_NOCLIP)
+#define HACKS_ENABLED (HACK_NORELOAD || HACK_NORECOIL || HACK_NOSPREAD || HACK_WALLHACK || HACK_MAPHACK || HACK_NOFOG || HACK_ESP || HACK_HEADSHOT || HACK_NOCLIP) && 0
 
 #endif

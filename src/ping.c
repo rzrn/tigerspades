@@ -158,7 +158,7 @@ static void ping_lan(ENetSocket socket) {
         enet_socket_send(socket, &addr, &hellolan, 1);
 }
 
-static bool working = true, quit = false;
+static volatile bool working = true, quit = false;
 
 const char * _status = NULL;
 

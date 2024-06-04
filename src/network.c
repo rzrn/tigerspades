@@ -1226,7 +1226,7 @@ int network_connect(Address * addr) {
     );
 }
 
-int network_identifier_split(char * str, Address * addr) {
+int network_identifier_split(const char * str, Address * addr) {
     while (*str && isspace(*str)) str++; // skip trailing whitespace
 
     if (strstr(str, "aos://") != str) return 0;

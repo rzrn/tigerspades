@@ -37,7 +37,7 @@ unsigned int network_ping(void);
 
 void network_updateColor(void);
 void network_disconnect(void);
-int network_identifier_split(char * addr, Address *);
+int network_identifier_split(const char * addr, Address *);
 int network_connect(Address *);
 int network_connect_string(char * addr, GameVersion);
 int network_update(void);

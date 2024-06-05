@@ -545,7 +545,7 @@ void init() {
     rpc_init();
 }
 
-void reshape(WindowInstance * window, int width, int height) {
+void reshape(int width, int height) {
     glViewport(0, 0, width, height);
     settings.window_width  = width;
     settings.window_height = height;
@@ -577,7 +577,7 @@ static int mu_key_translate(int key) {
     }
 }
 
-void text_input(WindowInstance * window, const uint8_t * text) {
+void text_input(const uint8_t * text) {
     const uint8_t * end = text + strlen((const char *) text);
 
     while (text != end) {
@@ -607,7 +607,7 @@ void text_input(WindowInstance * window, const uint8_t * text) {
     }
 }
 
-void keys(WindowInstance * window, int key, int action, int mods) {
+void keys(int key, int action, int mods) {
     if (hud_active->ctx) {
         if (mu_key_translate(key)) {
             switch (action) {
@@ -680,7 +680,7 @@ void keys(WindowInstance * window, int key, int action, int mods) {
     }
 }
 
-void mouse_click(WindowInstance * window, int button, int action, int mods) {
+void mouse_click(int button, int action, int mods) {
     if (hud_active->input_mouseclick) {
         double x, y;
         window_mouseloc(&x, &y);
@@ -697,20 +697,20 @@ void mouse_click(WindowInstance * window, int button, int action, int mods) {
     }
 }
 
-void mouse_focus(WindowInstance * window, bool focused) {
+void mouse_focus(bool focused) {
     if (hud_active != NULL && hud_active->focus) hud_active->focus(focused);
 }
 
-void mouse_hover(WindowInstance * window, bool hovered) {
+void mouse_hover(bool hovered) {
     if (hud_active != NULL && hud_active->hover) hud_active->hover(hovered);
 }
 
-void mouse(WindowInstance * window, double x, double y) {
+void mouse(double x, double y) {
     if (hud_active->input_mouselocation) hud_active->input_mouselocation(x, y);
     if (hud_active->ctx) mu_input_mousemove(hud_active->ctx, x, y);
 }
 
-void mouse_scroll(WindowInstance * window, double xoffset, double yoffset) {
+void mouse_scroll(double xoffset, double yoffset) {
     if (hud_active->input_mousescroll)
         hud_active->input_mousescroll(yoffset);
 

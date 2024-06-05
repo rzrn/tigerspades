@@ -30,19 +30,17 @@ static int quit = 0;
 
 static WindowFinger fingers[8];
 
-void window_init(int * argc, char ** argv) {
-    static WindowInstance i;
-    hud_window = &i;
+static SDL_Window * window = NULL;
 
+void window_init(int * argc, char ** argv) {
 #ifdef USE_TOUCH
     SDL_SetHintWithPriority(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1", SDL_HINT_OVERRIDE);
 #endif
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
 
-    hud_window->impl
-        = SDL_CreateWindow("TigerSpades " BETTERSPADES_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                           settings.window_width, settings.window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow("TigerSpades " BETTERSPADES_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                              settings.window_width, settings.window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -54,7 +52,7 @@ void window_init(int * argc, char ** argv) {
 #ifdef OPENGL_ES
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #endif
-    SDL_GL_CreateContext(hud_window->impl);
+    SDL_GL_CreateContext(window);
 
     memset(fingers, 0, sizeof(fingers));
 }
@@ -81,7 +79,7 @@ int window_get_mousemode() {
 }
 
 void window_settitle(char * title) {
-    SDL_SetWindowTitle(hud_window->impl, title);
+    SDL_SetWindowTitle(window, title);
 }
 
 void window_mouseloc(double * x, double * y) {
@@ -93,13 +91,13 @@ void window_mouseloc(double * x, double * y) {
 
 void window_videomode(bool fullscreen) {
     if (fullscreen)
-        SDL_SetWindowFullscreen(hud_window->impl, SDL_WINDOW_FULLSCREEN);
+        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
     else
-        SDL_SetWindowFullscreen(hud_window->impl, 0);
+        SDL_SetWindowFullscreen(window, 0);
 }
 
 void window_fromsettings() {
-    SDL_SetWindowSize(hud_window->impl, settings.window_width, settings.window_height);
+    SDL_SetWindowSize(window, settings.window_width, settings.window_height);
 
     if (settings.vsync < 2)
         window_swapping(settings.vsync);
@@ -108,8 +106,8 @@ void window_fromsettings() {
 
     window_videomode(settings.fullscreen);
 
-    int width, height; SDL_GetWindowSize(hud_window->impl, &width, &height);
-    reshape(hud_window, width, height);
+    int width, height; SDL_GetWindowSize(window, &width, &height);
+    reshape(width, height);
 }
 
 float window_time() {
@@ -132,7 +130,7 @@ void window_swapping(int value) {
 }
 
 void window_deinit() {
-    SDL_DestroyWindow(hud_window->impl);
+    SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
@@ -148,7 +146,8 @@ void window_keyname(int keycode, char * output, size_t length) {
 }
 
 void window_update() {
-    SDL_GL_SwapWindow(hud_window->impl);
+    SDL_GL_SwapWindow(window);
+
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -157,42 +156,42 @@ void window_update() {
             case SDL_KEYDOWN: window_sendkey(WINDOW_PRESS, event.key.keysym.sym, event.key.keysym.mod & KMOD_CTRL); break;
             case SDL_KEYUP: window_sendkey(WINDOW_RELEASE, event.key.keysym.sym, event.key.keysym.mod & KMOD_CTRL); break;
 
-            case SDL_MOUSEBUTTONDOWN: mouse_click(hud_window, get_sdl_button(event.button.button), WINDOW_PRESS, 0); break;
-            case SDL_MOUSEBUTTONUP: mouse_click(hud_window, get_sdl_button(event.button.button), WINDOW_RELEASE, 0); break;
+            case SDL_MOUSEBUTTONDOWN: mouse_click(get_sdl_button(event.button.button), WINDOW_PRESS, 0); break;
+            case SDL_MOUSEBUTTONUP: mouse_click(get_sdl_button(event.button.button), WINDOW_RELEASE, 0); break;
 
             case SDL_WINDOWEVENT: {
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED
                    || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-                    reshape(hud_window, event.window.data1, event.window.data2);
+                    reshape(event.window.data1, event.window.data2);
                 }
 
                 if (event.window.event == SDL_WINDOWEVENT_LEAVE)
-                    mouse_hover(hud_window, false);
+                    mouse_hover(false);
 
                 if (event.window.event == SDL_WINDOWEVENT_ENTER)
-                    mouse_hover(hud_window, true);
+                    mouse_hover(true);
 
                 if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
-                    mouse_focus(hud_window, false);
+                    mouse_focus(false);
 
                 if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
-                    mouse_focus(hud_window, true);
+                    mouse_focus(true);
 
                 break;
             }
 
-            case SDL_MOUSEWHEEL: mouse_scroll(hud_window, event.wheel.x, event.wheel.y); break;
+            case SDL_MOUSEWHEEL: mouse_scroll(event.wheel.x, event.wheel.y); break;
 
             case SDL_MOUSEMOTION: {
                 if (SDL_GetRelativeMouseMode())
-                    mouse(hud_window, event.motion.xrel, event.motion.yrel);
+                    mouse(event.motion.xrel, event.motion.yrel);
                 else
-                    mouse(hud_window, event.motion.x, event.motion.y);
+                    mouse(event.motion.x, event.motion.y);
 
                 break;
             }
 
-            case SDL_TEXTINPUT: text_input(hud_window, (uint8_t *) event.text.text); break;
+            case SDL_TEXTINPUT: text_input((uint8_t *) event.text.text); break;
 
             case SDL_FINGERDOWN:
                 if (hud_active->input_touch) {

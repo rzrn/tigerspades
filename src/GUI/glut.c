@@ -75,7 +75,7 @@ char * glut_special_key_name(int keycode) {
 }
 
 void window_keyboard(unsigned char key, int x, int y) {
-    if (isprint(key)) text_input(hud_window, (uint8_t[]) {key, 0});
+    if (isprint(key)) text_input((uint8_t[]) {key, 0});
 
     int mod = glutGetModifiers() & GLUT_ACTIVE_CTRL;
     window_sendkey(WINDOW_PRESS, toupper(key), mod);
@@ -97,7 +97,7 @@ void window_special_up(int key, int x, int y) {
 }
 
 void window_reshape(GLint width, GLint height) {
-    reshape(hud_window, width, height);
+    reshape(width, height);
 }
 
 #define GLUT_WHEEL_UP   3
@@ -123,9 +123,9 @@ void window_mouse_button(int button, int state, int x, int y) {
         double offset = 0;
 
         offset += (button == GLUT_WHEEL_UP ? 1 : -1);
-        mouse_scroll(hud_window, 0, offset);
+        mouse_scroll(0, offset);
     } else
-        mouse_click(hud_window, but, action, mod);
+        mouse_click(but, action, mod);
 }
 
 int captured = 0;
@@ -166,8 +166,8 @@ void window_mouse_motion(int x, int y) {
         glutWarpPointer(w / 2, h / 2);
         warped = true;
 
-        mouse(hud_window, x - w / 2, y - h / 2);
-    } else mouse(hud_window, x, y);
+        mouse(x - w / 2, y - h / 2);
+    } else mouse(x, y);
 }
 
 void window_videomode(bool fullscreen) {
@@ -180,7 +180,7 @@ void window_videomode(bool fullscreen) {
 void window_fromsettings() {
     window_videomode(settings.fullscreen);
 
-    reshape(hud_window, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+    reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }
 
 float window_time() {
@@ -231,13 +231,10 @@ void window_keyname(int keycode, char * output, size_t length) {
 }
 
 void window_entry(int state) {
-    mouse_hover(hud_window, state == GLUT_ENTERED ? true : false);
+    mouse_hover(state == GLUT_ENTERED ? true : false);
 }
 
 void window_init(int * argc, char ** argv) {
-    static WindowInstance i;
-    hud_window = &i;
-
     glutInit(argc, argv);
 
     glutInitWindowSize(settings.window_width, settings.window_height);

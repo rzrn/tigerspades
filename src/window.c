@@ -92,7 +92,7 @@ void window_sendkey(int action, int keycode, int mod) {
         int results[count];
         config_key_translate(keycode, 0, results);
         for (int k = 0; k < count; k++) {
-            keys(hud_window, results[k], action, mod);
+            keys(results[k], action, mod);
             if (hud_active->input_keyboard)
                 hud_active->input_keyboard(results[k], action, mod, keycode);
         }

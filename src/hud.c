@@ -50,7 +50,6 @@
 #include <BetterSpades/opengl.h>
 
 HUD * hud_active;
-WindowInstance * hud_window;
 
 static int is_inside_centered(double mx, double my, int x, int y, int w, int h) {
     return mx >= x - w / 2 && mx < x + w / 2 && my >= y - h / 2 && my < y + h / 2;
@@ -381,9 +380,9 @@ static int hud_ingame_onscreencontrol(int index, char * str, int activate) {
                     if (str)
                         strcpy(str, "Score");
                     if (activate == 0)
-                        keys(hud_window, WINDOW_KEY_TAB, WINDOW_RELEASE, 0);
+                        keys(WINDOW_KEY_TAB, WINDOW_RELEASE, 0);
                     if (activate == 1)
-                        keys(hud_window, WINDOW_KEY_TAB, WINDOW_PRESS, 0);
+                        keys(WINDOW_KEY_TAB, WINDOW_PRESS, 0);
                     return 1;
                 case 3:
                     if (str)
@@ -405,31 +404,31 @@ static int hud_ingame_onscreencontrol(int index, char * str, int activate) {
                     if (str)
                         strcpy(str, "Network");
                     if (activate == 0)
-                        keys(hud_window, WINDOW_KEY_NETWORKSTATS, WINDOW_RELEASE, 0);
+                        keys(WINDOW_KEY_NETWORKSTATS, WINDOW_RELEASE, 0);
                     if (activate == 1)
-                        keys(hud_window, WINDOW_KEY_NETWORKSTATS, WINDOW_PRESS, 0);
+                        keys(WINDOW_KEY_NETWORKSTATS, WINDOW_PRESS, 0);
                     return 1;
                 case 6:
                     if (str)
                         strcpy(str, "Tool");
                     if (activate == 1)
-                        mouse_scroll(hud_window, 0, -1);
+                        mouse_scroll(0, -1);
                     return 1;
                 case 64:
                     if (str)
                         strcpy(str, "LMB");
                     if (activate == 0)
-                        mouse_click(hud_window, WINDOW_MOUSE_LMB, WINDOW_RELEASE, 0);
+                        mouse_click(WINDOW_MOUSE_LMB, WINDOW_RELEASE, 0);
                     if (activate == 1)
-                        mouse_click(hud_window, WINDOW_MOUSE_LMB, WINDOW_PRESS, 0);
+                        mouse_click(WINDOW_MOUSE_LMB, WINDOW_PRESS, 0);
                     return 1;
                 case 65:
                     if (str)
                         strcpy(str, "RMB");
                     if (activate == 0)
-                        mouse_click(hud_window, WINDOW_MOUSE_RMB, WINDOW_RELEASE, 0);
+                        mouse_click(WINDOW_MOUSE_RMB, WINDOW_RELEASE, 0);
                     if (activate == 1)
-                        mouse_click(hud_window, WINDOW_MOUSE_RMB, WINDOW_PRESS, 0);
+                        mouse_click(WINDOW_MOUSE_RMB, WINDOW_PRESS, 0);
                     return 1;
             }
         }

@@ -91,8 +91,8 @@
 
         BOOL isInView = NSPointInRect(mouseLocation, [self frameOnScreen]);
 
-        if (wasInView && !isInView) mouse_hover(hud_window, false);
-        if (!wasInView && isInView) mouse_hover(hud_window, true);
+        if (wasInView && !isInView) mouse_hover(false);
+        if (!wasInView && isInView) mouse_hover(true);
 
         wasInView = isInView;
     }
@@ -130,12 +130,12 @@
         NSPoint point = [NSEvent mouseLocation], center = [self centerOnScreen];
         double dx = point.x - center.x, dy = point.y - center.y;
 
-        mouse(hud_window, dx, -dy);
+        mouse(dx, -dy);
     } else {
         NSPoint point = [self convertPoint:[ev locationInWindow] fromView:nil];
         NSRect rect = [self frame];
 
-        mouse(hud_window, point.x, rect.size.height - point.y);
+        mouse(point.x, rect.size.height - point.y);
     }
 }
 
@@ -166,22 +166,22 @@
 
 - (void) mouseUp:(NSEvent *) ev
 {
-    mouse_click(hud_window, WINDOW_MOUSE_LMB, WINDOW_RELEASE, 0);
+    mouse_click(WINDOW_MOUSE_LMB, WINDOW_RELEASE, 0);
 }
 
 - (void) mouseDown:(NSEvent *) ev
 {
-    mouse_click(hud_window, WINDOW_MOUSE_LMB, WINDOW_PRESS, 0);
+    mouse_click(WINDOW_MOUSE_LMB, WINDOW_PRESS, 0);
 }
 
 - (void) rightMouseUp:(NSEvent *) ev
 {
-    mouse_click(hud_window, WINDOW_MOUSE_RMB, WINDOW_RELEASE, 0);
+    mouse_click(WINDOW_MOUSE_RMB, WINDOW_RELEASE, 0);
 }
 
 - (void) rightMouseDown:(NSEvent *) ev
 {
-    mouse_click(hud_window, WINDOW_MOUSE_RMB, WINDOW_PRESS, 0);
+    mouse_click(WINDOW_MOUSE_RMB, WINDOW_PRESS, 0);
 }
 
 - (void) scrollWheel:(NSEvent *) ev
@@ -189,7 +189,7 @@
     float dx = [ev deltaX], dy = [ev deltaY];
 
     if (fabs(dx) > 0.0f || fabs(dy) > 0.0f)
-        mouse_scroll(hud_window, dx, dy);
+        mouse_scroll(dx, dy);
 }
 
 - (void) keyUp:(NSEvent *) ev
@@ -200,7 +200,7 @@
 - (void) keyDown:(NSEvent *) ev
 {
     window_sendkey(WINDOW_PRESS, [ev keyCode], [ev modifierFlags] & NSControlKeyMask);
-    text_input(hud_window, (const uint8_t *) [[ev characters] UTF8String]);
+    text_input((const uint8_t *) [[ev characters] UTF8String]);
 }
 
 - (void) flagsChanged:(NSEvent *) ev
@@ -269,12 +269,12 @@ static BOOL isRunning = YES;
 
 - (void) windowDidBecomeKey:(NSNotification *) notification
 {
-    mouse_focus(hud_window, true);
+    mouse_focus(true);
 }
 
 - (void) windowDidResignKey:(NSNotification *) notification
 {
-    mouse_focus(hud_window, false);
+    mouse_focus(false);
 }
 
 - (void) windowDidResize:(NSNotification *) notification
@@ -282,7 +282,7 @@ static BOOL isRunning = YES;
     NSWindow * window = [notification object];
 
     NSRect rect = [[window contentView] frame];
-    reshape(hud_window, rect.size.width, rect.size.height);
+    reshape(rect.size.width, rect.size.height);
 }
 @end
 
@@ -324,7 +324,7 @@ void window_fromsettings() {
     [window setContentSize:newSize];
 
     NSRect viewRect = [view frame];
-    reshape(hud_window, viewRect.size.width, viewRect.size.height);
+    reshape(viewRect.size.width, viewRect.size.height);
 }
 
 float window_time() {

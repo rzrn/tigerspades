@@ -23,10 +23,6 @@
 #include <BetterSpades/common.h>
 #include <stddef.h>
 
-typedef struct {
-    void * impl;
-} WindowInstance;
-
 enum {
     WINDOW_PRESS,
     WINDOW_RELEASE,

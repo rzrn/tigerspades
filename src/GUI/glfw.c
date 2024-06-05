@@ -182,23 +182,23 @@ static void window_impl_mouseclick(GLFWwindow * window, int button, int action, 
         case GLFW_PRESS: a = WINDOW_PRESS; break;
     }
 
-    if (a >= 0) mouse_click(hud_window, b, a, mods & GLFW_MOD_CONTROL);
+    if (a >= 0) mouse_click(b, a, mods & GLFW_MOD_CONTROL);
 }
 
 static double mx, my;
 
 static void window_impl_mouse(GLFWwindow * window, double x, double y) {
     if (!joystick_available) {
-        if (glfwGetInputMode(hud_window->impl, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
-            mouse(hud_window, x - mx, y - my);
+        if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
+            mouse(x - mx, y - my);
             mx = x;
             my = y;
-        } else mouse(hud_window, x, y);
+        } else mouse(x, y);
     }
 }
 
 static void window_impl_mousescroll(GLFWwindow * window, double xoffset, double yoffset) {
-    mouse_scroll(hud_window, xoffset, yoffset);
+    mouse_scroll(xoffset, yoffset);
 }
 
 static void window_impl_error(int i, const char * s) {
@@ -206,13 +206,13 @@ static void window_impl_error(int i, const char * s) {
 }
 
 static void window_impl_reshape(GLFWwindow * window, int width, int height) {
-    reshape(hud_window, width, height);
+    reshape(width, height);
 }
 
 static void window_impl_textinput(GLFWwindow * window, unsigned int codepoint) {
     uint8_t buff[5] = {0};
     encode(UTF8, buff, codepoint);
-    text_input(hud_window, buff);
+    text_input(buff);
 }
 
 static void window_impl_keys(GLFWwindow * window, int key, int scancode, int action, int mods) {
@@ -227,46 +227,48 @@ static void window_impl_keys(GLFWwindow * window, int key, int scancode, int act
 }
 
 static void window_cursor_enter_callback(GLFWwindow * window, int entered) {
-    mouse_hover(hud_window, entered);
+    mouse_hover(entered);
 }
 
 static void window_focus_callback(GLFWwindow * window, int focused) {
-    mouse_focus(hud_window, focused);
+    mouse_focus(focused);
 }
 
+static GLFWwindow * window = NULL;
+
 void window_mousemode(int mode) {
-    int s = glfwGetInputMode(hud_window->impl, GLFW_CURSOR);
+    int s = glfwGetInputMode(window, GLFW_CURSOR);
 
     if (s == GLFW_CURSOR_DISABLED && mode == WINDOW_CURSOR_ENABLED)
-        glfwSetInputMode(hud_window->impl, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     if (s == GLFW_CURSOR_NORMAL && mode == WINDOW_CURSOR_DISABLED) {
-        glfwSetInputMode(hud_window->impl, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        glfwGetCursorPos(hud_window->impl, &mx, &my);
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwGetCursorPos(window, &mx, &my);
     }
 }
 
 int window_get_mousemode() {
-    int s = glfwGetInputMode(hud_window->impl, GLFW_CURSOR);
+    int s = glfwGetInputMode(window, GLFW_CURSOR);
     return s == GLFW_CURSOR_DISABLED ? WINDOW_CURSOR_DISABLED : WINDOW_CURSOR_ENABLED;
 }
 
 void window_settitle(char * title) {
-    glfwSetWindowTitle(hud_window->impl, title);
+    glfwSetWindowTitle(window, title);
 }
 
 void window_mouseloc(double * x, double * y) {
-    glfwGetCursorPos(hud_window->impl, x, y);
+    glfwGetCursorPos(window, x, y);
 }
 
 void window_videomode(bool fullscreen) {
     const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
     if (fullscreen)
-        glfwSetWindowMonitor(hud_window->impl, glfwGetPrimaryMonitor(), 0, 0,
+        glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0,
                              settings.window_width, settings.window_height, mode->refreshRate);
     else
-        glfwSetWindowMonitor(hud_window->impl, NULL,
+        glfwSetWindowMonitor(window, NULL,
                              (mode->width - settings.window_width) / 2,
                              (mode->height - settings.window_height) / 2,
                              settings.window_width, settings.window_height, 0);
@@ -274,12 +276,12 @@ void window_videomode(bool fullscreen) {
 
 void window_fromsettings() {
     glfwWindowHint(GLFW_SAMPLES, settings.multisamples);
-    glfwSetWindowSize(hud_window->impl, settings.window_width, settings.window_height);
+    glfwSetWindowSize(window, settings.window_width, settings.window_height);
 
     window_videomode(settings.fullscreen);
 
-    int width, height; glfwGetWindowSize(hud_window->impl, &width, &height);
-    reshape(hud_window, width, height);
+    int width, height; glfwGetWindowSize(window, &width, &height);
+    reshape(width, height);
 }
 
 float window_time() {
@@ -287,7 +289,7 @@ float window_time() {
 }
 
 const char * window_clipboard() {
-    return glfwGetClipboardString(hud_window->impl);
+    return glfwGetClipboardString(window);
 }
 
 void window_textinput(int allow) {
@@ -314,9 +316,6 @@ void window_keyname(int keycode, char * output, size_t length) {
 }
 
 void window_init(int * argc, char ** argv) {
-    static WindowInstance i;
-    hud_window = &i;
-
     glfwWindowHint(GLFW_VISIBLE, 0);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -346,43 +345,43 @@ void window_init(int * argc, char ** argv) {
     */
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
-    hud_window->impl
-        = glfwCreateWindow(settings.window_width, settings.window_height, "TigerSpades " BETTERSPADES_VERSION,
-                           settings.fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
-    if (!hud_window->impl) {
+    window = glfwCreateWindow(settings.window_width, settings.window_height, "TigerSpades " BETTERSPADES_VERSION,
+                              settings.fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
+
+    if (window == NULL) {
         log_fatal("Could not open window");
         glfwTerminate();
         exit(1);
     }
 
     const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    glfwSetWindowPos(hud_window->impl, (mode->width - settings.window_width) / 2.0F,
+    glfwSetWindowPos(window, (mode->width - settings.window_width) / 2.0F,
                      (mode->height - settings.window_height) / 2.0F);
-    glfwShowWindow(hud_window->impl);
+    glfwShowWindow(window);
 
-    glfwMakeContextCurrent(hud_window->impl);
+    glfwMakeContextCurrent(window);
 
-    glfwSetFramebufferSizeCallback(hud_window->impl, window_impl_reshape);
-    glfwSetCursorPosCallback(hud_window->impl, window_impl_mouse);
-    glfwSetKeyCallback(hud_window->impl, window_impl_keys);
-    glfwSetMouseButtonCallback(hud_window->impl, window_impl_mouseclick);
-    glfwSetScrollCallback(hud_window->impl, window_impl_mousescroll);
-    glfwSetCharCallback(hud_window->impl, window_impl_textinput);
-    glfwSetWindowFocusCallback(hud_window->impl, window_focus_callback);
-    glfwSetCursorEnterCallback(hud_window->impl, window_cursor_enter_callback);
+    glfwSetFramebufferSizeCallback(window, window_impl_reshape);
+    glfwSetCursorPosCallback(window, window_impl_mouse);
+    glfwSetKeyCallback(window, window_impl_keys);
+    glfwSetMouseButtonCallback(window, window_impl_mouseclick);
+    glfwSetScrollCallback(window, window_impl_mousescroll);
+    glfwSetCharCallback(window, window_impl_textinput);
+    glfwSetWindowFocusCallback(window, window_focus_callback);
+    glfwSetCursorEnterCallback(window, window_cursor_enter_callback);
 
     if (glfwRawMouseMotionSupported())
-        glfwSetInputMode(hud_window->impl, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+        glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 }
 
 static void gamepad_translate_key(GLFWgamepadstate * state, GLFWgamepadstate * old, int gamepad, WindowKey key) {
     if (!old->buttons[gamepad] && state->buttons[gamepad]) {
-        keys(hud_window, key, WINDOW_PRESS, 0);
+        keys(key, WINDOW_PRESS, 0);
 
         if (hud_active->input_keyboard)
             hud_active->input_keyboard(key, WINDOW_PRESS, 0, 0);
     } else if (old->buttons[gamepad] && !state->buttons[gamepad]) {
-        keys(hud_window, key, WINDOW_RELEASE, 0);
+        keys(key, WINDOW_RELEASE, 0);
 
         if (hud_active->input_keyboard)
             hud_active->input_keyboard(key, WINDOW_RELEASE, 0, 0);
@@ -391,14 +390,14 @@ static void gamepad_translate_key(GLFWgamepadstate * state, GLFWgamepadstate * o
 
 static void gamepad_translate_button(GLFWgamepadstate * state, GLFWgamepadstate * old, int gamepad, WindowButton button) {
     if (!old->buttons[gamepad] && state->buttons[gamepad]) {
-        mouse_click(hud_window, button, WINDOW_PRESS, 0);
+        mouse_click(button, WINDOW_PRESS, 0);
     } else if (old->buttons[gamepad] && !state->buttons[gamepad]) {
-        mouse_click(hud_window, button, WINDOW_RELEASE, 0);
+        mouse_click(button, WINDOW_RELEASE, 0);
     }
 }
 
 void window_update() {
-    glfwSwapBuffers(hud_window->impl);
+    glfwSwapBuffers(window);
     glfwPollEvents();
 
     if (joystick_available && glfwJoystickIsGamepad(joystick_id)) {
@@ -427,10 +426,10 @@ void window_update() {
             joystick_mouse[0] += dx;
             joystick_mouse[1] += dy;
 
-            if (glfwGetInputMode(hud_window->impl, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
-                mouse(hud_window, dx, dy);
+            if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+                mouse(dx, dy);
             else
-                mouse(hud_window, joystick_mouse[0], joystick_mouse[1]);
+                mouse(joystick_mouse[0], joystick_mouse[1]);
 
             gamepad_translate_button(&state, &joystick_state, GLFW_GAMEPAD_BUTTON_A, WINDOW_MOUSE_LMB);
             gamepad_translate_button(&state, &joystick_state, GLFW_GAMEPAD_BUTTON_B, WINDOW_MOUSE_RMB);
@@ -443,7 +442,7 @@ void window_update() {
 void window_eventloop(Idle idle, Render render) {
     double last_frame_start = 0.0F;
 
-    while (!glfwWindowShouldClose(hud_window->impl)) {
+    while (!glfwWindowShouldClose(window)) {
         double dt = window_time() - last_frame_start;
         last_frame_start = window_time();
 

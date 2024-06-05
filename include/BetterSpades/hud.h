@@ -51,7 +51,6 @@ extern HUD hud_settings;
 extern HUD hud_controls;
 
 extern HUD * hud_active;
-extern WindowInstance * hud_window;
 
 extern const char * hud_serverlist_popup;
 

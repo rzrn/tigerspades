@@ -45,7 +45,7 @@ void network_init(void);
 
 void network_join_game(unsigned char team, unsigned char weapon);
 
-extern void (*packets[256])(uint8_t * data, int len);
+extern void (*packets[256])(uint8_t * data, size_t len);
 
 extern bool network_connected, network_map_transfer, network_logged_in;
 
@@ -58,9 +58,9 @@ extern unsigned char network_buttons_last;
 extern unsigned char network_tool_last;
 
 extern uint8_t * compressed_chunk_data;
-extern int compressed_chunk_data_size;
-extern int compressed_chunk_data_offset;
-extern int compressed_chunk_data_estimate;
+extern size_t compressed_chunk_data_size;
+extern size_t compressed_chunk_data_offset;
+extern size_t compressed_chunk_data_estimate;
 
 typedef struct {
     int outgoing;

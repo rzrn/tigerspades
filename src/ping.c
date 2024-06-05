@@ -49,7 +49,7 @@ typedef struct {
     int trycount;
 } PingTask;
 
-int server_count = 0, player_count = 0;
+size_t server_count = 0, player_count = 0;
 ServerEntry ** serverlist = NULL;
 
 News * newslist = NULL;
@@ -218,11 +218,11 @@ void * ping_update(void * data) {
 
                 pthread_mutex_lock(&serverlist_lock);
 
-                int begin = server_count; server_count += json_array_get_count(servers);
+                size_t begin = server_count; server_count += json_array_get_count(servers);
                 serverlist = realloc(serverlist, server_count * sizeof(ServerEntry));
                 CHECK_ALLOCATION_ERROR(serverlist)
 
-                for (int k = begin; k < server_count; k++) {
+                for (size_t k = begin; k < server_count; k++) {
                     JSON_Object * s = json_array_get_object(servers, k - begin);
 
                     serverlist[k] = malloc(sizeof(ServerEntry));

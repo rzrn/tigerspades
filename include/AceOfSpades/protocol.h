@@ -112,8 +112,12 @@ typedef enum {
     KILLTYPE_GRENADE     = 3,
     KILLTYPE_FALL        = 4,
     KILLTYPE_TEAMCHANGE  = 5,
-    KILLTYPE_CLASSCHANGE = 6
+    KILLTYPE_CLASSCHANGE = 6,
+    KILLTYPE_MIN         = KILLTYPE_WEAPON,
+    KILLTYPE_MAX         = KILLTYPE_CLASSCHANGE
 } KillType;
+
+#define KILLTYPEVALID(x) ((x) <= KILLTYPE_MAX)
 
 typedef enum {
     WEAPON_RIFLE   = 0,

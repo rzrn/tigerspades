@@ -229,7 +229,7 @@ static bool falling_blocks_meshing(void * key, void * value, void * user) {
 }
 
 static bool falling_blocks_pivot(void * key, void * value, void * user) {
-    float * pivot = (float*) user;
+    float * pivot = (float *) user;
     uint32_t pos = *(uint32_t *) key;
 
     map_set(pos_keyx(pos), pos_keyy(pos), pos_keyz(pos), NULL);
@@ -240,7 +240,16 @@ static bool falling_blocks_pivot(void * key, void * value, void * user) {
     return true;
 }
 
-static const int DIRECTION_MASK[][3] = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+static inline void visit(Minheap * o, HashTable * h, int x, int y, int z) {
+    MinheapBlock block = {.pos = pos_key(x, y, z)};
+
+    if (!ht_contains(h, &block.pos) && !map_isair(x, y, z)) {
+        TrueColor color = map_get(x, y, z);
+
+        minheap_put(o, &block);
+        ht_insert(h, &block.pos, &color);
+    }
+}
 
 static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int z) {
     if (y <= 1)
@@ -257,14 +266,7 @@ static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int
     closedlist.compare = int_cmp;
     closedlist.hash = int_hash;
 
-    MinheapBlock start = (MinheapBlock) {
-        .pos = pos_key(x, y, z),
-    };
-
-    TrueColor start_color = map_get(x, y, z);
-
-    minheap_put(&openlist, &start);
-    ht_insert(&closedlist, &start.pos, &start_color);
+    visit(&openlist, &closedlist, x, y, z);
 
     while (!minheap_isempty(&openlist)) { // find all connected blocks
         MinheapBlock current = minheap_extract(&openlist);
@@ -275,25 +277,15 @@ static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int
             return false;
         }
 
-        for (size_t k = 0; k < sizeof(DIRECTION_MASK) / sizeof(*DIRECTION_MASK); k++) {
-            int dir_block[3] = {
-                pos_keyx(current.pos) + DIRECTION_MASK[k][0],
-                pos_keyy(current.pos) + DIRECTION_MASK[k][1],
-                pos_keyz(current.pos) + DIRECTION_MASK[k][2],
-            };
+        int x = pos_keyx(current.pos), y = pos_keyy(current.pos), z = pos_keyz(current.pos);
 
-            MinheapBlock block = (MinheapBlock) {
-                .pos = pos_key(dir_block[0], dir_block[1], dir_block[2]),
-            };
+        if (x > 0) visit(&openlist, &closedlist, x - 1, y, z);
+        if (y > 0) visit(&openlist, &closedlist, x, y - 1, z);
+        if (z > 0) visit(&openlist, &closedlist, x, y, z - 1);
 
-            if (dir_block[0] >= 0 && dir_block[1] >= 0 && dir_block[2] >= 0 && dir_block[0] < map_size_x
-               && dir_block[1] < map_size_y && dir_block[2] < map_size_z && !ht_contains(&closedlist, &block.pos)
-               && !map_isair(dir_block[0], dir_block[1], dir_block[2])) {
-                minheap_put(&openlist, &block);
-                TrueColor color = map_get(dir_block[0], dir_block[1], dir_block[2]);
-                ht_insert(&closedlist, &block.pos, &color);
-            }
-        }
+        if (x + 1 < map_size_x) visit(&openlist, &closedlist, x + 1, y, z);
+        if (y + 1 < map_size_y) visit(&openlist, &closedlist, x, y + 1, z);
+        if (z + 1 < map_size_z) visit(&openlist, &closedlist, x, y, z + 1);
     }
 
     minheap_destroy(&openlist);
@@ -302,15 +294,15 @@ static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int
     ht_iterate(&closedlist, pivot, falling_blocks_pivot);
 
     for (size_t k = 0; k < 3; k++)
-        pivot[k] = (pivot[k] / (float)closedlist.size) + 0.5F;
+        pivot[k] = (pivot[k] / (float) closedlist.size) + 0.5F;
 
-    collapsing->voxels = closedlist;
-    collapsing->v = (Vector3f) {0, 0, 0};
-    collapsing->o = (Vector3f) {0, 0, 0};
-    collapsing->p = (Vector3f) {pivot[0], pivot[1], pivot[2]};
-    collapsing->p2 = collapsing->p;
-    collapsing->rotation = rand() & 3;
-    collapsing->voxel_count = closedlist.size;
+    collapsing->voxels          = closedlist;
+    collapsing->v               = (Vector3f) {0, 0, 0};
+    collapsing->o               = (Vector3f) {0, 0, 0};
+    collapsing->p               = (Vector3f) {pivot[0], pivot[1], pivot[2]};
+    collapsing->p2              = collapsing->p;
+    collapsing->rotation        = rand() & 3;
+    collapsing->voxel_count     = closedlist.size;
     collapsing->has_displaylist = 0;
 
     tesselator_create(&collapsing->mesh_geometry, VERTEX_FLOAT, 0);

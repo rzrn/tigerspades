@@ -40,7 +40,7 @@ void particle_create(TrueColor color, float x, float y, float z, float velocity,
                      float min_size, float max_size);
 
 typedef struct { Vector3f pos; float value; } Vertex;
-typedef struct { int index, begin, end; Vertex data[]; } Trajectory;
+typedef struct { unsigned int index; size_t begin, end; Vertex data[]; } Trajectory;
 typedef struct { size_t size, length; uint8_t * head; } Projectiles;
 
 extern Projectiles projectiles;

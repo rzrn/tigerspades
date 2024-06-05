@@ -47,7 +47,7 @@ typedef struct {
     bool has_display_list, colorize;
     GLXDisplayList display_list[2];
     Voxel * voxels;
-    int voxel_count;
+    size_t voxel_count;
     float scale;
     float red, green, blue;
 } kv6;

@@ -25,8 +25,6 @@
 #include <BetterSpades/aabb.h>
 #include <BetterSpades/map.h>
 
-void aabb_render(AABB * a) { }
-
 // see: https://tavianator.com/2011/ray_box.html
 bool aabb_intersection_ray(AABB * a, Ray * r, float * distance) {
     double inv_x = 1.0 / r->direction[X];

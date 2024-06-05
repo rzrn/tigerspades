@@ -36,6 +36,5 @@ bool aabb_intersection_ray(AABB * a, Ray * r, float * distance);
 bool aabb_intersection_terrain(AABB * a, int miny);
 void aabb_set_size(AABB * a, float x, float y, float z);
 void aabb_set_center(AABB * a, float x, float y, float z);
-void aabb_render(AABB * a);
 
 #endif

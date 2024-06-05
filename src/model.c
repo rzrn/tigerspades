@@ -444,7 +444,7 @@ void kv6_render(kv6 * model, unsigned char team) {
             glx_displaylist_create(model->display_list + 0, !model->colorize, true);
             glx_displaylist_create(model->display_list + 1, false, true);
 
-            for (int i = 0; i < model->voxel_count; i++) {
+            for (size_t i = 0; i < model->voxel_count; i++) {
                 int r = model->voxels[i].color.r;
                 int g = model->voxels[i].color.g;
                 int b = model->voxels[i].color.b;

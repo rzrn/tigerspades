@@ -776,7 +776,7 @@ static inline bool startswith(const char * prefix, const char * str)
 int main(int argc, char ** argv) {
     const char * default_server = NULL;
 
-    for (size_t i = 1; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         if (startswith("-aos://", argv[i])) {
             default_server = argv[i] + 1;
         } else MATCH(argv[i], "--help") {

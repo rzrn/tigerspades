@@ -81,7 +81,7 @@ typedef struct {
     Subfont ** subfonts;
 } Font;
 
-GLuint upload_page(int texsize, const uint8_t * buff) {
+static GLuint upload_page(size_t texsize, const uint8_t * buff) {
     GLuint texid;
     glGenTextures(1, &texid);
     glBindTexture(GL_TEXTURE_2D, texid);
@@ -93,7 +93,7 @@ GLuint upload_page(int texsize, const uint8_t * buff) {
     return texid;
 }
 
-Subfont upload_subfont(const char * filename, int texsize, uint16_t height) {
+static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t height) {
     FILE * file = fopen(filename, "rb");
 
     if (!file) {
@@ -189,7 +189,7 @@ static Font * choose_font(FontType type) {
 }
 
 void font_init() {
-    int max_size = 0; glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_size);
+    size_t max_size = 0; glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
     unifont = upload_subfont("fonts/unifont.bitmap", max_size, 16);
     uvga    = upload_subfont("fonts/uvga.bitmap", max_size, 16);
 }

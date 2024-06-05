@@ -47,7 +47,7 @@ typedef struct News {
     struct News * next;
 } News;
 
-extern int server_count, player_count;
+extern size_t server_count, player_count;
 extern pthread_mutex_t serverlist_lock;
 extern ServerEntry ** serverlist;
 extern News * newslist;

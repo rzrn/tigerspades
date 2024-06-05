@@ -80,7 +80,7 @@ void chunk_init() {
 
     pthread_mutex_init(&chunk_block_queue_lock, NULL);
 
-    int chunk_enabled_cores = clamp(1, CHUNK_WORKERS_MAX, window_cpucores() / 2);
+    size_t chunk_enabled_cores = clamp(1, CHUNK_WORKERS_MAX, window_cpucores() / 2);
     log_info("%i cores enabled for chunk generation", chunk_enabled_cores);
 
     pthread_t threads[chunk_enabled_cores];
@@ -102,11 +102,11 @@ void chunk_render(ChunkRenderCall * c) {
         matrix_translate(matrix_model, c->mirror_x * map_size_x, 0.0F, c->mirror_y * map_size_z);
         matrix_upload();
 
-        // glPolygonMode(GL_FRONT, GL_LINE);
+        //glPolygonMode(GL_FRONT, GL_LINE);
 
         glx_displaylist_draw(&c->chunk->display_list, GLX_DISPLAYLIST_NORMAL);
 
-        // glPolygonMode(GL_FRONT, GL_FILL);
+        //glPolygonMode(GL_FRONT, GL_FILL);
 
         matrix_pop(matrix_model);
     }

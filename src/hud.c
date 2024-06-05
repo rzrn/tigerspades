@@ -664,7 +664,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         if (window_time() - local_player.death_time <= local_player.respawn_time) {
             glColor3f(1.0F, 0.0F, 0.0F);
             int cnt = local_player.respawn_time - (int)(window_time() - local_player.death_time);
-            char coin[16];
+            char coin[25];
             sprintf(coin, "Respawn in %i s", cnt);
             font_centered(settings.window_width / 2.0F,
                           48.0F * scale * (cameracontroller_bodyview_mode ? 2.0F : 1.0F), 3.0F * scale, coin, ASCII);
@@ -686,7 +686,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         if (players[local_id].held_item == TOOL_GUN &&
             HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY) &&
             players[local_id].alive) {
-            Texture * zoom;
+            Texture * zoom = NULL;
             switch (players[local_id].weapon) {
                 case WEAPON_RIFLE:   zoom = texture(TEXTURE_ZOOM_SEMI);    break;
                 case WEAPON_SMG:     zoom = texture(TEXTURE_ZOOM_SMG);     break;
@@ -1439,7 +1439,7 @@ static const char * hud_ingame_completeword(const char * s) {
     // find most likely player name or command
 
     AutocompleteType candidates[PLAYERS_MAX * 2 + 64] = {{0}};
-    int candidates_cnt = 0;
+    size_t candidates_cnt = 0;
 
     for (int k = 0; k < PLAYERS_MAX; k++) {
         if (players[k].connected)
@@ -1472,8 +1472,8 @@ static const char * hud_ingame_completeword(const char * s) {
     candidates[candidates_cnt++] = (AutocompleteType) {"/ping", 0};
 
     // valuate all strings
-    for (int k = 0; k < candidates_cnt; k++) {
-        for (int i = 0; i < strlen(candidates[k].str) && i < strlen(s); i++) {
+    for (size_t k = 0; k < candidates_cnt; k++) {
+        for (size_t i = 0; i < strlen(candidates[k].str) && i < strlen(s); i++) {
             if (candidates[k].str[i] == s[i])
                 candidates[k].acceptance += 2;
             else if (tolower(candidates[k].str[i]) == tolower(s[i]) || s[i] == '*') {
@@ -1971,7 +1971,7 @@ static void hud_mapload_render(mu_Context * ctx, float scale) {
 
     char buff[128];
     if (network_map_transfer)
-        sprintf(buff, "Receiving %i KiB / %i KiB", compressed_chunk_data_offset / 1024, compressed_chunk_data_estimate / 1024);
+        sprintf(buff, "Receiving %li KiB / %li KiB", compressed_chunk_data_offset / 1024, compressed_chunk_data_estimate / 1024);
     else if (network_connected)
         sprintf(buff, "Awaiting for state%s", ellipsis());
     else
@@ -2161,7 +2161,7 @@ static void hud_sort_button_render(mu_Context * ctx, float scale, const char * n
 }
 
 static void hud_serverlist_render(mu_Context * ctx, float scale) {
-    char total_str[128]; sprintf(total_str, server_count > 0 ? "%i players on %i servers" : "No servers", player_count, server_count);
+    char total_str[128]; sprintf(total_str, server_count > 0 ? "%li players on %li servers" : "No servers", player_count, server_count);
 
     char * join_address = NULL, * join_name = NULL; GameVersion join_version = VER07X;
 
@@ -2235,7 +2235,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
         pthread_mutex_lock(&serverlist_lock);
 
         if (server_count > 0) {
-            for (int k = 0; k < server_count; k++) {
+            for (size_t k = 0; k < server_count; k++) {
                 if (strstr(serverlist[k]->name, serverlist_input) || strstr(serverlist[k]->identifier, serverlist_input)
                  || strstr(serverlist[k]->map,  serverlist_input) || strstr(serverlist[k]->gamemode,   serverlist_input)) {
                     bool shadowed = serverlist[k]->current <= 0 || serverlist[k]->max <= serverlist[k]->current;

@@ -266,14 +266,14 @@ static inline bool has_npot_textures() {
 #define BYTE2(col) (((col) >> 16) & 0xFF)
 #define BYTE3(col) (((col) >> 24) & 0xFF)
 
-void texture_resize_pow2(Texture * t, const char * name, int min_size) {
+void texture_resize_pow2(Texture * t, const char * name, unsigned int min_size) {
     if (!t->pixels) return;
 
-    int max_size = 0;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_size);
+    unsigned int max_size = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
     max_size = max(max_size, min_size);
 
-    int w = 1, h = 1;
+    unsigned int w = 1, h = 1;
     if (has_npot_textures()) {
         if (t->width <= max_size && t->height <= max_size)
             return;
@@ -299,8 +299,8 @@ void texture_resize_pow2(Texture * t, const char * name, int min_size) {
 
     unsigned int * pixels_new = malloc(w * h * sizeof(unsigned int));
     CHECK_ALLOCATION_ERROR(pixels_new)
-    for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++) {
+    for (unsigned int y = 0; y < h; y++) {
+        for (unsigned int x = 0; x < w; x++) {
             float px = (float) x / (float) w * (float) t->width;
             float py = (float) y / (float) h * (float) t->height;
             float u = px - (int) px;
@@ -361,8 +361,8 @@ void texture_gradient_fog(unsigned int * gradient) {
 void texture_minimap_clear() {
     uint32_t * buff = malloc(map_size_x * map_size_z * sizeof(uint32_t));
 
-    for (size_t x = 0; x < map_size_x; x++) {
-        for (size_t z = 0; z < map_size_z; z++) {
+    for (int x = 0; x < map_size_x; x++) {
+        for (int z = 0; z < map_size_z; z++) {
             uint32_t * out = buff + x + z * map_size_z;
             writeRGBA(out, ISGRID(x, z) ? White : Sky);
         }

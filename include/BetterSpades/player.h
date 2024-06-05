@@ -27,6 +27,12 @@
 
 #define PLAYERS_MAX 256 // just because 32 players are not enough
 
+#if PLAYERS_MAX < 256
+    #define IDVALID(id) true
+#else
+    #define IDVALID(id) ((id) < PLAYERS_MAX)
+#endif
+
 typedef enum {
     GAMEMODE_CTF = 0,
     GAMEMODE_TC  = 1

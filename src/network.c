@@ -1259,7 +1259,7 @@ int network_identifier_split(const char * str, Address * addr) {
     return 1;
 }
 
-int network_connect_string(char * str, GameVersion version) {
+int network_connect_string(const char * str, GameVersion version) {
     Address addr;
 
     if (!network_identifier_split(str, &addr))

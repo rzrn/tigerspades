@@ -39,7 +39,7 @@ void network_updateColor(void);
 void network_disconnect(void);
 int network_identifier_split(const char * addr, Address *);
 int network_connect(Address *);
-int network_connect_string(char * addr, GameVersion);
+int network_connect_string(const char *, GameVersion);
 int network_update(void);
 void network_init(void);
 

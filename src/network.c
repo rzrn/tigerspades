@@ -542,13 +542,15 @@ void getPacketMoveObject(uint8_t * data, int len) {
         switch (p.object_id) {
             case TEAM_1_BASE: gamestate.gamemode.ctf.team_1_base = p.pos; break;
             case TEAM_2_BASE: gamestate.gamemode.ctf.team_2_base = p.pos; break;
+
             case TEAM_1_FLAG: {
-                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM_1_INTEL);
+                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM2_HAS_INTEL);
                 gamestate.gamemode.ctf.team_1_intel_location.dropped = p.pos;
                 break;
             }
+
             case TEAM_2_FLAG: {
-                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM_2_INTEL);
+                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM1_HAS_INTEL);
                 gamestate.gamemode.ctf.team_2_intel_location.dropped = p.pos;
                 break;
             }
@@ -632,12 +634,12 @@ void getPacketStateData(uint8_t * data, int len) {
         gamestate.gamemode.ctf.capture_limit = ctf.capture_limit;
         gamestate.gamemode.ctf.intels        = ctf.intels;
 
-        if (HASBIT(ctf.intels, TEAM_1_INTEL))
+        if (HASBIT(ctf.intels, TEAM2_HAS_INTEL))
             gamestate.gamemode.ctf.team_1_intel_location.held = readu8le(ctf.team_1_intel_location.data);
         else
             gamestate.gamemode.ctf.team_1_intel_location.dropped = readv3f(ctf.team_1_intel_location.data);
 
-        if (HASBIT(ctf.intels, TEAM_2_INTEL))
+        if (HASBIT(ctf.intels, TEAM1_HAS_INTEL))
             gamestate.gamemode.ctf.team_2_intel_location.held = readu8le(ctf.team_2_intel_location.data);
         else
             gamestate.gamemode.ctf.team_2_intel_location.dropped = readv3f(ctf.team_2_intel_location.data);
@@ -964,14 +966,14 @@ void getPacketIntelPickup(uint8_t * data, int len) {
         char pickup_str[128];
         switch (players[p.player_id].team) {
             case TEAM_1: {
-                gamestate.gamemode.ctf.intels |= MASKON(TEAM_2_INTEL); // pickup opposing team’s intel
+                gamestate.gamemode.ctf.intels |= MASKON(TEAM1_HAS_INTEL);
                 gamestate.gamemode.ctf.team_2_intel_location.held = p.player_id;
                 sprintf(pickup_str, "%s has the %s Intel", players[p.player_id].name, gamestate.team_2.name);
                 break;
             }
 
             case TEAM_2: {
-                gamestate.gamemode.ctf.intels |= MASKON(TEAM_1_INTEL);
+                gamestate.gamemode.ctf.intels |= MASKON(TEAM2_HAS_INTEL);
                 gamestate.gamemode.ctf.team_1_intel_location.held = p.player_id;
                 sprintf(pickup_str, "%s has the %s Intel", players[p.player_id].name, gamestate.team_1.name);
                 break;
@@ -990,12 +992,12 @@ void getPacketIntelDrop(uint8_t * data, int len) {
         char drop_str[128];
         switch (players[p.player_id].team) {
             case TEAM_1:
-                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM_2_INTEL); // drop opposing team's intel
+                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM1_HAS_INTEL);
                 gamestate.gamemode.ctf.team_2_intel_location.dropped = p.pos;
                 sprintf(drop_str, "%s has dropped the %s Intel", players[p.player_id].name, gamestate.team_2.name);
                 break;
             case TEAM_2:
-                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM_1_INTEL);
+                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM2_HAS_INTEL);
                 gamestate.gamemode.ctf.team_1_intel_location.dropped = p.pos;
                 sprintf(drop_str, "%s has dropped the %s Intel", players[p.player_id].name, gamestate.team_1.name);
                 break;
@@ -1150,6 +1152,11 @@ static inline int network_destroy() {
 
     if (peer != NULL) { enet_peer_reset(peer); peer = NULL; }
     if (client != NULL) { enet_host_destroy(client); client = NULL; }
+
+    for (size_t k = 0; k < PLAYERS_MAX; k++)
+        players[k].connected = 0;
+
+    players[local_player.id].team = TEAM_1;
 
     return 0;
 }

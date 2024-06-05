@@ -156,8 +156,8 @@ typedef enum {
 } MessageType;
 
 enum {
-    TEAM_1_INTEL = 0,
-    TEAM_2_INTEL = 1
+    TEAM1_HAS_INTEL = 0,
+    TEAM2_HAS_INTEL = 1
 };
 
 enum {

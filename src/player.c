@@ -769,9 +769,9 @@ void player_render(Player * p, int id) {
         matrix_pop(matrix_model);
 
         if (gamestate.gamemode_type == GAMEMODE_CTF &&
-            ((HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL) &&
+            ((HASBIT(gamestate.gamemode.ctf.intels, TEAM2_HAS_INTEL) &&
               (gamestate.gamemode.ctf.team_1_intel_location.held == id)) ||
-             (HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL) &&
+             (HASBIT(gamestate.gamemode.ctf.intels, TEAM1_HAS_INTEL) &&
               (gamestate.gamemode.ctf.team_2_intel_location.held == id)))) {
             static kv6 * const model_intel = &model[MODEL_INTEL];
 
@@ -792,11 +792,11 @@ void player_render(Player * p, int id) {
 
             int t = TEAM_SPECTATOR;
 
-            if (HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL)
+            if (HASBIT(gamestate.gamemode.ctf.intels, TEAM2_HAS_INTEL)
              && (gamestate.gamemode.ctf.team_1_intel_location.held == id))
                 t = TEAM_1;
 
-            if (HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL)
+            if (HASBIT(gamestate.gamemode.ctf.intels, TEAM1_HAS_INTEL)
              && (gamestate.gamemode.ctf.team_2_intel_location.held == id))
                 t = TEAM_2;
 

@@ -132,7 +132,7 @@ void drawScene() {
     matrix_upload();
 
     if (gamestate.gamemode_type == GAMEMODE_CTF) {
-        if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_1_INTEL)) {
+        if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM2_HAS_INTEL)) {
             float x = gamestate.gamemode.ctf.team_1_intel_location.dropped.x;
             float y = 63.0F - gamestate.gamemode.ctf.team_1_intel_location.dropped.z + 1.0F;
             float z = gamestate.gamemode.ctf.team_1_intel_location.dropped.y;
@@ -144,7 +144,7 @@ void drawScene() {
             matrix_pop(matrix_model);
         }
 
-        if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM_2_INTEL)) {
+        if (!HASBIT(gamestate.gamemode.ctf.intels, TEAM1_HAS_INTEL)) {
             float x = gamestate.gamemode.ctf.team_2_intel_location.dropped.x;
             float y = 63.0F - gamestate.gamemode.ctf.team_2_intel_location.dropped.z + 1.0F;
             float z = gamestate.gamemode.ctf.team_2_intel_location.dropped.y;

@@ -255,13 +255,13 @@ static void hud_ingame_render3D() {
         p_hud.orientation.z = p_hud.orientation_smooth.z = 0.0F;
         p_hud.alive = 1;
 
-        p_hud.team = TEAM_1;
+        p_hud.team = TEAM1;
         player_render(&p_hud, PLAYERS_MAX);
         matrix_identity(matrix_model);
         matrix_translate(matrix_model, 1.4F, -2.0F, -3.0F);
         matrix_rotate(matrix_model, -90.0F - 22.5F, 0.0F, 1.0F, 0.0F);
         matrix_upload();
-        p_hud.team = TEAM_2;
+        p_hud.team = TEAM2;
         player_render(&p_hud, PLAYERS_MAX);
     }
 
@@ -304,18 +304,18 @@ static void hud_ingame_render3D() {
     int rotating_model_team = TEAM_SPECTATOR;
     if (gamestate.mode == GAMEMODE_CTF) {
         switch (players[local_player.id].team) {
-            case TEAM_1: {
+            case TEAM1: {
                 if (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == local_player.id) {
                     rotating_model      = &model[MODEL_INTEL];
-                    rotating_model_team = TEAM_2;
+                    rotating_model_team = TEAM2;
                 }
                 break;
             }
 
-            case TEAM_2: {
+            case TEAM2: {
                 if (gamestate.ctf.team2_has_intel && gamestate.ctf.team1_carrier == local_player.id) {
                     rotating_model      = &model[MODEL_INTEL];
-                    rotating_model_team = TEAM_1;
+                    rotating_model_team = TEAM1;
                 }
                 break;
             }
@@ -554,7 +554,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             case GAMEMODE_TC: {
                 int t = 0;
                 for (size_t k = 0; k < gamestate.tc.territory_count; k++)
-                    if (gamestate.tc.territory[k].team == TEAM_1)
+                    if (gamestate.tc.territory[k].team == TEAM1)
                         t++;
                 sprintf(score_str, "%i/%i", t, gamestate.tc.territory_count);
                 break;
@@ -572,7 +572,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             case GAMEMODE_TC: {
                 int t = 0;
                 for (size_t k = 0; k < gamestate.tc.territory_count; k++)
-                    if (gamestate.tc.territory[k].team == TEAM_2)
+                    if (gamestate.tc.territory[k].team == TEAM2)
                         t++;
                 sprintf(score_str, "%i/%i", t, gamestate.tc.territory_count);
                 break;
@@ -596,8 +596,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         for (int k = 0; k < connected; k++) {
             int mul = 0;
             switch (players[pt[k].id].team) {
-                case TEAM_1: mul = 1; break;
-                case TEAM_2: mul = 3; break;
+                case TEAM1: mul = 1; break;
+                case TEAM2: mul = 3; break;
                 default:
                 case TEAM_SPECTATOR: mul = 2; break;
             }
@@ -640,8 +640,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         if (cameracontroller_bodyview_player != local_player.id) {
             font_select(FONT_SMALLFNT);
             switch (players[cameracontroller_bodyview_player].team) {
-                case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
-                case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
             }
             font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F, 1.0F * scale,
                           players[cameracontroller_bodyview_player].name, UTF8);
@@ -910,8 +910,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
         if (p < 1.0F && l < 20.0F * 20.0F) {
             switch (gamestate.tc.territory[gamestate.tc.tent].team) {
-                case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
-                case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
                 default: glColor3ub(0, 0, 0);
             }
 
@@ -919,8 +919,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                          settings.window_height * 0.25F, 440.0F * scale * (1.0F - p), 20.0F * scale);
 
             switch (gamestate.tc.team_capturing) {
-                case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
-                case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
                 default: glColor3ub(0, 0, 0);
             }
 
@@ -986,8 +986,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             if (gamestate.mode == GAMEMODE_TC) {
                 for (int k = 0; k < gamestate.tc.territory_count; k++) {
                     switch (gamestate.tc.territory[k].team) {
-                        case TEAM_1: glColorRGB3ib(gamestate.team1.color, 0.94F); break;
-                        case TEAM_2: glColorRGB3ib(gamestate.team2.color, 0.94F); break;
+                        case TEAM1: glColorRGB3ib(gamestate.team1.color, 0.94F); break;
+                        case TEAM2: glColorRGB3ib(gamestate.team2.color, 0.94F); break;
                         default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
                     }
 
@@ -1007,8 +1007,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             #endif
                 {
                     switch (players[k].team) {
-                        case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
-                        case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
+                        case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                        case TEAM2: glColorRGB3i(gamestate.team2.color); break;
                     }
                     float ang = -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
                     texture_draw_rotated(texture(TEXTURE_PLAYER), minimap_x + players[k].pos.x * scale,
@@ -1026,8 +1026,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             float view_z = camera.pos.z - 64.0F; // min(max(camera.pos.z-64.0F,0.0F),map_size_z+1-128.0F);
 
             switch (players[local_player.id].team) {
-                case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
-                case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
                 case TEAM_SPECTATOR: default: glColor3f(0.0F, 0.0F, 0.0F); // same as chat
             }
 
@@ -1088,8 +1088,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             if (gamestate.mode == GAMEMODE_TC) {
                 for (int k = 0; k < gamestate.tc.territory_count; k++) {
                     switch (gamestate.tc.territory[k].team) {
-                        case TEAM_1: glColorRGB3ib(gamestate.team1.color, 0.94F); break;
-                        case TEAM_2: glColorRGB3ib(gamestate.team2.color, 0.94F); break;
+                        case TEAM1: glColorRGB3ib(gamestate.team1.color, 0.94F); break;
+                        case TEAM2: glColorRGB3ib(gamestate.team2.color, 0.94F); break;
                         default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
                     }
 
@@ -1114,8 +1114,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                         glColor3ub(0, 255, 255);
                     } else {
                         switch (players[k].team) {
-                            case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
-                            case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
+                            case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                            case TEAM2: glColorRGB3i(gamestate.team2.color); break;
                         }
                     }
 
@@ -1141,8 +1141,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
         char * th[4] = {"torso", "head", "arms", "legs"}; char str[32];
         switch (players[player_intersection_player].team) {
-            case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
-            case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
+            case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+            case TEAM2: glColorRGB3i(gamestate.team2.color); break;
             default: glColor3f(1.0F, 1.0F, 1.0F);
         }
         sprintf(str, "%s (%s)", players[player_intersection_player].name, th[player_intersection_type]);
@@ -1656,9 +1656,9 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
 
             if (screen_current == SCREEN_TEAM_SELECT) {
                 switch (key) {
-                    case WINDOW_KEY_SELECT1: new_team = TEAM_1;         break;
+                    case WINDOW_KEY_SELECT1: new_team = TEAM1;          break;
                     case WINDOW_KEY_SELECT2: new_team = TEAM_SPECTATOR; break;
-                    case WINDOW_KEY_SELECT3: new_team = TEAM_2;         break;
+                    case WINDOW_KEY_SELECT3: new_team = TEAM2;          break;
                     default:                 new_team = -1;             break;
                 }
 

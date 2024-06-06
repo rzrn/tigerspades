@@ -397,7 +397,7 @@ void kv6_render(kv6 * model, unsigned char team) {
                 glEnable(GL_TEXTURE_2D);
 
             switch (team) {
-                case TEAM_1: {
+                case TEAM1: {
                     glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR,
                                (float[]) {gamestate.team1.color.r * 0.75F / 255.0F,
                                           gamestate.team1.color.g * 0.75F / 255.0F,
@@ -406,7 +406,7 @@ void kv6_render(kv6 * model, unsigned char team) {
                     break;
                 }
 
-                case TEAM_2: {
+                case TEAM2: {
                     glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR,
                                (float[]) {gamestate.team2.color.r * 0.75F / 255.0F,
                                           gamestate.team2.color.g * 0.75F / 255.0F,
@@ -540,8 +540,8 @@ void kv6_render(kv6 * model, unsigned char team) {
         glx_displaylist_draw(model->display_list + 0, GLX_DISPLAYLIST_POINTS);
 
         switch (team) {
-            case TEAM_1: glColorRGB3ib(gamestate.team1.color, 0.75F); break;
-            case TEAM_2: glColorRGB3ib(gamestate.team2.color, 0.75F); break;
+            case TEAM1: glColorRGB3ib(gamestate.team1.color, 0.75F); break;
+            case TEAM2: glColorRGB3ib(gamestate.team2.color, 0.75F); break;
             default: glColor3ub(0, 0, 0);
         }
 

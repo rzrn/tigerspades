@@ -683,8 +683,8 @@ void player_render(Player * p, int id) {
         matrix_upload();
 
         switch (p->team) {
-            case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
-            case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
+            case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+            case TEAM2: glColorRGB3i(gamestate.team2.color); break;
         }
 
         font_select(FONT_FIXEDSYS);
@@ -791,10 +791,10 @@ void player_render(Player * p, int id) {
             int t = TEAM_SPECTATOR;
 
             if (gamestate.ctf.team2_has_intel && gamestate.ctf.team1_carrier == id)
-                t = TEAM_1;
+                t = TEAM1;
 
             if (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == id)
-                t = TEAM_2;
+                t = TEAM2;
 
             kv6_render(model_intel, t);
             matrix_pop(matrix_model);

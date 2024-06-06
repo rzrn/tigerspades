@@ -141,7 +141,7 @@ void drawScene() {
             matrix_translate(matrix_model, x, y, z);
             kv6_calclight(x, y, z);
             matrix_upload();
-            kv6_render(&model[MODEL_INTEL], TEAM_1);
+            kv6_render(&model[MODEL_INTEL], TEAM1);
             matrix_pop(matrix_model);
         }
 
@@ -153,7 +153,7 @@ void drawScene() {
             matrix_translate(matrix_model, x, y, z);
             kv6_calclight(x, y, z);
             matrix_upload();
-            kv6_render(&model[MODEL_INTEL], TEAM_2);
+            kv6_render(&model[MODEL_INTEL], TEAM2);
             matrix_pop(matrix_model);
         }
 
@@ -162,7 +162,7 @@ void drawScene() {
             matrix_translate(matrix_model, gamestate.ctf.team1_base.x, gamestate.ctf.team1_base.y + 1.0F, gamestate.ctf.team1_base.z);
             kv6_calclight(gamestate.ctf.team1_base.x, gamestate.ctf.team1_base.y + 1.0F, gamestate.ctf.team1_base.z);
             matrix_upload();
-            kv6_render(&model[MODEL_TENT], TEAM_1);
+            kv6_render(&model[MODEL_TENT], TEAM1);
             matrix_pop(matrix_model);
         }
 
@@ -171,7 +171,7 @@ void drawScene() {
             matrix_translate(matrix_model, gamestate.ctf.team2_base.x, gamestate.ctf.team2_base.y + 1.0F, gamestate.ctf.team2_base.z);
             kv6_calclight(gamestate.ctf.team2_base.x, gamestate.ctf.team2_base.y + 1.0F, gamestate.ctf.team2_base.z);
             matrix_upload();
-            kv6_render(&model[MODEL_TENT], TEAM_2);
+            kv6_render(&model[MODEL_TENT], TEAM2);
             matrix_pop(matrix_model);
         }
     }
@@ -784,8 +784,8 @@ int main(int argc, char ** argv) {
             else strnzcpy(newslist_url, argv[i], sizeof(newslist_url));
         } else MATCH(argv[i], "--team") {
             if (argc <= ++i) ERROR(-1, "The “--team” option requires an argument.\n")
-            else MATCH(argv[i], "1") default_team = TEAM_1;
-            else MATCH(argv[i], "2") default_team = TEAM_2;
+            else MATCH(argv[i], "1") default_team = TEAM1;
+            else MATCH(argv[i], "2") default_team = TEAM2;
             else MATCH(argv[i], "3") default_team = TEAM_SPECTATOR;
             else ERROR(-2, "Unknown team (expected 1, 2, or 3).\n");
         } else MATCH(argv[i], "--weapon") {

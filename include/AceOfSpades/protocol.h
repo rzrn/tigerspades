@@ -83,12 +83,12 @@ typedef enum {
 } GameMode;
 
 enum {
-    TEAM_1          = 0,
-    TEAM_2          = 1,
-    TEAM_SPECTATOR  = 255
+    TEAM1          = 0,
+    TEAM2          = 1,
+    TEAM_SPECTATOR = 255
 };
 
-#define TEAM(t) (((t) == TEAM_1 || (t) == TEAM_2) ? (t) : TEAM_SPECTATOR)
+#define TEAM(t) (((t) == TEAM1 || (t) == TEAM2) ? (t) : TEAM_SPECTATOR)
 
 enum {
     INPUT_UP     = 0,
@@ -107,10 +107,10 @@ enum {
 };
 
 typedef enum {
-    TEAM_1_FLAG = 0,
-    TEAM_2_FLAG = 1,
-    TEAM_1_BASE = 2,
-    TEAM_2_BASE = 3
+    TEAM1_FLAG = 0,
+    TEAM2_FLAG = 1,
+    TEAM1_BASE = 2,
+    TEAM2_BASE = 3
 } Object;
 
 typedef enum {

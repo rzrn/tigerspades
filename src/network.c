@@ -637,8 +637,8 @@ void getPacketStateData(uint8_t * data, size_t len) {
         gamestate.ctf.team1_score     = ctf.team1_score;
         gamestate.ctf.team2_score     = ctf.team2_score;
         gamestate.ctf.capture_limit   = ctf.capture_limit;
-        gamestate.ctf.team1_has_intel = ctf.intels & TEAM1_HAS_INTEL;
-        gamestate.ctf.team2_has_intel = ctf.intels & TEAM2_HAS_INTEL;
+        gamestate.ctf.team1_has_intel = HASBIT(ctf.intels, TEAM1_HAS_INTEL);
+        gamestate.ctf.team2_has_intel = HASBIT(ctf.intels, TEAM2_HAS_INTEL);
 
         if (HASBIT(ctf.intels, TEAM2_HAS_INTEL))
             gamestate.ctf.team1_carrier = readu8le(ctf.team1_intel_location.data);

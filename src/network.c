@@ -92,8 +92,8 @@ const char * network_reason_disconnect(ErrorCode code) {
 static void printJoinMsg(int team, char * name) {
     char * t;
     switch (team) {
-        case TEAM_1: t = gamestate.team_1.name; break;
-        case TEAM_2: t = gamestate.team_2.name; break;
+        case TEAM_1: t = gamestate.team1.name; break;
+        case TEAM_2: t = gamestate.team2.name; break;
         default:
         case TEAM_SPECTATOR: t = "Spectator"; break;
     }
@@ -393,8 +393,8 @@ void getPacketChatMessage(uint8_t * data, size_t len) {
         case CHAT_ALL: case CHAT_TEAM: {
             if (IDVALID(p.player_id) && players[p.player_id].connected) {
                 switch (players[p.player_id].team) {
-                    case TEAM_1: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team_1.name); break;
-                    case TEAM_2: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team_2.name); break;
+                    case TEAM_1: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team1.name); break;
+                    case TEAM_2: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team2.name); break;
                     case TEAM_SPECTATOR: sprintf(n, "%s (Spectator)", players[p.player_id].name); break;
                 }
                 sprintf(buff, "%s: ", n);
@@ -416,8 +416,8 @@ void getPacketChatMessage(uint8_t * data, size_t len) {
         case CHAT_SYSTEM: color = Red; break;
         case CHAT_TEAM: {
             switch (players[p.player_id].connected ? players[p.player_id].team : players[local_player.id].team) {
-                case TEAM_1: color.r = gamestate.team_1.color.r; color.g = gamestate.team_1.color.g; color.b = gamestate.team_1.color.b; break;
-                case TEAM_2: color.r = gamestate.team_2.color.r; color.g = gamestate.team_2.color.g; color.b = gamestate.team_2.color.b; break;
+                case TEAM_1: color.r = gamestate.team1.color.r; color.g = gamestate.team1.color.g; color.b = gamestate.team1.color.b; break;
+                case TEAM_2: color.r = gamestate.team2.color.r; color.g = gamestate.team2.color.g; color.b = gamestate.team2.color.b; break;
             }
         }
     }
@@ -539,28 +539,28 @@ void getPacketShortPlayerData(uint8_t * data, size_t len) {
 void getPacketMoveObject(uint8_t * data, size_t len) {
     READPACKET(PacketMoveObject, p, data);
 
-    if (gamestate.gamemode_type == GAMEMODE_CTF) {
+    if (gamestate.mode == GAMEMODE_CTF) {
         switch (p.object_id) {
-            case TEAM_1_BASE: gamestate.gamemode.ctf.team_1_base = p.pos; break;
-            case TEAM_2_BASE: gamestate.gamemode.ctf.team_2_base = p.pos; break;
+            case TEAM_1_BASE: gamestate.ctf.team1_base = ntohv3f(p.pos); break;
+            case TEAM_2_BASE: gamestate.ctf.team2_base = ntohv3f(p.pos); break;
 
             case TEAM_1_FLAG: {
-                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM2_HAS_INTEL);
-                gamestate.gamemode.ctf.team_1_intel_location.dropped = p.pos;
+                gamestate.ctf.team2_has_intel = false;
+                gamestate.ctf.team1_flag = ntohv3f(p.pos);
                 break;
             }
 
             case TEAM_2_FLAG: {
-                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM1_HAS_INTEL);
-                gamestate.gamemode.ctf.team_2_intel_location.dropped = p.pos;
+                gamestate.ctf.team1_has_intel = false;
+                gamestate.ctf.team2_flag = ntohv3f(p.pos);
                 break;
             }
         }
     }
 
-    if (gamestate.gamemode_type == GAMEMODE_TC && p.object_id < gamestate.gamemode.tc.territory_count) {
-        gamestate.gamemode.tc.territory[p.object_id].pos  = p.pos;
-        gamestate.gamemode.tc.territory[p.object_id].team = TEAM(p.team);
+    if (gamestate.mode == GAMEMODE_TC && p.object_id < gamestate.tc.territory_count) {
+        gamestate.tc.territory[p.object_id].pos  = ntohv3f(p.pos);
+        gamestate.tc.territory[p.object_id].team = TEAM(p.team);
     }
 }
 
@@ -620,42 +620,43 @@ static inline Vector3f readv3f(uint8_t * buff)
 void getPacketStateData(uint8_t * data, size_t len) {
     PacketStateData p; size_t index = readPacketStateData(data, &p);
 
-    decodeMagic(gamestate.team_1.name, sizeof(gamestate.team_1.name), (char *) p.team_1_name.data, p.team_1_name.size);
-    gamestate.team_1.color = p.team_1;
+    decodeMagic(gamestate.team1.name, sizeof(gamestate.team1.name), (char *) p.team_1_name.data, p.team_1_name.size);
+    gamestate.team1.color = p.team_1;
 
-    decodeMagic(gamestate.team_2.name, sizeof(gamestate.team_2.name), (char *) p.team_2_name.data, p.team_2_name.size);
-    gamestate.team_2.color = p.team_2;
+    decodeMagic(gamestate.team2.name, sizeof(gamestate.team2.name), (char *) p.team_2_name.data, p.team_2_name.size);
+    gamestate.team2.color = p.team_2;
 
-    gamestate.gamemode_type = p.gamemode;
+    gamestate.mode = p.gamemode;
 
     if (p.gamemode == GAMEMODE_CTF) {
         CTFStateData ctf; index += readCTFStateData(data + index, &ctf);
-        gamestate.gamemode.ctf.team_1_score  = ctf.team_1_score;
-        gamestate.gamemode.ctf.team_2_score  = ctf.team_2_score;
-        gamestate.gamemode.ctf.capture_limit = ctf.capture_limit;
-        gamestate.gamemode.ctf.intels        = ctf.intels;
+        gamestate.ctf.team1_score     = ctf.team_1_score;
+        gamestate.ctf.team2_score     = ctf.team_2_score;
+        gamestate.ctf.capture_limit   = ctf.capture_limit;
+        gamestate.ctf.team1_has_intel = ctf.intels & TEAM1_HAS_INTEL;
+        gamestate.ctf.team2_has_intel = ctf.intels & TEAM2_HAS_INTEL;
 
         if (HASBIT(ctf.intels, TEAM2_HAS_INTEL))
-            gamestate.gamemode.ctf.team_1_intel_location.held = readu8le(ctf.team_1_intel_location.data);
+            gamestate.ctf.team1_carrier = readu8le(ctf.team_1_intel_location.data);
         else
-            gamestate.gamemode.ctf.team_1_intel_location.dropped = readv3f(ctf.team_1_intel_location.data);
+            gamestate.ctf.team1_flag = ntohv3f(readv3f(ctf.team_1_intel_location.data));
 
         if (HASBIT(ctf.intels, TEAM1_HAS_INTEL))
-            gamestate.gamemode.ctf.team_2_intel_location.held = readu8le(ctf.team_2_intel_location.data);
+            gamestate.ctf.team2_carrier = readu8le(ctf.team_2_intel_location.data);
         else
-            gamestate.gamemode.ctf.team_2_intel_location.dropped = readv3f(ctf.team_2_intel_location.data);
+            gamestate.ctf.team2_flag = ntohv3f(readv3f(ctf.team_2_intel_location.data));
 
-        gamestate.gamemode.ctf.team_1_base = ctf.team_1_base;
-        gamestate.gamemode.ctf.team_2_base = ctf.team_2_base;
+        gamestate.ctf.team1_base = ntohv3f(ctf.team_1_base);
+        gamestate.ctf.team2_base = ntohv3f(ctf.team_2_base);
     } else if (p.gamemode == GAMEMODE_TC) {
         TCStateData tc; index += readTCStateData(data + index, &tc);
-        gamestate.gamemode.tc.territory_count = tc.territory_count;
+        gamestate.tc.territory_count = tc.territory_count;
 
         for (size_t i = 0; i < tc.territory_count; i++) {
             TCTerritory territory; index += readTCTerritory(data + index, &territory);
 
-            gamestate.gamemode.tc.territory[i].pos  = territory.pos;
-            gamestate.gamemode.tc.territory[i].team = territory.team;
+            gamestate.tc.territory[i].pos  = ntohv3f(territory.pos);
+            gamestate.tc.territory[i].team = TEAM(territory.team);
         }
     } else log_error("Unknown gamemode (%d)!", p.gamemode);
 
@@ -796,12 +797,12 @@ void getPacketKillAction(uint8_t * data, size_t len) {
         } else {
             switch (players[p.killer_id].team) {
                 case TEAM_1: {
-                    chat_add(1, (TrueColor) {gamestate.team_1.color.r, gamestate.team_1.color.g, gamestate.team_1.color.b, 255}, m, sizeof(m), UTF8);
+                    chat_add(1, (TrueColor) {gamestate.team1.color.r, gamestate.team1.color.g, gamestate.team1.color.b, 255}, m, sizeof(m), UTF8);
                     break;
                 }
 
                 case TEAM_2: {
-                    chat_add(1, (TrueColor) {gamestate.team_2.color.r, gamestate.team_2.color.g, gamestate.team_2.color.b, 255}, m, sizeof(m), UTF8);
+                    chat_add(1, (TrueColor) {gamestate.team2.color.r, gamestate.team2.color.g, gamestate.team2.color.b, 255}, m, sizeof(m), UTF8);
                     break;
                 }
             }
@@ -884,22 +885,22 @@ void getPacketPlayerLeft(uint8_t * data, size_t len) {
 void getPacketTerritoryCapture(uint8_t * data, size_t len) {
     READPACKET(PacketTerritoryCapture, p, data);
 
-    if (gamestate.gamemode_type == GAMEMODE_TC && p.tent < gamestate.gamemode.tc.territory_count) {
-        gamestate.gamemode.tc.territory[p.tent].team = TEAM(p.team);
+    if (gamestate.mode == GAMEMODE_TC && p.tent < gamestate.tc.territory_count) {
+        gamestate.tc.territory[p.tent].team = TEAM(p.team);
         sound_create(SOUND_LOCAL, sound(p.winning ? SOUND_HORN : SOUND_PICKUP), 0.0F, 0.0F, 0.0F);
 
         char * team_name = NULL;
 
         switch (p.team) {
-            case TEAM_1: team_name = gamestate.team_1.name; break;
-            case TEAM_2: team_name = gamestate.team_2.name; break;
+            case TEAM_1: team_name = gamestate.team1.name; break;
+            case TEAM_2: team_name = gamestate.team2.name; break;
         }
 
         if (team_name != NULL) {
             char capture_str[128];
 
-            char x = sector1f(gamestate.gamemode.tc.territory[p.tent].pos.x);
-            char y = sector2f(gamestate.gamemode.tc.territory[p.tent].pos.y);
+            char x = sector1f(gamestate.tc.territory[p.tent].pos.x);
+            char y = sector2f(gamestate.tc.territory[p.tent].pos.z);
 
             sprintf(capture_str, "%s have captured %c%c", team_name, x, y);
             chat_add(0, Red, capture_str, sizeof(capture_str), UTF8);
@@ -915,30 +916,31 @@ void getPacketTerritoryCapture(uint8_t * data, size_t len) {
 void getPacketProgressBar(uint8_t * data, size_t len) {
     READPACKET(PacketProgressBar, p, data);
 
-    if (gamestate.gamemode_type == GAMEMODE_TC && p.tent < gamestate.gamemode.tc.territory_count) {
-        gamestate.progressbar.progress       = clamp(0.0F, 1.0F, p.progress);
-        gamestate.progressbar.rate           = p.rate;
-        gamestate.progressbar.tent           = p.tent;
-        gamestate.progressbar.team_capturing = p.team_capturing;
-        gamestate.progressbar.update         = window_time();
+    if (gamestate.mode == GAMEMODE_TC && p.tent < gamestate.tc.territory_count) {
+        gamestate.tc.progress       = clamp(0.0F, 1.0F, p.progress);
+        gamestate.tc.rate           = p.rate;
+        gamestate.tc.tent           = p.tent;
+        gamestate.tc.team_capturing = TEAM(p.team_capturing);
+        gamestate.tc.last_update    = window_time();
     }
 }
 
 void getPacketIntelCapture(uint8_t * data, size_t len) {
     READPACKET(PacketIntelCapture, p, data);
 
-    if (gamestate.gamemode_type == GAMEMODE_CTF && IDVALID(p.player_id)) {
+    if (gamestate.mode == GAMEMODE_CTF && IDVALID(p.player_id)) {
         char capture_str[128];
         switch (players[p.player_id].team) {
             case TEAM_1:
-                gamestate.gamemode.ctf.team_1_score++;
-                sprintf(capture_str, "%s has captured the %s Intel", players[p.player_id].name, gamestate.team_2.name);
+                gamestate.ctf.team1_score++;
+                sprintf(capture_str, "%s has captured the %s Intel", players[p.player_id].name, gamestate.team2.name);
                 break;
             case TEAM_2:
-                gamestate.gamemode.ctf.team_2_score++;
-                sprintf(capture_str, "%s has captured the %s Intel", players[p.player_id].name, gamestate.team_1.name);
+                gamestate.ctf.team2_score++;
+                sprintf(capture_str, "%s has captured the %s Intel", players[p.player_id].name, gamestate.team1.name);
                 break;
         }
+
         sound_create(SOUND_LOCAL, sound(p.winning ? SOUND_HORN : SOUND_PICKUP), 0.0F, 0.0F, 0.0F);
         players[p.player_id].score += 10;
         chat_add(0, Red, capture_str, sizeof(capture_str), UTF8);
@@ -947,15 +949,15 @@ void getPacketIntelCapture(uint8_t * data, size_t len) {
             char * name = NULL;
 
             switch (players[p.player_id].team) {
-                case TEAM_1: name = gamestate.team_1.name; break;
-                case TEAM_2: name = gamestate.team_2.name; break;
+                case TEAM_1: name = gamestate.team1.name; break;
+                case TEAM_2: name = gamestate.team2.name; break;
             }
 
             sprintf(capture_str, "%s Team Wins!", name);
             chat_showpopup(capture_str, sizeof(capture_str), UTF8, 5.0F, Red);
 
-            gamestate.gamemode.ctf.team_1_score = 0;
-            gamestate.gamemode.ctf.team_2_score = 0;
+            gamestate.ctf.team1_score = 0;
+            gamestate.ctf.team2_score = 0;
         }
     }
 }
@@ -963,20 +965,20 @@ void getPacketIntelCapture(uint8_t * data, size_t len) {
 void getPacketIntelPickup(uint8_t * data, size_t len) {
     READPACKET(PacketIntelPickup, p, data);
 
-    if (gamestate.gamemode_type == GAMEMODE_CTF && IDVALID(p.player_id)) {
+    if (gamestate.mode == GAMEMODE_CTF && IDVALID(p.player_id)) {
         char pickup_str[128];
         switch (players[p.player_id].team) {
             case TEAM_1: {
-                gamestate.gamemode.ctf.intels |= MASKON(TEAM1_HAS_INTEL);
-                gamestate.gamemode.ctf.team_2_intel_location.held = p.player_id;
-                sprintf(pickup_str, "%s has the %s Intel", players[p.player_id].name, gamestate.team_2.name);
+                gamestate.ctf.team1_has_intel = true;
+                gamestate.ctf.team2_carrier = p.player_id;
+                sprintf(pickup_str, "%s has the %s Intel", players[p.player_id].name, gamestate.team2.name);
                 break;
             }
 
             case TEAM_2: {
-                gamestate.gamemode.ctf.intels |= MASKON(TEAM2_HAS_INTEL);
-                gamestate.gamemode.ctf.team_1_intel_location.held = p.player_id;
-                sprintf(pickup_str, "%s has the %s Intel", players[p.player_id].name, gamestate.team_1.name);
+                gamestate.ctf.team2_has_intel = true;
+                gamestate.ctf.team1_carrier = p.player_id;
+                sprintf(pickup_str, "%s has the %s Intel", players[p.player_id].name, gamestate.team1.name);
                 break;
             }
         }
@@ -989,18 +991,18 @@ void getPacketIntelPickup(uint8_t * data, size_t len) {
 void getPacketIntelDrop(uint8_t * data, size_t len) {
     READPACKET(PacketIntelDrop, p, data);
 
-    if (gamestate.gamemode_type == GAMEMODE_CTF && IDVALID(p.player_id)) {
+    if (gamestate.mode == GAMEMODE_CTF && IDVALID(p.player_id)) {
         char drop_str[128];
         switch (players[p.player_id].team) {
             case TEAM_1:
-                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM1_HAS_INTEL);
-                gamestate.gamemode.ctf.team_2_intel_location.dropped = p.pos;
-                sprintf(drop_str, "%s has dropped the %s Intel", players[p.player_id].name, gamestate.team_2.name);
+                gamestate.ctf.team1_has_intel = false;
+                gamestate.ctf.team2_flag = ntohv3f(p.pos);
+                sprintf(drop_str, "%s has dropped the %s Intel", players[p.player_id].name, gamestate.team2.name);
                 break;
             case TEAM_2:
-                gamestate.gamemode.ctf.intels &= MASKOFF(TEAM2_HAS_INTEL);
-                gamestate.gamemode.ctf.team_1_intel_location.dropped = p.pos;
-                sprintf(drop_str, "%s has dropped the %s Intel", players[p.player_id].name, gamestate.team_1.name);
+                gamestate.ctf.team2_has_intel = false;
+                gamestate.ctf.team1_flag = ntohv3f(p.pos);
+                sprintf(drop_str, "%s has dropped the %s Intel", players[p.player_id].name, gamestate.team1.name);
                 break;
         }
 

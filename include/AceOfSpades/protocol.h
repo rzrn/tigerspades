@@ -69,6 +69,27 @@ typedef enum {
     ERROR_INVALID_NAME         = 20,
 } ErrorCode;
 
+#define PLAYERS_MAX 256 // just because 32 players are not enough
+
+#if PLAYERS_MAX < 256
+    #define IDVALID(id) ((id) < PLAYERS_MAX)
+#else
+    #define IDVALID(id) true
+#endif
+
+typedef enum {
+    GAMEMODE_CTF = 0,
+    GAMEMODE_TC  = 1
+} GameMode;
+
+enum {
+    TEAM_1          = 0,
+    TEAM_2          = 1,
+    TEAM_SPECTATOR  = 255
+};
+
+#define TEAM(t) (((t) == TEAM_1 || (t) == TEAM_2) ? (t) : TEAM_SPECTATOR)
+
 enum {
     INPUT_UP     = 0,
     INPUT_DOWN   = 1,

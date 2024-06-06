@@ -25,64 +25,36 @@
 #include <BetterSpades/aabb.h>
 #include <BetterSpades/network.h>
 
-#define PLAYERS_MAX 256 // just because 32 players are not enough
-
-#if PLAYERS_MAX < 256
-    #define IDVALID(id) ((id) < PLAYERS_MAX)
-#else
-    #define IDVALID(id) true
-#endif
-
-typedef enum {
-    GAMEMODE_CTF = 0,
-    GAMEMODE_TC  = 1
-} GameMode;
-
-enum {
-    TEAM_1          = 0,
-    TEAM_2          = 1,
-    TEAM_SPECTATOR  = 255
-};
-
-#define TEAM(t) (((t) == TEAM_1 || (t) == TEAM_2) ? (t) : TEAM_SPECTATOR)
-
 typedef struct {
     char name[11];
     RGB3i color;
 } Team;
 
-typedef union _IntelLocation {
-    uint8_t held;
-    Vector3f dropped;
-} IntelLocation;
+typedef struct {
+    unsigned int team1_score, team2_score, capture_limit;
+    bool team1_has_intel, team2_has_intel;
+    uint8_t team1_carrier, team2_carrier;
+    Vector3f team1_flag, team2_flag;
+    Vector3f team1_base, team2_base;
+} CTFState;
 
 typedef struct {
     Vector3f pos;
     uint8_t team;
 } Territory;
 
-typedef union _Gamemode {
-    struct {
-        uint8_t team_1_score, team_2_score;
-        uint8_t capture_limit, intels;
-        IntelLocation team_1_intel_location, team_2_intel_location;
-        Vector3f team_1_base, team_2_base;
-    } ctf;
+typedef struct {
+    unsigned char team_capturing, tent;
+    float progress, rate, last_update;
 
-    struct {
-        unsigned char territory_count;
-        Territory territory[16];
-    } tc;
-} Gamemode;
+    unsigned char territory_count;
+    Territory territory[16];
+} TCState;
 
 typedef struct {
-    Team team_1, team_2;
-    unsigned char gamemode_type;
-    Gamemode gamemode;
-    struct {
-        unsigned char team_capturing, tent;
-        float progress, rate, update;
-    } progressbar;
+    GameMode mode;
+    Team team1, team2;
+    CTFState ctf; TCState tc;
 } GameState;
 
 extern GameState gamestate;

@@ -683,8 +683,8 @@ void player_render(Player * p, int id) {
         matrix_upload();
 
         switch (p->team) {
-            case TEAM_1: glColorRGB3i(gamestate.team_1.color); break;
-            case TEAM_2: glColorRGB3i(gamestate.team_2.color); break;
+            case TEAM_1: glColorRGB3i(gamestate.team1.color); break;
+            case TEAM_2: glColorRGB3i(gamestate.team2.color); break;
         }
 
         font_select(FONT_FIXEDSYS);
@@ -768,11 +768,9 @@ void player_render(Player * p, int id) {
         kv6_render(torso, p->team);
         matrix_pop(matrix_model);
 
-        if (gamestate.gamemode_type == GAMEMODE_CTF &&
-            ((HASBIT(gamestate.gamemode.ctf.intels, TEAM2_HAS_INTEL) &&
-              (gamestate.gamemode.ctf.team_1_intel_location.held == id)) ||
-             (HASBIT(gamestate.gamemode.ctf.intels, TEAM1_HAS_INTEL) &&
-              (gamestate.gamemode.ctf.team_2_intel_location.held == id)))) {
+        if (gamestate.mode == GAMEMODE_CTF &&
+            ((gamestate.ctf.team2_has_intel && gamestate.ctf.team1_carrier == id) ||
+             (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == id))) {
             static kv6 * const model_intel = &model[MODEL_INTEL];
 
             matrix_push(matrix_model);
@@ -792,12 +790,10 @@ void player_render(Player * p, int id) {
 
             int t = TEAM_SPECTATOR;
 
-            if (HASBIT(gamestate.gamemode.ctf.intels, TEAM2_HAS_INTEL)
-             && (gamestate.gamemode.ctf.team_1_intel_location.held == id))
+            if (gamestate.ctf.team2_has_intel && gamestate.ctf.team1_carrier == id)
                 t = TEAM_1;
 
-            if (HASBIT(gamestate.gamemode.ctf.intels, TEAM1_HAS_INTEL)
-             && (gamestate.gamemode.ctf.team_2_intel_location.held == id))
+            if (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == id)
                 t = TEAM_2;
 
             kv6_render(model_intel, t);

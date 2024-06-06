@@ -233,7 +233,7 @@ float font_length(int scale, const char * text, int len, Codepage codepage) {
 
     float x = 0, length = 0;
 
-    const char * end = len <= 0 ? (char *) -1 : text + len;
+    const char * end = len <= 0 ? (char *) UINTPTR_MAX : text + len;
 
     while (*text && text < end) {
         if (*text == '\n') {

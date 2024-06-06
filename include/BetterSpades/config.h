@@ -130,8 +130,6 @@ extern List config_settings;
 
 ConfigKeyPair * config_key(int key);
 
-int config_key_translate(int key, int dir, int * results);
-void config_key_reset_togglestates();
 void config_reload(void);
 void config_save(void);
 

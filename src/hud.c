@@ -70,14 +70,7 @@ static int mu_text_height(mu_Font font) {
 }
 
 static int mu_text_width(mu_Font font, const char * text, int len) {
-    if (len <= 0) {
-        return ceil(font_length(mu_text_height(font) / 16.0F, (char *) text, UTF8));
-    } else {
-        char tmp[len + 1];
-        memcpy(tmp, text, len);
-        tmp[len] = 0;
-        return ceil(font_length(mu_text_height(font) / 16.0F, tmp, UTF8));
-    }
+    return ceil(font_length(mu_text_height(font) / 16.0F, text, len, UTF8));
 }
 
 static void mu_text_color(mu_Context * ctx, int red, int green, int blue) {
@@ -103,7 +96,7 @@ void hud_init() {
 
 void hud_change(HUD * new) {
     button_map.lmb = button_map.rmb = button_map.mmb = false;
-    config_key_reset_togglestates();
+    window_key_reset_togglestates();
 
     hud_active = new;
 
@@ -616,10 +609,10 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                  (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == pt[k].id))) {
                 texture_draw(texture(TEXTURE_INTEL),
                              settings.window_width / 4.0F * mul
-                                 - font_length(1.0F * scale, players[pt[k].id].name, UTF8) - 27.0F * scale,
+                                 - font_length(1.0F * scale, players[pt[k].id].name, 0, UTF8) - 27.0F * scale,
                              (427 - 16 * cntt[mul - 1]) * scale, 16.0F * scale, 16.0F * scale);
             }
-            font_render(settings.window_width / 4.0F * mul - font_length(1.0F * scale, players[pt[k].id].name, UTF8),
+            font_render(settings.window_width / 4.0F * mul - font_length(1.0F * scale, players[pt[k].id].name, 0, UTF8),
                         (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, players[pt[k].id].name, UTF8);
             font_render(settings.window_width / 4.0F * mul + 8.82F * scale, (427 - 16 * cntt[mul - 1]) * scale,
                         1.0F * scale, id_str, ASCII);
@@ -747,7 +740,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             }
         }
 
-        font_render(settings.window_width - font_length(2.0F * scale, item_mini_str, ASCII) - 8.0F * scale - off, 32.0F * scale, 2.0F * scale, item_mini_str, ASCII);
+        font_render(settings.window_width - font_length(2.0F * scale, item_mini_str, 0, ASCII) - 8.0F * scale - off, 32.0F * scale, 2.0F * scale, item_mini_str, ASCII);
 
         glColor3f(1.0F, 1.0F, 1.0F);
         if (players[local_id].held_item == TOOL_BLOCK) {
@@ -776,7 +769,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             for (int k = 0; k < 6; k++) {
                 if ((window_time() - chat_timer[0][k + 1] < 10.0F || chat_input_mode != CHAT_NO_INPUT)
                    && strlen(chat[0][k + 1]) > 0) {
-                    chat_width = fmaxf(font_length(1.0F * scale, chat[0][k + 1], UTF8), chat_width);
+                    chat_width = fmaxf(font_length(1.0F * scale, chat[0][k + 1], 0, UTF8), chat_width);
                     chat_height = k + 1;
                 }
             }
@@ -784,7 +777,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             if (chat_input_mode != CHAT_NO_INPUT) {
                 chat_height += 2;
                 chat_width = fmaxf(
-                    font_length(1.0F * scale, chat[0][0], UTF8),
+                    font_length(1.0F * scale, chat[0][0], 0, UTF8),
                     fmaxf(settings.window_width / 2.0F, chat_width)
                 );
             }
@@ -893,9 +886,9 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                                      "SHIFT", "M", ",", ".", "T", "Y"}};
 
         for (int k = 0; k < 12; k++) {
-            font_render(settings.window_width / 2.0F - font_length(1.0F * scale, help_str[0][k], ASCII),
+            font_render(settings.window_width / 2.0F - font_length(1.0F * scale, help_str[0][k], 0, ASCII),
                         settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[0][k], ASCII);
-            font_render(settings.window_width / 2.0F + font_length(1.0F * scale, " ", ASCII),
+            font_render(settings.window_width / 2.0F + font_length(1.0F * scale, " ", 0, ASCII),
                         settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[1][k], ASCII);
         }
 
@@ -1152,7 +1145,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
     if (window_time() - chat_popup_timer < chat_popup_duration) {
         glColor3ub(chat_popup_color.r, chat_popup_color.g, chat_popup_color.b);
-        font_render((settings.window_width - font_length(3.0F * scale, chat_popup, UTF8)) / 2.0F,
+        font_render((settings.window_width - font_length(3.0F * scale, chat_popup, 0, UTF8)) / 2.0F,
                     settings.window_height * 0.65F, 3.0F * scale, chat_popup, UTF8);
     }
 

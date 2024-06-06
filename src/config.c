@@ -283,26 +283,6 @@ static int config_read_key(void * user, const char * section, const char * name,
     return 1;
 }
 
-int config_key_translate(int key, int dir, int * results) {
-    int count = 0;
-
-    for (int k = 0; k < list_size(&config_keys); k++) {
-        ConfigKeyPair * a = list_get(&config_keys, k);
-
-        if (dir && a->internal == key) {
-            if (results)
-                results[count] = a->def;
-            count++;
-        } else if (!dir && a->def == key) {
-            if (results)
-                results[count] = a->internal;
-            count++;
-        }
-    }
-
-    return count;
-}
-
 ConfigKeyPair * config_key(int key) {
     for (int k = 0; k < list_size(&config_keys); k++) {
         ConfigKeyPair * a = list_get(&config_keys, k);
@@ -311,13 +291,6 @@ ConfigKeyPair * config_key(int key) {
     }
 
     return NULL;
-}
-
-void config_key_reset_togglestates() {
-    for (int k = 0; k < list_size(&config_keys); k++) {
-        ConfigKeyPair * a = list_get(&config_keys, k);
-        if (a->toggle) window_pressed_keys[a->internal] = 0;
-    }
 }
 
 static void config_label_scale(char * buffer, size_t length, int value, size_t index) {

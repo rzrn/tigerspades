@@ -41,19 +41,22 @@ enum {
 };
 
 void file_url(char * url) {
-    char cmd[strlen(url) + 16];
+    char * buff = malloc(strlen(url) + 16);
+
 #ifdef OS_WINDOWS
-    sprintf(cmd, "start %s", url);
-    system(cmd);
+    sprintf(buff, "start %s", url);
+    system(buff);
 #endif
 #if defined(OS_LINUX) || defined(OS_APPLE)
-    sprintf(cmd, "xdg-open %s", url);
-    system(cmd);
+    sprintf(buff, "xdg-open %s", url);
+    system(buff);
 #endif
 #ifdef OS_HAIKU
-    sprintf(cmd, "open %s", url);
-    system(cmd);
+    sprintf(buff, "open %s", url);
+    system(buff);
 #endif
+
+    free(buff);
 }
 
 int file_dir_exists(const char * path) {

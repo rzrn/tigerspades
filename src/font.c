@@ -228,12 +228,14 @@ static inline bool ignore(uint32_t codepoint) {
     return codepoint <= 127 && !isprint(codepoint);
 }
 
-float font_length(int scale, const char * text, Codepage codepage) {
+float font_length(int scale, const char * text, int len, Codepage codepage) {
     Font * font = choose_font(font_current_type);
 
     float x = 0, length = 0;
 
-    while (*text) {
+    const char * end = len <= 0 ? (char *) -1 : text + len;
+
+    while (*text && text <= end) {
         if (*text == '\n') {
             length = fmax(length, x);
             x = 0; text++;
@@ -338,5 +340,5 @@ void font_render(float x, float y, int scale, const char * text, Codepage codepa
 }
 
 void font_centered(float x, float y, int h, const char * text, Codepage codepage) {
-    font_render(x - font_length(h, text, codepage) / 2.0F, y, h, text, codepage);
+    font_render(x - font_length(h, text, 0, codepage) / 2.0F, y, h, text, codepage);
 }

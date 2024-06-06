@@ -63,6 +63,13 @@ int window_key_down(int key) {
     return window_pressed_keys[key] > 0;
 }
 
+void window_key_reset_togglestates() {
+    for (int k = 0; k < list_size(&config_keys); k++) {
+        ConfigKeyPair * a = list_get(&config_keys, k);
+        if (a->toggle) window_pressed_keys[a->internal] = 0;
+    }
+}
+
 int window_cpucores() {
     #ifdef OS_LINUX
         #ifdef USE_TOUCH
@@ -87,19 +94,24 @@ int window_cpucores() {
     return 1;
 }
 
-void window_sendkey(int action, int keycode, int mod) {
-    int count = config_key_translate(keycode, 0, NULL);
+static inline void sendkey(int keycode, int key, int action, int mod) {
+    if (key != WINDOW_KEY_UNKNOWN) keys(key, action, mod);
 
-    if (count > 0) {
-        int results[count];
-        config_key_translate(keycode, 0, results);
-        for (int k = 0; k < count; k++) {
-            keys(results[k], action, mod);
-            if (hud_active->input_keyboard)
-                hud_active->input_keyboard(results[k], action, mod, keycode);
+    if (hud_active->input_keyboard != NULL)
+        hud_active->input_keyboard(key, action, mod, keycode);
+}
+
+void window_sendkey(int action, int keycode, int mod) {
+    unsigned int count = 0;
+
+    for (int k = 0; k < list_size(&config_keys); k++) {
+        ConfigKeyPair * a = list_get(&config_keys, k);
+
+        if (a->def == keycode) {
+            sendkey(keycode, a->internal, action, mod);
+            count++;
         }
-    } else {
-        if (hud_active->input_keyboard)
-            hud_active->input_keyboard(WINDOW_KEY_UNKNOWN, action, mod, keycode);
     }
+
+    if (count == 0) sendkey(keycode, WINDOW_KEY_UNKNOWN, action, mod);
 }

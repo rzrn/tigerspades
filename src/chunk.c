@@ -83,10 +83,8 @@ void chunk_init() {
     size_t chunk_enabled_cores = clamp(1, CHUNK_WORKERS_MAX, window_cpucores() / 2);
     log_info("%i cores enabled for chunk generation", chunk_enabled_cores);
 
-    pthread_t threads[chunk_enabled_cores];
-
     for (size_t k = 0; k < chunk_enabled_cores; k++)
-        pthread_create(threads + k, NULL, chunk_generate, NULL);
+    { pthread_t _thread; pthread_create(&_thread, NULL, chunk_generate, NULL); }
 }
 
 static int chunk_sort(const void * a, const void * b) {

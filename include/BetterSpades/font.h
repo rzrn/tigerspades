@@ -29,7 +29,7 @@ typedef enum {
 } FontType;
 
 void font_init(void);
-float font_length(int scale, const char *, Codepage);
+float font_length(int scale, const char *, int, Codepage);
 void font_render(float x, float y, int scale, const char *, Codepage);
 void font_centered(float x, float y, int scale, const char *, Codepage);
 FontType font_select(FontType type);

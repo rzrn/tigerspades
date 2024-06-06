@@ -171,6 +171,8 @@ static __attribute__((always_inline)) inline float solid_sunblock(struct libvxl_
 }
 
 void * chunk_generate(void * data) {
+    UNUSED(data);
+
     pthread_detach(pthread_self());
 
     while (1) {
@@ -818,6 +820,8 @@ void chunk_rebuild_all() {
 }
 
 void chunk_block_update(int x, int y, int z) {
+    UNUSED(y);
+
     Chunk * c = chunks + (x / CHUNK_SIZE) + (z / CHUNK_SIZE) * CHUNKS_PER_DIM;
 
     pthread_mutex_lock(&chunk_block_queue_lock);
@@ -831,8 +835,10 @@ void chunk_block_update(int x, int y, int z) {
 }
 
 static bool iterate_chunk_updates(void * key, void * value, void * user) {
-    channel_put(&chunk_work_queue, value);
+    UNUSED(key);
+    UNUSED(user);
 
+    channel_put(&chunk_work_queue, value);
     return true;
 }
 

@@ -84,9 +84,7 @@ void player_reset(Player * p) {
     p->connected          = 0;
     p->alive              = 0;
     p->held_item          = TOOL_GUN;
-    p->block.r            = 111;
-    p->block.g            = 111;
-    p->block.b            = 111;
+    p->block              = Gray;
     p->physics.velocity.x = 0.0F;
     p->physics.velocity.y = 0.0F;
     p->physics.velocity.z = 0.0F;

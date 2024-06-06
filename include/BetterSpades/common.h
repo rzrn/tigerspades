@@ -89,6 +89,8 @@
     #include <discord_rpc.h>
 #endif
 
+#define UNUSED(x) ((void) x)
+
 #ifndef min
     #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif

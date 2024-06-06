@@ -52,6 +52,8 @@ void window_title(const char * suffix) {
 }
 
 void window_setmouseloc(double x, double y) {
+    UNUSED(x);
+    UNUSED(y);
 }
 
 #define WINDOW_KEY_TOTAL (WINDOW_KEY_LAST + 1)

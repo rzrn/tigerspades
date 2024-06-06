@@ -381,6 +381,8 @@ void cameracontroller_bodyview_render() {
 }
 
 void cameracontroller_selection(float dt) {
+    UNUSED(dt);
+
     camera.pos = (Vector3f) {256.0F, 79.0F, 256.0F};
     camera.v   = (Vector3f) {0.0F, 0.0F, 0.0F};
 

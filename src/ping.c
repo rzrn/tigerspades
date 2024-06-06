@@ -167,6 +167,8 @@ const char * ping_status() {
 }
 
 void * ping_update(void * data) {
+    UNUSED(data);
+
     pthread_detach(pthread_self());
 
     begin: working = true;

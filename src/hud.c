@@ -2297,10 +2297,9 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
         int x = (settings.window_width - w) / 2;
         int y = (settings.window_height - h) / 2;
 
-        if (mu_begin_window_ex(ctx, "Disconnected", mu_rect(x, y, w, h),
-                               MU_OPT_HOLDFOCUS | MU_OPT_NORESIZE | MU_OPT_NOCLOSE)) {
+        if (mu_begin_window_ex(ctx, "Disconnected", mu_rect(x, y, w, h), MU_OPT_NORESIZE | MU_OPT_NOCLOSE)) {
             mu_Container * cnt = mu_get_current_container(ctx);
-            mu_bring_to_front(ctx, cnt);
+            cnt->zindex = INT_MAX;
 
             mu_layout_row(ctx, 1, (int[]) {-1}, 0);
             mu_text(ctx, "You have been disconnected from the server.");
@@ -2313,7 +2312,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
             mu_text_color_default(ctx);
             mu_text(ctx, hud_serverlist_popup);
 
-            int width = mu_get_current_container(ctx)->body.w;
+            int width = cnt->body.w;
             mu_layout_row(ctx, 2, (int[]) {0.75F * width, -1}, 0);
             mu_layout_next(ctx);
 

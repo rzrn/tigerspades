@@ -235,7 +235,7 @@ float font_length(int scale, const char * text, int len, Codepage codepage) {
 
     const char * end = len <= 0 ? (char *) -1 : text + len;
 
-    while (*text && text <= end) {
+    while (*text && text < end) {
         if (*text == '\n') {
             length = fmax(length, x);
             x = 0; text++;

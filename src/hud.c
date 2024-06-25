@@ -502,6 +502,48 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     if (window_key_down(WINDOW_KEY_TRACE_CLEAN))
         trajectories_reset();
 
+    int is_local = (camera.mode == CAMERAMODE_FPS) || (cameracontroller_bodyview_player == local_player.id);
+    int local_id = (camera.mode == CAMERAMODE_FPS) ? local_player.id : cameracontroller_bodyview_player;
+
+    if (camera.mode == CAMERAMODE_FPS || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) && cameracontroller_bodyview_mode)) {
+        glColor3f(1.0F, 1.0F, 1.0F);
+
+        if (players[local_id].held_item == TOOL_GUN &&
+            HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY) &&
+            players[local_id].alive) {
+            Texture * zoom = NULL;
+            switch (players[local_id].weapon) {
+                case WEAPON_RIFLE:   zoom = texture(TEXTURE_ZOOM_SEMI);    break;
+                case WEAPON_SMG:     zoom = texture(TEXTURE_ZOOM_SMG);     break;
+                case WEAPON_SHOTGUN: zoom = texture(TEXTURE_ZOOM_SHOTGUN); break;
+            }
+
+            float last_shot = is_local ? weapon_last_shot : players[local_id].gun_shoot_timer;
+            float zoom_factor = fmax(0.25F * (1.0F - ((window_time() - last_shot) / weapon_delay(players[local_id].weapon))) + 1.0F, 1.0F);
+            float aspect_ratio = texture_width(zoom) / texture_height(zoom);
+
+            texture_draw(zoom, (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+                         settings.window_height * (zoom_factor * 0.5F + 0.5F),
+                         settings.window_height * aspect_ratio * zoom_factor, settings.window_height * zoom_factor);
+            texture_draw_sector(zoom, 0, settings.window_height * (zoom_factor * 0.5F + 0.5F),
+                                (settings.window_width - settings.window_height * aspect_ratio * zoom_factor)
+                                    / 2.0F,
+                                settings.window_height * zoom_factor, 0.0F, 0.0F, 1.0F / texture_width(zoom), 1.0F);
+            texture_draw_sector(
+                zoom, (settings.window_width + settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+                settings.window_height * (zoom_factor * 0.5F + 0.5F),
+                (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+                settings.window_height * zoom_factor, (texture_width(zoom) - 1) / texture_width(zoom), 0.0F,
+                1.0F / texture_width(zoom), 1.0F
+            );
+        } else if (!window_key_down(WINDOW_KEY_HIDEHUD)) {
+            texture_draw(
+                texture(HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1),
+                (settings.window_width - 32) / 2.0F, (settings.window_height + 32) / 2.0F, 32, 32
+            );
+        }
+    }
+
     if (window_key_down(WINDOW_KEY_HIDEHUD))
         return;
 
@@ -625,9 +667,6 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         }
     }
 
-    int is_local = (camera.mode == CAMERAMODE_FPS) || (cameracontroller_bodyview_player == local_player.id);
-    int local_id = (camera.mode == CAMERAMODE_FPS) ? local_player.id : cameracontroller_bodyview_player;
-
     if (camera.mode == CAMERAMODE_BODYVIEW
        || (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode)) {
         if (cameracontroller_bodyview_player != local_player.id) {
@@ -665,48 +704,13 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
            && cameracontroller_bodyview_mode)) {
         glColor3f(1.0F, 1.0F, 1.0F);
 
-        if (players[local_id].held_item == TOOL_GUN &&
-            HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY) &&
-            players[local_id].alive) {
-            Texture * zoom = NULL;
-            switch (players[local_id].weapon) {
-                case WEAPON_RIFLE:   zoom = texture(TEXTURE_ZOOM_SEMI);    break;
-                case WEAPON_SMG:     zoom = texture(TEXTURE_ZOOM_SMG);     break;
-                case WEAPON_SHOTGUN: zoom = texture(TEXTURE_ZOOM_SHOTGUN); break;
-            }
-
-            float last_shot = is_local ? weapon_last_shot : players[local_id].gun_shoot_timer;
-            float zoom_factor = fmax(0.25F * (1.0F - ((window_time() - last_shot) / weapon_delay(players[local_id].weapon))) + 1.0F, 1.0F);
-            float aspect_ratio = texture_width(zoom) / texture_height(zoom);
-
-            texture_draw(zoom, (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
-                         settings.window_height * (zoom_factor * 0.5F + 0.5F),
-                         settings.window_height * aspect_ratio * zoom_factor, settings.window_height * zoom_factor);
-            texture_draw_sector(zoom, 0, settings.window_height * (zoom_factor * 0.5F + 0.5F),
-                                (settings.window_width - settings.window_height * aspect_ratio * zoom_factor)
-                                    / 2.0F,
-                                settings.window_height * zoom_factor, 0.0F, 0.0F, 1.0F / texture_width(zoom), 1.0F);
-            texture_draw_sector(
-                zoom, (settings.window_width + settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
-                settings.window_height * (zoom_factor * 0.5F + 0.5F),
-                (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
-                settings.window_height * zoom_factor, (texture_width(zoom) - 1) / texture_width(zoom), 0.0F,
-                1.0F / texture_width(zoom), 1.0F
-            );
-        } else {
-            texture_draw(
-                texture(HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1),
-                (settings.window_width - 32) / 2.0F, (settings.window_height + 32) / 2.0F, 32, 32
-            );
-        }
-
         if (window_time() - local_player.last_damage_timer <= 0.5F && is_local) {
             float ang = atan2(players[local_player.id].orientation.z, players[local_player.id].orientation.x)
                       - atan2(camera.pos.z - local_player.last_damage.z, camera.pos.x - local_player.last_damage.x) + PI;
             texture_draw_rotated(texture(TEXTURE_INDICATOR), settings.window_width / 2.0F, settings.window_height / 2.0F, 200, 200, ang);
         }
 
-        if (players[local_player.id].team != TEAM_SPECTATOR) {
+        if (local_id == local_player.id) {
             if (network_connected) {
                 int health = is_local ? (players[local_id].alive ? local_player.health : 0) : (players[local_id].alive ? 100 : 0);
 

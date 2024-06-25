@@ -430,7 +430,7 @@ void display() {
     if (hud_active->render_2D) {
         mu_Context * ctx = hud_active->ctx;
 
-        if (ctx) {
+        if (ctx != NULL) {
             hud_active->ctx->style->padding        = 10 * scale - 5;
             hud_active->ctx->style->spacing        = 8  * scale - 4;
             hud_active->ctx->style->title_height   = 48 * scale - 24;
@@ -442,7 +442,7 @@ void display() {
 
         hud_active->render_2D(ctx, scale);
 
-        if (ctx) {
+        if (ctx != NULL) {
             mu_end(ctx);
 
             glEnable(GL_BLEND);
@@ -478,7 +478,7 @@ void display() {
                             bool resize = false;
                             Texture * img = hud_active->ui_images(cmd->icon.id, &resize);
 
-                            if (img) {
+                            if (img != NULL) {
                                 texture_draw(img, cmd->icon.rect.x, settings.window_height - cmd->icon.rect.y,
                                              resize ? size : cmd->icon.rect.w, resize ? size : cmd->icon.rect.h);
                                 glEnable(GL_BLEND);
@@ -629,8 +629,8 @@ void keys(int key, int action, int mods) {
         window_pressed_keys[key] = 0;
 
     if (key == WINDOW_KEY_FULLSCREEN && action == WINDOW_PRESS) { // switch between fullscreen
-        settings.fullscreen = !settings.fullscreen;
-        window_videomode(settings.fullscreen);
+        settings.windowed = !settings.windowed;
+        window_videomode(settings.windowed);
     }
 
     if (key == WINDOW_KEY_SCREENSHOT && action == WINDOW_PRESS) { // take screenshot
@@ -828,7 +828,7 @@ int main(int argc, char ** argv) {
 
     log_info("TigerSpades " BETTERSPADES_VERSION);
 
-    config_reload();
+    config_init();
 
     window_init(&argc, argv);
 

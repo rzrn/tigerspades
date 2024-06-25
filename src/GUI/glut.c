@@ -170,15 +170,15 @@ void window_mouse_motion(int x, int y) {
     } else mouse(x, y);
 }
 
-void window_videomode(bool fullscreen) {
-    if (fullscreen)
-        glutFullScreen();
-    else
+void window_videomode(bool windowed) {
+    if (windowed)
         glutReshapeWindow(settings.window_width, settings.window_height);
+    else
+        glutFullScreen();
 }
 
 void window_fromsettings() {
-    window_videomode(settings.fullscreen);
+    window_videomode(settings.windowed);
 
     reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }

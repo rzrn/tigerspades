@@ -316,7 +316,7 @@ void window_mouseloc(double * x, double * y) {
     *y = viewRect.size.height - locationInView.y;
 }
 
-void window_videomode(bool fullscreen) {
+void window_videomode(bool windowed) {
 }
 
 void window_fromsettings() {

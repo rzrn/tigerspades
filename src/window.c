@@ -64,9 +64,10 @@ int window_key_down(int key) {
 }
 
 void window_key_reset_togglestates() {
-    for (int k = 0; k < list_size(&config_keys); k++) {
-        ConfigKeyPair * a = list_get(&config_keys, k);
-        if (a->toggle) window_pressed_keys[a->internal] = 0;
+    for (WindowKey key = WINDOW_KEY_FIRST; key <= WINDOW_KEY_LAST; key++) {
+        ConfigKey * e = config_key(key);
+
+        if (e->toggle) window_pressed_keys[key] = 0;
     }
 }
 
@@ -102,13 +103,11 @@ static inline void sendkey(int keycode, int key, int action, int mod) {
 }
 
 void window_sendkey(int action, int keycode, int mod) {
-    unsigned int count = 0;
+    int count = 0;
 
-    for (int k = 0; k < list_size(&config_keys); k++) {
-        ConfigKeyPair * a = list_get(&config_keys, k);
-
-        if (a->def == keycode) {
-            sendkey(keycode, a->internal, action, mod);
+    for (WindowKey key = WINDOW_KEY_FIRST; key <= WINDOW_KEY_LAST; key++) {
+        if (config_key(key)->keycode == keycode) {
+            sendkey(keycode, key, action, mod);
             count++;
         }
     }

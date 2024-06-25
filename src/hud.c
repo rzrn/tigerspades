@@ -1894,20 +1894,20 @@ static void hud_ingame_touch(void * finger, int action, float x, float y, float 
 }
 
 HUD hud_ingame = {
-    hud_ingame_init,
-    hud_ingame_render3D,
-    hud_ingame_render,
-    hud_ingame_keyboard,
-    hud_ingame_mouselocation,
-    hud_ingame_mouseclick,
-    hud_ingame_scroll,
-    hud_ingame_touch,
-    hud_ingame_focus,
-    hud_ingame_hover,
-    NULL,
-    1,
-    0,
-    NULL,
+    .init                = hud_ingame_init,
+    .render_3D           = hud_ingame_render3D,
+    .render_2D           = hud_ingame_render,
+    .input_keyboard      = hud_ingame_keyboard,
+    .input_mouselocation = hud_ingame_mouselocation,
+    .input_mouseclick    = hud_ingame_mouseclick,
+    .input_mousescroll   = hud_ingame_scroll,
+    .input_touch         = hud_ingame_touch,
+    .focus               = hud_ingame_focus,
+    .hover               = hud_ingame_hover,
+    .ui_images           = NULL,
+    .render_world        = true,
+    .render_localplayer  = false,
+    .ctx                 = NULL,
 };
 
 /*       HUD_LOADING START             */
@@ -1915,8 +1915,6 @@ HUD hud_ingame = {
 static void hud_mapload_init() {
     window_mousemode(WINDOW_CURSOR_ENABLED);
 }
-
-#define lengthof(x) (sizeof(x) / sizeof(x[0]))
 
 static inline const char * ellipsis() {
     static const char * suffix[] = {"   ", ".  ", ".. ", "..."};
@@ -2376,11 +2374,11 @@ static int int_slider_defaults(mu_Context * ctx, Setting * setting) {
     int res = mu_slider_ex(ctx, &tmp, 0, setting->defaults_length - 1, 0, "", MU_OPT_ALIGNCENTER);
 
     if (res & MU_RES_CHANGE)
-        *(int*) setting->value = setting->defaults[(int) round(tmp)];
+        *((int *) setting->value) = setting->defaults[(int) round(tmp)];
 
-    if (setting->label_callback) {
+    if (setting->label != NULL) {
         char buf[64];
-        setting->label_callback(buf, sizeof(buf), setting->defaults[(int) round(tmp)], (int) round(tmp));
+        setting->label(buf, sizeof(buf), setting->defaults[(int) round(tmp)], (int) round(tmp));
         mu_draw_control_text(ctx, buf, ctx->last_rect, MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
     }
 
@@ -2430,54 +2428,46 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
 
         int width = mu_get_current_container(ctx)->body.w;
 
-        char * category = NULL; int open = 0;
+        bool expanded = false;
 
-        for (int k = 0; k < list_size(&config_settings); k++) {
-            Setting * a = list_get(&config_settings, k);
+        for (Setting * a = config_settings_begin; a != config_settings_end; a++) {
+            if (a->category != NULL) expanded = mu_header_ex(ctx, a->category, MU_OPT_EXPANDED);
 
-            if (!category || strcmp(category, a->category)) {
-                category = a->category;
-                open = mu_header_ex(ctx, a->category, MU_OPT_EXPANDED);
-            }
-
-            if (open) {
+            if (expanded && a->display != NULL) {
                 mu_layout_row(ctx, 3, (int[]) {0.50F * width, -0.05F * width, -1}, 0);
+                mu_text(ctx, a->display);
 
                 switch (a->type) {
                     case CONFIG_TYPE_STRING: {
-                        mu_text(ctx, a->name);
                         mu_textbox(ctx, a->value, a->max + 1);
                         break;
                     }
                     case CONFIG_TYPE_INT: {
                         if (a->max == 1 && a->min == 0) {
-                            mu_text(ctx, a->name);
                             hud_bool(ctx, a->value);
                         } else if (a->defaults_length > 0) {
-                            mu_text(ctx, a->name);
                             int_slider_defaults(ctx, a);
                         } else if (a->max == INT_MAX) {
-                            mu_text(ctx, a->name);
                             int_number(ctx, a->value);
                         } else {
-                            mu_text(ctx, a->name);
                             int_slider(ctx, a->value, a->min, a->max);
                         }
+
                         break;
                     }
                     case CONFIG_TYPE_FLOAT: {
-                        mu_text(ctx, a->name);
                         if (a->max == INT_MAX) {
                             mu_number(ctx, a->value, 0.1F);
                             *((float*) a->value) = max(a->min, *((float*) a->value));
                         } else {
                             mu_slider(ctx, a->value, a->min, a->max);
                         }
+
                         break;
                     }
                 }
 
-                if (*a->help) {
+                if (a->help != NULL) {
                     mu_push_id(ctx, &a->value, sizeof(a->value));
 
                     if (mu_begin_popup(ctx, "Help")) {
@@ -2562,21 +2552,17 @@ static void hud_controls_render(mu_Context * ctx, float scale) {
         mu_layout_row(ctx, 1, (int[]) {-1}, -1);
         mu_begin_panel(ctx, "Content");
 
-        char * category = NULL;
-        int open = 0;
-        for (int k = 0; k < list_size(&config_keys); k++) {
-            ConfigKeyPair * a = list_get(&config_keys, k);
+        bool expanded = false;
 
-            if (*a->display) {
-                if (!category || strcmp(category, a->category)) {
-                    category = a->category;
+        for (WindowKey key = WINDOW_KEY_FIRST; key <= WINDOW_KEY_LAST; key++) {
+            ConfigKey * e = config_key(key);
 
-                    open = mu_header_ex(ctx, a->category, MU_OPT_EXPANDED);
-                }
+            if (e->display != NULL) {
+                if (e->category != NULL) expanded = mu_header_ex(ctx, e->category, MU_OPT_EXPANDED);
 
-                if (open) {
+                if (expanded) {
                     int width = mu_get_current_container(ctx)->body.w;
-                    if (a->def != a->original) {
+                    if (e->keycode != e->original) {
                         mu_layout_row(ctx, 4,
                                       (int[]) {0.50F * width, ctx->text_width(ctx->style->font, "Reset", 0) * 1.5F,
                                                -0.05F * width, -1},
@@ -2585,30 +2571,27 @@ static void hud_controls_render(mu_Context * ctx, float scale) {
                         mu_layout_row(ctx, 3, (int[]) {0.50F * width, -0.05F * width, -1}, 0);
                     }
 
-                    mu_push_id(ctx, a->display, sizeof(a->display));
-                    mu_text(ctx, a->display);
+                    mu_push_id(ctx, &key, sizeof(WindowKey));
+                    mu_text(ctx, e->display);
 
-                    if (a->def != a->original && mu_button(ctx, "Reset")) {
-                        a->def = a->original;
+                    if (e->keycode != e->original && mu_button(ctx, "Reset")) {
+                        e->keycode = e->original;
                         config_save();
                     }
 
-                    char name[32]; window_keyname(a->def, name, sizeof(name));
+                    char name[32]; window_keyname(e->keycode, name, sizeof(name));
 
-                    if (hud_controls_edit == &a->def)
+                    if (hud_controls_edit == &e->keycode)
                         mu_text_color(ctx, 255, 0, 0);
 
                     if (mu_button(ctx, name))
-                        hud_controls_edit = (hud_controls_edit == &a->def) ? NULL : &a->def;
+                        hud_controls_edit = hud_controls_edit == &e->keycode ? NULL : &e->keycode;
 
                     mu_text_color_default(ctx);
-                    mu_pop_id(ctx);
-
-                    mu_push_id(ctx, a->name, sizeof(a->name));
 
                     if (mu_begin_popup(ctx, "Help")) {
-                        mu_layout_row(ctx, 1, (int[]) {ctx->text_width(ctx->style->font, a->name, 0)}, 0);
-                        mu_text(ctx, a->name);
+                        mu_layout_row(ctx, 1, (int[]) {ctx->text_width(ctx->style->font, e->name, 0)}, 0);
+                        mu_text(ctx, e->name);
                         mu_end_popup(ctx);
                     }
 

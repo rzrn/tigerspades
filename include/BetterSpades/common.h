@@ -103,6 +103,8 @@
 
 #define absf(a) (((a) > 0) ? (a) : -(a))
 
+#define lengthof(x) (sizeof(x) / sizeof(x[0]))
+
 static inline float sqrf(float x)    { return x * x; }
 static inline float cubef(float x)   { return x * x * x; }
 static inline float fourthf(float x) { return x * x * x * x; }

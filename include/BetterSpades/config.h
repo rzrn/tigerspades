@@ -60,7 +60,7 @@ typedef struct {
     int   window_height;
     int   multisamples;
     int   player_arms;
-    int   fullscreen;
+    int   windowed;
     int   greedy_meshing;
     int   vsync;
     float mouse_sensitivity;
@@ -88,17 +88,14 @@ typedef struct {
 
 extern Options settings, settings_tmp;
 
-extern List config_keys;
-
 typedef struct {
-    int  internal;
-    int  def;
-    int  original;
-    int  toggle;
-    char name[24];
-    char display[24];
-    char category[24];
-} ConfigKeyPair;
+    int          keycode;
+    int          original;
+    bool         toggle;
+    const char * name;
+    const char * display;
+    const char * category;
+} ConfigKey;
 
 typedef struct {
     int  key;
@@ -111,26 +108,30 @@ enum {
     CONFIG_TYPE_INT
 };
 
+typedef void Label(char * buffer, size_t length, int value, size_t index);
+
 typedef struct {
-    void * value;
-    int    type;
-    int    min;
-    int    max;
-    char   name[32];
-    char   help[32];
-    char   category[32];
-    int    defaults[8];
-    int    defaults_length;
-    void (*label_callback)(char * buffer, size_t length, int value, size_t index);
+    void *          value;
+    int             type;
+    int             min;
+    int             max;
+    const char *    name;
+    const char *    display;
+    const char *    help;
+    const char *    category;
+    int             defaults[8];
+    int             defaults_length;
+    Label *         label;
 } Setting;
 
 extern char * config_filepath;
 
-extern List config_settings;
+extern Setting * config_settings_begin;
+extern Setting * config_settings_end;
 
-ConfigKeyPair * config_key(int key);
+ConfigKey * config_key(int key);
 
-void config_reload(void);
+void config_init(void);
 void config_save(void);
 
 extern List config_keybind;

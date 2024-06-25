@@ -261,24 +261,24 @@ void window_mouseloc(double * x, double * y) {
     glfwGetCursorPos(window, x, y);
 }
 
-void window_videomode(bool fullscreen) {
+void window_videomode(bool windowed) {
     const GLFWvidmode * mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-    if (fullscreen)
-        glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0,
-                             settings.window_width, settings.window_height, mode->refreshRate);
-    else
+    if (windowed)
         glfwSetWindowMonitor(window, NULL,
                              (mode->width - settings.window_width) / 2,
                              (mode->height - settings.window_height) / 2,
                              settings.window_width, settings.window_height, 0);
+    else
+        glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0,
+                             settings.window_width, settings.window_height, mode->refreshRate);
 }
 
 void window_fromsettings() {
     glfwWindowHint(GLFW_SAMPLES, settings.multisamples);
     glfwSetWindowSize(window, settings.window_width, settings.window_height);
 
-    window_videomode(settings.fullscreen);
+    window_videomode(settings.windowed);
 
     int width, height; glfwGetWindowSize(window, &width, &height);
     reshape(width, height);
@@ -346,7 +346,7 @@ void window_init(int * argc, char ** argv) {
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
     window = glfwCreateWindow(settings.window_width, settings.window_height, "TigerSpades " BETTERSPADES_VERSION,
-                              settings.fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
+                              settings.windowed ? NULL : glfwGetPrimaryMonitor(), NULL);
 
     if (window == NULL) {
         log_fatal("Could not open window");

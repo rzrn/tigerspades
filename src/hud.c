@@ -706,43 +706,46 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             texture_draw_rotated(texture(TEXTURE_INDICATOR), settings.window_width / 2.0F, settings.window_height / 2.0F, 200, 200, ang);
         }
 
-        if (network_connected) {
-            int health = is_local ? (players[local_id].alive ? local_player.health : 0) : (players[local_id].alive ? 100 : 0);
+        if (players[local_player.id].team != TEAM_SPECTATOR) {
+            if (network_connected) {
+                int health = is_local ? (players[local_id].alive ? local_player.health : 0) : (players[local_id].alive ? 100 : 0);
 
-            if (health <= 30)
-                glColor3f(1, 0, 0);
-            else
-                glColor3f(1, 1, 1);
+                if (health <= 30)
+                    glColor3f(1, 0, 0);
+                else
+                    glColor3f(1, 1, 1);
 
-            char hp[4]; sprintf(hp, "%i", health);
-            font_render(8.0F * scale, 32.0F * scale, 2.0F * scale, hp, ASCII);
-        }
-
-        char item_mini_str[32]; int off = 0;
-        glColor3f(1.0F, 1.0F, 1.0F);
-
-        switch (players[local_id].held_item) {
-            default:
-            case TOOL_BLOCK: off = 64 * scale;
-            case TOOL_SPADE:
-                sprintf(item_mini_str, "%i", is_local ? local_player.blocks : 50);
-                break;
-            case TOOL_GRENADE:
-                sprintf(item_mini_str, "%i", is_local ? local_player.grenades : 3);
-                break;
-            case TOOL_GUN: {
-                int ammo = is_local ? local_player.ammo : players[local_id].ammo;
-                int ammo_reserve = is_local ? local_player.ammo_reserved : players[local_id].ammo_reserved;
-                sprintf(item_mini_str, "%02i/%02i", ammo, ammo_reserve);
-
-                if (ammo == 0) glColor3f(1.0F, 0.0F, 0.0F);
-                break;
+                char hp[4]; sprintf(hp, "%i", health);
+                font_render(8.0F * scale, 32.0F * scale, 2.0F * scale, hp, ASCII);
             }
+
+            char item_mini_str[32]; int off = 0;
+            glColor3f(1.0F, 1.0F, 1.0F);
+
+            switch (players[local_id].held_item) {
+                default:
+                case TOOL_BLOCK: off = 64 * scale;
+                case TOOL_SPADE:
+                    sprintf(item_mini_str, "%i", is_local ? local_player.blocks : 50);
+                    break;
+                case TOOL_GRENADE:
+                    sprintf(item_mini_str, "%i", is_local ? local_player.grenades : 3);
+                    break;
+                case TOOL_GUN: {
+                    int ammo = is_local ? local_player.ammo : players[local_id].ammo;
+                    int ammo_reserve = is_local ? local_player.ammo_reserved : players[local_id].ammo_reserved;
+                    sprintf(item_mini_str, "%02i/%02i", ammo, ammo_reserve);
+
+                    if (ammo == 0) glColor3f(1.0F, 0.0F, 0.0F);
+                    break;
+                }
+            }
+
+            font_render(settings.window_width - font_length(2.0F * scale, item_mini_str, 0, ASCII) - 8.0F * scale - off, 32.0F * scale, 2.0F * scale, item_mini_str, ASCII);
+
+            glColor3f(1.0F, 1.0F, 1.0F);
         }
 
-        font_render(settings.window_width - font_length(2.0F * scale, item_mini_str, 0, ASCII) - 8.0F * scale - off, 32.0F * scale, 2.0F * scale, item_mini_str, ASCII);
-
-        glColor3f(1.0F, 1.0F, 1.0F);
         if (players[local_id].held_item == TOOL_BLOCK) {
             if (local_player.color[X] >= 0 && local_player.color[Y] >= 0) {
                 unsigned char g = (((int) (window_time() * 4)) & 1) * 0xFF; glColor3ub(g, g, g);

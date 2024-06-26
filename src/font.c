@@ -57,11 +57,25 @@ typedef struct {
     uint16_t x, y;
 } Glyph;
 
+#ifdef USE_GL_SHORT
+    #define vertex_t      GLshort
+    #define VERTEX_TYPE   GL_SHORT
+    #define texcoord_t    GLshort
+    #define TEXCOORD_TYPE GL_SHORT
+#endif
+
+#ifdef USE_GL_FLOAT
+    #define vertex_t      GLfloat
+    #define VERTEX_TYPE   GL_FLOAT
+    #define texcoord_t    GLfloat
+    #define TEXCOORD_TYPE GL_FLOAT
+#endif
+
 #define BUFFSIZE 512
 typedef struct {
     uint16_t len;
-    uint16_t vertex[BUFFSIZE * 8];
-    uint16_t texcoords[BUFFSIZE * 8];
+    vertex_t vertex[BUFFSIZE * 8];
+    texcoord_t texcoords[BUFFSIZE * 8];
 } Buffer;
 
 typedef struct {
@@ -259,8 +273,8 @@ float font_length(int scale, const char * text, int len, Codepage codepage) {
     return fmax(length, x);
 }
 
-static inline void emitTexcoords(uint16_t * buff, size_t offset, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
-    uint16_t * dest = buff + offset * 8;
+static inline void emitTexcoords(texcoord_t * buff, size_t offset, texcoord_t x, texcoord_t y, texcoord_t w, texcoord_t h) {
+    texcoord_t * dest = buff + offset * 8;
 
     *(dest++) = x;     *(dest++) = y + h;
     *(dest++) = x + w; *(dest++) = y + h;
@@ -268,8 +282,8 @@ static inline void emitTexcoords(uint16_t * buff, size_t offset, uint16_t x, uin
     *(dest++) = x;     *(dest++) = y;
 }
 
-static inline void emitVertex(uint16_t * buff, size_t offset, uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
-    uint16_t * dest = buff + offset * 8;
+static inline void emitVertex(vertex_t * buff, size_t offset, vertex_t x, vertex_t y, vertex_t w, vertex_t h) {
+    vertex_t * dest = buff + offset * 8;
 
     *(dest++) = x;     *(dest++) = y - h;
     *(dest++) = x + w; *(dest++) = y - h;
@@ -326,8 +340,8 @@ void font_render(float x, float y, int scale, const char * text, Codepage codepa
             if (buffer->len == 0) continue;
 
             glBindTexture(GL_TEXTURE_2D, subfont->textures[i]);
-            glVertexPointer(2, GL_SHORT, 0, buffer->vertex);
-            glTexCoordPointer(2, GL_SHORT, 0, buffer->texcoords);
+            glVertexPointer(2, VERTEX_TYPE, 0, buffer->vertex);
+            glTexCoordPointer(2, TEXCOORD_TYPE, 0, buffer->texcoords);
             glDrawArrays(GL_QUADS, 0, buffer->len * 4);
         }
     }

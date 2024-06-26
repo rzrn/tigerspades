@@ -8,6 +8,7 @@ GAMEDIR    = dist
 BINARY     = $(BUILDDIR)/betterspades
 TOOLKIT   ?= SDL
 IGNORERES  = png/tracer.png png/command.png png/medical.png png/intel.png png/player.png
+FONTTYPE  ?= SHORT
 
 MAJOR   = 0
 MINOR   = 1
@@ -44,6 +45,14 @@ DEPSFLAGS += -DLOG_USE_COLOR
 UNAME := $(shell uname -s)
 
 LDFLAGS =
+
+ifeq ($(FONTTYPE),SHORT)
+	ALLFLAGS += -DUSE_GL_SHORT
+endif
+
+ifeq ($(FONTTYPE),FLOAT)
+	ALLFLAGS += -DUSE_GL_FLOAT
+endif
 
 ifeq ($(TOOLKIT),SDL)
 	ALLFLAGS += -DUSE_SDL
@@ -142,8 +151,8 @@ $(BUILDDIR):
 .PHONY : game
 game: $(BINARY) $(RESPACK)
 	mkdir -p $(GAMEDIR)
-	cp $(BINARY) $(GAMEDIR)
 	cp -r $(RESDIR)/* $(GAMEDIR)
+	cp $(BINARY) $(GAMEDIR)
 	unzip -o $(RESPACK) -d $(GAMEDIR) -x $(IGNORERES) || true
 
 $(RESPACK):

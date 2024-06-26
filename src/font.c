@@ -189,7 +189,13 @@ static Font * choose_font(FontType type) {
 }
 
 void font_init() {
-    size_t max_size = 0; glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
+    GLint max_size = 0; glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
+
+    if (max_size <= 0) {
+        log_fatal("ERROR: invalid maximum texture size reported by driver: %d\n", max_size);
+        exit(1);
+    }
+
     unifont = upload_subfont("fonts/unifont.bitmap", max_size, 16);
     uvga    = upload_subfont("fonts/uvga.bitmap", max_size, 16);
 }

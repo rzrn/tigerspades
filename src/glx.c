@@ -190,12 +190,12 @@ void glx_displaylist_draw(GLXDisplayList * x, int type) {
 
         if (x->has_color) {
             glEnableClientState(GL_COLOR_ARRAY);
-            glColorPointer(4, GL_UNSIGNED_BYTE, 0, (const void*)(x->size * len_vertex));
+            glColorPointer(4, GL_UNSIGNED_BYTE, 0, (const void *) (x->size * len_vertex));
         }
 
         if (x->has_normal) {
             glEnableClientState(GL_NORMAL_ARRAY);
-            glNormalPointer(GL_BYTE, 0, (const void*)(x->size * (len_vertex + len_color)));
+            glNormalPointer(GL_BYTE, 0, (const void *) (x->size * (len_vertex + len_color)));
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -206,7 +206,7 @@ void glx_displaylist_draw(GLXDisplayList * x, int type) {
 #ifdef OPENGL_ES
             glDrawArrays(GL_TRIANGLES, 0, x->size);
 #else
-        glDrawArrays(GL_QUADS, 0, x->size);
+            glDrawArrays(GL_QUADS, 0, x->size);
 #endif
         }
 
@@ -214,7 +214,9 @@ void glx_displaylist_draw(GLXDisplayList * x, int type) {
             glDisableClientState(GL_NORMAL_ARRAY);
         if (x->has_color)
             glDisableClientState(GL_COLOR_ARRAY);
+
         glDisableClientState(GL_VERTEX_ARRAY);
+
 #ifndef OPENGL_ES
     }
 #endif

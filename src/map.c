@@ -252,8 +252,7 @@ static inline void visit(Minheap * o, HashTable * h, int x, int y, int z) {
 }
 
 static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int z) {
-    if (y <= 1)
-        return false;
+    if (y <= 1) return false;
 
     if (map_isair(x, y, z))
         return false;
@@ -290,8 +289,9 @@ static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int
 
     minheap_destroy(&openlist);
 
-    float pivot[3] = {0, 0, 0};
-    ht_iterate(&closedlist, pivot, falling_blocks_pivot);
+    if (closedlist.size <= 0) return false;
+
+    float pivot[3] = {0, 0, 0}; ht_iterate(&closedlist, pivot, falling_blocks_pivot);
 
     for (size_t k = 0; k < 3; k++)
         pivot[k] = (pivot[k] / (float) closedlist.size) + 0.5F;
@@ -463,7 +463,7 @@ void map_update_physics(int x, int y, int z) {
     if (z >= 1 && !map_isair(x, y, z - 1))
         channel_put(&map_work_queue, &(MapWorkPacket) {.x = x, .y = y, .z = z - 1});
 
-    if (y >= 3 && !map_isair(x, y - 1, z)) // don't check ground layers
+    if (y >= 3 && !map_isair(x, y - 1, z)) // don’t check ground layers
         channel_put(&map_work_queue, &(MapWorkPacket) {.x = x, .y = y - 1, .z = z});
 
     if (y + 1 < map_size_y && !map_isair(x, y + 1, z))
@@ -484,7 +484,7 @@ float map_sunblock(int x, int y, int z) {
 }
 
 void * falling_blocks_worker(void * user) {
-    while (1) {
+    for (;;) {
         MapWorkPacket work;
         channel_await(&map_work_queue, &work);
 

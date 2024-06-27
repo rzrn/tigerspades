@@ -289,7 +289,7 @@ static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int
 
     minheap_destroy(&openlist);
 
-    if (closedlist.size <= 0) return false;
+    if (closedlist.size <= 0) { ht_destroy(&closedlist); return false; }
 
     float pivot[3] = {0, 0, 0}; ht_iterate(&closedlist, pivot, falling_blocks_pivot);
 

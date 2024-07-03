@@ -184,20 +184,27 @@ static inline uint8_t decode8le(uint8_t * const buff)
 { return buff[0]; }
 
 static inline uint16_t decode16le(uint8_t * const buff)
-{ return buff[0] | (buff[1] << 8); }
+{ return (uint16_t) buff[0] << 0
+       | (uint16_t) buff[1] << 8; }
 
 static inline uint32_t decode32le(uint8_t * const buff)
-{ return buff[0] | (buff[1] << 8) | (buff[2] << 16) | (buff[3] << 24); }
+{ return (uint32_t) buff[0] << 0
+       | (uint32_t) buff[1] << 8
+       | (uint32_t) buff[2] << 16
+       | (uint32_t) buff[3] << 24; }
 
 static inline void encode8le(uint8_t * const buff, uint8_t value)
 { buff[0] = value; }
 
 static inline void encode16le(uint8_t * const buff, uint16_t value)
-{ buff[0] = value & 0xFF; buff[1] = (value >> 8) & 0xFF; }
+{ buff[0] = (value >> 0) & 0xFF;
+  buff[1] = (value >> 8) & 0xFF; }
 
 static inline void encode32le(uint8_t * const buff, uint32_t value)
-{ buff[0] = (value >> 0)  & 0xFF; buff[1] = (value >> 8)  & 0xFF;
-  buff[2] = (value >> 16) & 0xFF; buff[3] = (value >> 24) & 0xFF; }
+{ buff[0] = (value >> 0)  & 0xFF;
+  buff[1] = (value >> 8)  & 0xFF;
+  buff[2] = (value >> 16) & 0xFF;
+  buff[3] = (value >> 24) & 0xFF; }
 
 #define DEFGETTER(T, U, ident, decoder) static inline T ident(uint8_t * const buff, size_t * index) \
                                         { union _Blob { T val; U data; } ret; \

@@ -160,8 +160,11 @@ static __attribute__((always_inline)) inline float solid_sunblock(struct libvxl_
     int i = 127;
 
     while (dec && y < map_size_y) {
+        if (z == 0) break;
+
         if (!solid_array_isair(blocks, x, ++y, --z))
             i -= dec;
+
         dec -= 2;
     }
 
@@ -575,7 +578,7 @@ void chunk_generate_naive(struct libvxl_chunk_copy * blocks, Tesselator * tess, 
             color.r *= shade; color.g *= shade; color.b *= shade;
         }
 
-        if (solid_array_isair(blocks, x, y, z - 1)) {
+        if (z <= 0 || solid_array_isair(blocks, x, y, z - 1)) {
             if (ao) {
                 float A
                     = vertexAO(solid_array_isair(blocks, x - 1, y, z - 1), solid_array_isair(blocks, x, y - 1, z - 1),
@@ -604,7 +607,7 @@ void chunk_generate_naive(struct libvxl_chunk_copy * blocks, Tesselator * tess, 
             }
         }
 
-        if (solid_array_isair(blocks, x, y, z + 1)) {
+        if (z >= map_size_z - 1 || solid_array_isair(blocks, x, y, z + 1)) {
             if (ao) {
                 float A
                     = vertexAO(solid_array_isair(blocks, x - 1, y, z + 1), solid_array_isair(blocks, x, y - 1, z + 1),
@@ -632,7 +635,7 @@ void chunk_generate_naive(struct libvxl_chunk_copy * blocks, Tesselator * tess, 
             }
         }
 
-        if (solid_array_isair(blocks, x - 1, y, z)) {
+        if (x <= 0 || solid_array_isair(blocks, x - 1, y, z)) {
             if (ao) {
                 float A
                     = vertexAO(solid_array_isair(blocks, x - 1, y - 1, z), solid_array_isair(blocks, x - 1, y, z - 1),
@@ -661,7 +664,7 @@ void chunk_generate_naive(struct libvxl_chunk_copy * blocks, Tesselator * tess, 
             }
         }
 
-        if (solid_array_isair(blocks, x + 1, y, z)) {
+        if (x >= map_size_x - 1 || solid_array_isair(blocks, x + 1, y, z)) {
             if (ao) {
                 float A
                     = vertexAO(solid_array_isair(blocks, x + 1, y - 1, z), solid_array_isair(blocks, x + 1, y, z - 1),
@@ -690,7 +693,7 @@ void chunk_generate_naive(struct libvxl_chunk_copy * blocks, Tesselator * tess, 
             }
         }
 
-        if (y == map_size_y - 1 || solid_array_isair(blocks, x, y + 1, z)) {
+        if (y >= map_size_y - 1 || solid_array_isair(blocks, x, y + 1, z)) {
             if (ao) {
                 float A
                     = vertexAO(solid_array_isair(blocks, x - 1, y + 1, z), solid_array_isair(blocks, x, y + 1, z - 1),

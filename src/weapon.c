@@ -26,7 +26,7 @@
 #include <BetterSpades/window.h>
 #include <BetterSpades/map.h>
 
-float weapon_reload_start, weapon_last_shot;
+float weapon_reload_start, weapon_last_shot = -INFINITY;
 bool weapon_reload_inprogress = false;
 
 void weapon_update() {

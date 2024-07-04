@@ -315,7 +315,7 @@ void window_keyname(int keycode, char * output, size_t length) {
         snprintf(output, length, "#%x", keycode);
 }
 
-void window_init(int * argc, char ** argv) {
+void window_init(const char * title, int * argc, char ** argv) {
     glfwWindowHint(GLFW_VISIBLE, 0);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
@@ -345,7 +345,7 @@ void window_init(int * argc, char ** argv) {
     */
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
-    window = glfwCreateWindow(settings.window_width, settings.window_height, "TigerSpades " BETTERSPADES_VERSION,
+    window = glfwCreateWindow(settings.window_width, settings.window_height, title,
                               settings.windowed ? NULL : glfwGetPrimaryMonitor(), NULL);
 
     if (window == NULL) {

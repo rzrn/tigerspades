@@ -826,11 +826,11 @@ int main(int argc, char ** argv) {
 
     srand(t);
 
-    log_info("TigerSpades " BETTERSPADES_VERSION);
+    log_info("TigerSpades " BSVERSION);
 
     config_init();
 
-    window_init(&argc, argv);
+    window_init("TigerSpades " BSVERSION, &argc, argv);
 
 #ifndef OPENGL_ES
     if (glewInit())

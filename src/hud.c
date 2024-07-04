@@ -836,7 +836,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             char buff[64]; FontType old = font_select(FONT_SMALLFNT);
             glColor3f(1.0F, 1.0F, 1.0F);
 
-            sprintf(buff, "TigerSpades %s (%s)", BETTERSPADES_VERSION, GIT_COMMIT_HASH);
+            sprintf(buff, "TigerSpades %s (%s)", BSVERSION, GIT_COMMIT_HASH);
             font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
 
             sprintf(buff, "%i ms, %i fps", network_ping(), (int) fps);
@@ -2429,7 +2429,7 @@ static Texture * hud_settings_ui_images(int icon_id, bool * resize) {
 }
 
 static void hud_settings_render(mu_Context * ctx, float scale) {
-    if (hud_header_render(ctx, scale, BETTERSPADES_VERSION_SUMMARY)) {
+    if (hud_header_render(ctx, scale, BSSUMMARY)) {
         mu_layout_row(ctx, 1, (int[]) {-1}, -1);
         mu_begin_panel(ctx, "Content");
 
@@ -2555,7 +2555,7 @@ static void hud_controls_init() {
 }
 
 static void hud_controls_render(mu_Context * ctx, float scale) {
-    if (hud_header_render(ctx, scale, BETTERSPADES_VERSION_SUMMARY)) {
+    if (hud_header_render(ctx, scale, BSSUMMARY)) {
         mu_layout_row(ctx, 1, (int[]) {-1}, -1);
         mu_begin_panel(ctx, "Content");
 

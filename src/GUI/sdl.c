@@ -32,15 +32,18 @@ static WindowFinger fingers[8];
 
 static SDL_Window * window = NULL;
 
-void window_init(int * argc, char ** argv) {
+void window_init(const char * title, int * argc, char ** argv) {
 #ifdef USE_TOUCH
     SDL_SetHintWithPriority(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1", SDL_HINT_OVERRIDE);
 #endif
 
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
 
-    window = SDL_CreateWindow("TigerSpades " BETTERSPADES_VERSION, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              settings.window_width, settings.window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow(
+        title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        settings.window_width, settings.window_height,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+    );
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);

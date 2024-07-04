@@ -1082,9 +1082,9 @@ void getPacketVersionGet(uint8_t * data, size_t len) {
 
     PacketVersionSend reply;
     reply.client          = 'B';
-    reply.major           = BETTERSPADES_MAJOR;
-    reply.minor           = BETTERSPADES_MINOR;
-    reply.revision        = BETTERSPADES_PATCH;
+    reply.major           = BSMAJOR;
+    reply.minor           = BSMINOR;
+    reply.revision        = BSPATCH;
     reply.operatingsystem = operatingsystem;
 
     sendPacketVersionSend(&reply, sizeof(operatingsystem));

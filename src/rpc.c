@@ -121,7 +121,7 @@ void rpc_update() {
         memset(&discordPresence, 0, sizeof(discordPresence));
         discordPresence.largeImageKey = "pic03";
         discordPresence.smallImageKey = "logo";
-        discordPresence.smallImageText = BETTERSPADES_VERSION;
+        discordPresence.smallImageText = BSVERSION;
         discordPresence.instance = 1;
         if (rpc_state.slots > 0) {
             discordPresence.state = "Playing";

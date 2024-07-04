@@ -1,4 +1,4 @@
-CC        ?= cc
+CC         = cc
 SRCDIR     = src
 BUILDDIR   = build
 INCLUDEDIR = include
@@ -6,13 +6,9 @@ DEPSDIR    = deps
 RESDIR     = resources
 GAMEDIR    = dist
 BINARY     = $(BUILDDIR)/betterspades
-TOOLKIT   ?= SDL
+TOOLKIT    = SDL
 IGNORERES  = png/tracer.png png/command.png png/medical.png png/intel.png png/player.png
-FONTTYPE  ?= SHORT
-
-MAJOR   = 0
-MINOR   = 1
-PATCH   = 6
+COMMITHASH = `git describe --always --dirty`
 
 PACKURL = https://aos.party/bsresources.zip
 RESPACK = $(GAMEDIR)/bsresources.zip
@@ -24,35 +20,15 @@ OFILES  := $(CFILES:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
 MFILES  :=
 OMFILES :=
 
-ALLFLAGS ?=
-ALLFLAGS += -std=gnu99
-ALLFLAGS += -DBETTERSPADES_MAJOR=$(MAJOR)
-ALLFLAGS += -DBETTERSPADES_MINOR=$(MINOR)
-ALLFLAGS += -DBETTERSPADES_PATCH=$(PATCH)
-ALLFLAGS += -DBETTERSPADES_VERSION=\"v$(MAJOR).$(MINOR).$(PATCH)\"
-ALLFLAGS += -DGIT_COMMIT_HASH=\"$(shell git describe --always --dirty)\"
-ALLFLAGS += -DUSE_SOUND
+USRFLAGS = -DUSE_SOUND -DUSE_GL_SHORT
+ALLFLAGS = $(USRFLAGS) -std=gnu99 -DGIT_COMMIT_HASH=\"$(COMMITHASH)\"
 
-CFLAGS ?=
-CFLAGS += -Wall -pedantic
-
-MFLAGS ?=
-
-DEPSFLAGS ?=
-DEPSFLAGS += -std=gnu99
-DEPSFLAGS += -DLOG_USE_COLOR
+CFLAGS    = -Wall -pedantic
+LDFLAGS   =
+MFLAGS    =
+DEPSFLAGS = -std=gnu99 -DLOG_USE_COLOR
 
 UNAME := $(shell uname -s)
-
-LDFLAGS =
-
-ifeq ($(FONTTYPE),SHORT)
-	ALLFLAGS += -DUSE_GL_SHORT
-endif
-
-ifeq ($(FONTTYPE),FLOAT)
-	ALLFLAGS += -DUSE_GL_FLOAT
-endif
 
 ifeq ($(TOOLKIT),SDL)
 	ALLFLAGS += -DUSE_SDL
@@ -111,8 +87,8 @@ ifeq ($(TOOLKIT),Cocoa)
 		ALLFLAGS += -DUSE_QUARTZ
 	else
 		ALLFLAGS += -DUSE_GNUSTEP
-		MFLAGS   += $(shell gnustep-config --objc-flags)
-		LDFLAGS  += $(shell gnustep-config --gui-libs)
+		MFLAGS   += `gnustep-config --objc-flags`
+		LDFLAGS  += `gnustep-config --gui-libs`
 	endif
 endif
 

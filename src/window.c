@@ -43,10 +43,10 @@
 void window_title(const char * suffix) {
     char title[128];
 
-    if (suffix)
-        snprintf(title, sizeof(title) - 1, "TigerSpades %s — %s (%s)", BETTERSPADES_VERSION, suffix, TOOLKIT);
+    if (suffix != NULL)
+        snprintf(title, sizeof(title) - 1, "TigerSpades %s — %s (%s)", BSVERSION, suffix, TOOLKIT);
     else
-        sprintf(title, "TigerSpades %s (%s)", BETTERSPADES_VERSION, TOOLKIT);
+        sprintf(title, "TigerSpades %s (%s)", BSVERSION, TOOLKIT);
 
     window_settitle(title);
 }

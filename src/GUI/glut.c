@@ -234,13 +234,13 @@ void window_entry(int state) {
     mouse_hover(state == GLUT_ENTERED ? true : false);
 }
 
-void window_init(int * argc, char ** argv) {
+void window_init(const char * title, int * argc, char ** argv) {
     glutInit(argc, argv);
 
     glutInitWindowSize(settings.window_width, settings.window_height);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
-    glutCreateWindow("TigerSpades " BETTERSPADES_VERSION);
+    glutCreateWindow(title);
 
     glutReshapeFunc(window_reshape);
     glutKeyboardFunc(window_keyboard);

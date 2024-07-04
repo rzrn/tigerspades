@@ -82,7 +82,7 @@ Or connect directly to localhost:
 ./betterspades --server aos://16777343:32887
 ```
 
-On the buggy drivers (like “mesa” under PowerPC Macs) it may be neccessary to `export MESA_GL_VERSION_OVERRIDE=1.5` before starting the game to avoid (weird) graphics glitches. Also try build with `FONTTYPE=FLOAT` if fonts are not rendering.
+On the buggy drivers (like “mesa” under PowerPC Macs) it may be neccessary to `export MESA_GL_VERSION_OVERRIDE=1.5` before starting the game to avoid (weird) graphics glitches. Also try build with `USRFLAGS="-DUSE_SOUND -DUSE_GL_FLOAT"` if fonts are not rendering.
 
 #### macOS
 

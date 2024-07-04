@@ -351,7 +351,7 @@ void window_keyname(int keycode, char * output, size_t length) {
     snprintf(output, length, "#%x", keycode); // TODO
 }
 
-void window_init(int * argc, char ** argv) {
+void window_init(const char * title, int * argc, char ** argv) {
     app = [NSApplication sharedApplication];
 
     unsigned int windowStyle = NSTitledWindowMask
@@ -389,7 +389,7 @@ void window_init(int * argc, char ** argv) {
                                              defer:NO];
     [window autorelease];
 
-    [window setTitle:@"TigerSpades"];
+    [window setTitle:[NSString stringWithUTF8String:title]];
 
     [window setDelegate:[GameWindowDelegate alloc]];
 

@@ -25,6 +25,11 @@
 
 #include <AceOfSpades/types.h>
 
+#define UNUSED(x) ((void) x)
+
+#define _TOSTRING(x) #x
+#define TOSTRING(x) _TOSTRING(x)
+
 #ifdef _WIN32
     #define OS_WINDOWS
 #endif
@@ -83,13 +88,16 @@
     #define ARCH ""
 #endif
 
-#define BETTERSPADES_VERSION_SUMMARY BETTERSPADES_VERSION " " ARCH " " GIT_COMMIT_HASH
+#define BSMAJOR 0
+#define BSMINOR 1
+#define BSPATCH 6
+
+#define BSVERSION "v" TOSTRING(BSMAJOR) "." TOSTRING(BSMINOR) "." TOSTRING(BSPATCH)
+#define BSSUMMARY BSVERSION " " ARCH " " GIT_COMMIT_HASH
 
 #ifdef USE_RPC
     #include <discord_rpc.h>
 #endif
-
-#define UNUSED(x) ((void) x)
 
 #ifndef min
     #define min(a, b) ((a) < (b) ? (a) : (b))

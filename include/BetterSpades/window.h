@@ -148,7 +148,7 @@ int window_get_mousemode();
 typedef void (*Idle)(double);
 typedef void (*Render)(void);
 
-void window_init(int *, char **);
+void window_init(const char * title, int *, char **);
 void window_eventloop(Idle, Render);
 
 #endif

@@ -10,8 +10,9 @@ TOOLKIT    = SDL
 IGNORERES  = png/tracer.png png/command.png png/medical.png png/intel.png png/player.png
 COMMITHASH = `git describe --always --dirty`
 
-PACKURL = https://aos.party/bsresources.zip
-RESPACK = $(GAMEDIR)/bsresources.zip
+PACKURL   = https://aos.party/bsresources.zip
+RESSHA512 = bsresources.zip.sha512
+RESPACK   = $(GAMEDIR)/bsresources.zip
 
 CDEPS   := $(shell find $(DEPSDIR) -type f -name '*.c')
 ODEPS   := $(CDEPS:$(DEPSDIR)/%.c=$(BUILDDIR)/%.o)
@@ -124,11 +125,11 @@ $(ODEPS): $(BUILDDIR)/%.o: $(DEPSDIR)/%.c
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
-.PHONY : game
 game: $(BINARY) $(RESPACK)
 	mkdir -p $(GAMEDIR)
 	cp -r $(RESDIR)/* $(GAMEDIR)
 	cp $(BINARY) $(GAMEDIR)
+	sha512sum -c $(RESSHA512)
 	unzip -o $(RESPACK) -d $(GAMEDIR) -x $(IGNORERES) || true
 
 $(RESPACK):

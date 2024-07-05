@@ -1,4 +1,4 @@
-all clean nuke game depend:
+all clean nuke game depend chksum:
 	@case `uname -s` in\
 		'Linux') PLATFORM=UNIX ;;\
 		'FreeBSD') PLATFORM=UNIX ;;\

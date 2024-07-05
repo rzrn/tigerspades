@@ -19,6 +19,7 @@
 * Unicode & UTF-8.
 * Customizable key bindings.
 * Cleaned up user interface.
+* Makefiles instead of CMake (now obsolete version of CMake takes ≈2 hours to build on G4 CPU but still cannot be used to build BetterSpades).
 
 ## System requirements
 

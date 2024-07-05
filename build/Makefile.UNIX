@@ -1,2 +1,2 @@
 EXTRALIBS = -lopenal
-LDFLAGS = $(GUILIBS) $(EXTRALIBS) -lm -lGL -lGLU -pthread
+LDFLAGS = $(GUILIBS) $(EXTRALIBS) -lm -lGL -pthread

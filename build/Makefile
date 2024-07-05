@@ -22,8 +22,8 @@ EXTRALIBS =
 include build/$(TOOLKIT)/Makefile.$(PLATFORM)
 include build/Makefile.$(PLATFORM)
 
-CFLAGS = $(EXTRAFLAGS) $(GUIFLAGS) -std=gnu99 -DGIT_COMMIT_HASH=\"$(COMMITHASH)\"
-DOMAKE = $(MAKE) CFLAGS='$(CFLAGS)' CC=$(CC)
+CFLAGS  = $(EXTRAFLAGS) $(GUIFLAGS) -std=gnu99 -DGIT_COMMIT_HASH=\"$(COMMITHASH)\"
+MKFLAGS = CFLAGS='$(CFLAGS)' CC=$(CC)
 
 all: $(BINARY)
 
@@ -33,11 +33,11 @@ $(BINARY): build/bsdeps.a $(OMFILES) build/betterspades.a
 
 .FORCE:
 
-build/betterspades.a: .FORCE
-	$(DOMAKE) -f src/Makefile
+build/betterspades.a: .FORCE hier
+	$(MAKE) -f src/Makefile $(MKFLAGS)
 
-build/bsdeps.a: .FORCE
-	$(DOMAKE) -f deps/Makefile
+build/bsdeps.a: .FORCE hier
+	$(MAKE) -f deps/Makefile $(MKFLAGS)
 
 .SUFFIXES: .m .o
 
@@ -54,15 +54,19 @@ game: $(BINARY) $(PACKFILE)
 $(PACKFILE):
 	curl -o $(PACKFILE) $(PACKURL)
 
-clean:
-	$(DOMAKE) -f src/Makefile clean
+clean: hier
+	$(MAKE) $(DOMAKE) -f src/Makefile clean
 	rm -rf $(OMFILES) $(BINARY)
 
-nuke:
-	$(DOMAKE) -f src/Makefile clean
-	$(DOMAKE) -f deps/Makefile clean
+nuke: hier
+	$(MAKE) -f src/Makefile $(MKFLAGS) clean
+	$(MAKE) -f deps/Makefile $(MKFLAGS) clean
 	rm -rf $(OMFILES) $(BINARY)
 
-depend:
-	$(DOMAKE) -f src/Makefile depend
-	$(DOMAKE) -f deps/Makefile depend
+depend: hier
+	$(MAKE) -f src/Makefile $(MKFLAGS) depend
+	$(MAKE) -f deps/Makefile $(MKFLAGS) depend
+
+hier:
+	touch src/Makefile.depend
+	touch deps/Makefile.depend

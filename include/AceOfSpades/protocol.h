@@ -58,10 +58,6 @@ typedef enum {
     idPacketVersionSend      = 34,
 } PacketId;
 
-#ifdef ERROR
-    #undef ERROR // thank you Microsoft for `wingdi.h`
-#endif
-
 typedef enum {
     ERROR_UNDEFINED            = 0,
     ERROR_BANNED               = 1,
@@ -70,7 +66,7 @@ typedef enum {
     ERROR_FULL                 = 4,
     ERROR_SHUTDOWN             = 5,
     ERROR_KICKED               = 10,
-    ERROR_INVALID_NAME         = 20,
+    ERROR_INVALID_NICKNAME     = 20,
 } ErrorCode;
 
 #define PLAYERS_MAX 256 // just because 32 players are not enough

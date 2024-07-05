@@ -84,7 +84,7 @@ const char * network_reason_disconnect(ErrorCode code) {
         case ERROR_FULL:                 return "Server full";
         case ERROR_SHUTDOWN:             return "Server shutdown";
         case ERROR_KICKED:               return "Kicked";
-        case ERROR_INVALID_NAME:         return "Invalid name";
+        case ERROR_INVALID_NICKNAME:     return "Invalid name";
         default:                         return "Unknown";
     }
 }

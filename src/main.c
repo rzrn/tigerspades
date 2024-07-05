@@ -766,7 +766,7 @@ static inline bool startswith(const char * prefix, const char * str)
 { return strncmp(prefix, str, strlen(prefix)) == 0; }
 
 #define MATCH(x, y) if (!strcmp((x), (y)))
-#define ERROR(retcode, ...) { printf(__VA_ARGS__); return retcode; }
+#define THROW(retcode, ...) { printf(__VA_ARGS__); return retcode; }
 
 int main(int argc, char ** argv) {
     const char * default_server = NULL;
@@ -775,32 +775,32 @@ int main(int argc, char ** argv) {
         if (startswith("-aos://", argv[i])) {
             default_server = argv[i] + 1;
         } else MATCH(argv[i], "--help") {
-            ERROR(0, "Usage: %s -aos://<ip>:<port> --config <file> --team <team> --weapon <weapon> --serverlist <url> --newslist <url>\n", argv[0]);
+            THROW(0, "Usage: %s -aos://<ip>:<port> --config <file> --team <team> --weapon <weapon> --serverlist <url> --newslist <url>\n", argv[0]);
         } else MATCH(argv[i], "--serverlist") {
-            if (argc <= ++i) ERROR(-1, "The “--serverlist” option requires an argument.\n")
+            if (argc <= ++i) THROW(-1, "The “--serverlist” option requires an argument.\n")
             else strnzcpy(serverlist_url, argv[i], sizeof(serverlist_url));
         } else MATCH(argv[i], "--newslist") {
-            if (argc <= ++i) ERROR(-1, "The “--newslist” option requires an argument.\n")
+            if (argc <= ++i) THROW(-1, "The “--newslist” option requires an argument.\n")
             else strnzcpy(newslist_url, argv[i], sizeof(newslist_url));
         } else MATCH(argv[i], "--team") {
-            if (argc <= ++i) ERROR(-1, "The “--team” option requires an argument.\n")
+            if (argc <= ++i) THROW(-1, "The “--team” option requires an argument.\n")
             else MATCH(argv[i], "1") default_team = TEAM1;
             else MATCH(argv[i], "2") default_team = TEAM2;
             else MATCH(argv[i], "3") default_team = TEAM_SPECTATOR;
-            else ERROR(-2, "Unknown team (expected 1, 2, or 3).\n");
+            else THROW(-2, "Unknown team (expected 1, 2, or 3).\n");
         } else MATCH(argv[i], "--weapon") {
-            if (argc <= ++i) ERROR(-1, "The “--weapon” option requires an argument.\n")
+            if (argc <= ++i) THROW(-1, "The “--weapon” option requires an argument.\n")
             else MATCH(argv[i], "rifle")   default_gun = WEAPON_RIFLE;
             else MATCH(argv[i], "smg")     default_gun = WEAPON_SMG;
             else MATCH(argv[i], "shotgun") default_gun = WEAPON_SHOTGUN;
-            else ERROR(-2, "Unknown weapon name (expected rifle, smg, or shotgun).\n");
+            else THROW(-2, "Unknown weapon name (expected rifle, smg, or shotgun).\n");
         } else MATCH(argv[i], "--config") {
-            if (argc <= ++i) ERROR(-1, "The “--config” option requires an argument.\n")
+            if (argc <= ++i) THROW(-1, "The “--config” option requires an argument.\n")
             else config_filepath = argv[i];
         } else MATCH(argv[i], "--offline") {
             offline = true;
         } else {
-            ERROR(-3, "Unknown option “%s”.\n", argv[i]);
+            THROW(-3, "Unknown option “%s”.\n", argv[i]);
         }
     }
 

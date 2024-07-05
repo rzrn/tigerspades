@@ -12,6 +12,7 @@ clean:
 	rm -f $(ARCHIVE) $(OFILES)
 
 depend:
+	echo > $(DEPEND)
 	makedepend -I`$(CC) --print-file-name=include` -Iinclude -f$(DEPEND) -- $(_CFLAGS) $(CFILES)
 
 $(DEPEND):

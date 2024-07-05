@@ -1951,7 +1951,7 @@ static void hud_mapload_render(mu_Context * ctx, float scale) {
 
     char buff[128];
     if (network_map_transfer)
-        sprintf(buff, "Receiving %li KiB / %li KiB", compressed_chunk_data_offset / 1024, compressed_chunk_data_estimate / 1024);
+        sprintf(buff, "Receiving %zu KiB / %zu KiB", compressed_chunk_data_offset / 1024, compressed_chunk_data_estimate / 1024);
     else if (network_connected)
         sprintf(buff, "Awaiting for state%s", ellipsis());
     else
@@ -2141,7 +2141,7 @@ static void hud_sort_button_render(mu_Context * ctx, float scale, const char * n
 }
 
 static void hud_serverlist_render(mu_Context * ctx, float scale) {
-    char total_str[128]; sprintf(total_str, server_count > 0 ? "%li players on %li servers" : "No servers", player_count, server_count);
+    char total_str[128]; sprintf(total_str, server_count > 0 ? "%zu players on %zu servers" : "No servers", player_count, server_count);
 
     char * join_address = NULL, * join_name = NULL; GameVersion join_version = VER07X;
 

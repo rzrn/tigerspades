@@ -44,11 +44,13 @@ build/bsdeps.a: .FORCE hier
 .m.o:
 	$(CC) -x objective-c $(CFLAGS) $(MFLAGS) -c $< -o $@ -Iinclude
 
+chksum:
+	$(HASHPROG) -c $(PACKHASH)
+
 game: $(BINARY) $(PACKFILE)
 	mkdir -p $(GAMEDIR)
 	cp -r $(RESDIR)/* $(GAMEDIR)
 	cp $(BINARY) $(GAMEDIR)
-	$(HASHPROG) -c $(PACKHASH)
 	unzip -o $(PACKFILE) -d $(GAMEDIR) -x $(IGNORERES) || true
 
 $(PACKFILE):

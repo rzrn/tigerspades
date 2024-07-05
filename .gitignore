@@ -12,4 +12,5 @@ Desktop.ini
 *.kv6
 *.lib
 *.dll
+*.depend
 *.bak

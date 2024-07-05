@@ -1,0 +1,2 @@
+EXTRALIBS = -lopenal
+LDFLAGS = $(GUILIBS) $(EXTRALIBS) -lopengl32 -lglu32 -lgdi32 -lwinmm -lws2_32 -pthread

@@ -1,0 +1,17 @@
+.SUFFIXES: .m .c .o
+
+all: $(ARCHIVE)
+
+$(ARCHIVE): $(OFILES)
+	ar rcs $@ $(OFILES)
+
+.c.o:
+	$(CC) $(_CFLAGS) -c $< -o $@ -Iinclude
+
+clean:
+	rm -f $(ARCHIVE) $(OFILES)
+
+depend:
+	makedepend -I`$(CC) --print-file-name=include` -Iinclude -f$(DEPEND) -- $(_CFLAGS) $(CFILES)
+
+include $(DEPEND)

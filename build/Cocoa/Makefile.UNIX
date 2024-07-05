@@ -1,0 +1,4 @@
+OMFILES  = $(MFILES:.m=.o)
+MFLAGS   = `gnustep-config --objc-flags`
+GUIFLAGS = -DUSE_COCOA -DUSE_GNUSTEP
+GUILIBS  = `gnustep-config --gui-libs`

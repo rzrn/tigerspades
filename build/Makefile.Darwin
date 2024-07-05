@@ -1,0 +1,2 @@
+EXTRALIBS = -framework OpenAL
+LDFLAGS = $(GUILIBS) $(EXTRALIBS) -liconv -framework Carbon -framework CoreAudio -framework AudioUnit -framework IOKit -framework Cocoa -framework OpenGL

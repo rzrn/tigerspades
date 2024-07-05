@@ -1,0 +1,2 @@
+GUIFLAGS = -DUSE_GLUT
+GUILIBS  = -lfreeglut

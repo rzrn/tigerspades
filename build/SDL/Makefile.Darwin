@@ -1,0 +1,2 @@
+GUIFLAGS = -DUSE_SDL
+GUILIBS  = /usr/local/Cellar/sdl2/2.0.3/lib/libSDL2.a

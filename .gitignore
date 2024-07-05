@@ -3,7 +3,6 @@ Desktop.ini
 .DS_Store
 /nongithub
 /dist
-/build
 *.lib
 *.a
 *.o
@@ -13,3 +12,4 @@ Desktop.ini
 *.kv6
 *.lib
 *.dll
+*.bak

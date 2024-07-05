@@ -58,6 +58,10 @@ typedef enum {
     idPacketVersionSend      = 34,
 } PacketId;
 
+#ifdef ERROR
+    #undef ERROR // thank you Microsoft for `wingdi.h`
+#endif
+
 typedef enum {
     ERROR_UNDEFINED            = 0,
     ERROR_BANNED               = 1,

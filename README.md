@@ -69,9 +69,9 @@ If everything went well, the client should be in the `dist/` subfolder.
 
 #### Linux
 
-You can build each library yourself, or install them with your distro’s package manager:
+You can build each library yourself, or install them with your distro’s package manager. For example, on Ubuntu 24.04:
 ```
-sudo apt install libgl1-mesa libgl1-mesa-dev libopenal1 libopenal-dev libglfw-dev
+sudo apt install libgl-dev libopenal-dev libglfw3-dev
 ```
 
 Start the client e.g. with the following inside the `dist/` directory:

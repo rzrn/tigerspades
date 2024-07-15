@@ -31,6 +31,6 @@ CFILES = deps/libdeflate/gzip_decompress.c\
 OFILES  = $(CFILES:.c=.o)
 ARCHIVE = build/bsdeps.a
 DEPEND  = deps/Makefile.depend
-_CFLAGS = -std=gnu99 -DLOG_USE_COLOR
+_CFLAGS = -std=gnu99 -DLOG_USE_COLOR $(XFLAGS)
 
 include build/Makecommon

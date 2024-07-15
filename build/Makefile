@@ -23,7 +23,7 @@ include build/$(TOOLKIT)/Makefile.$(PLATFORM)
 include build/Makefile.$(PLATFORM)
 
 CFLAGS  = $(EXTRAFLAGS) $(GUIFLAGS) -std=gnu99 -DGIT_COMMIT_HASH=\"$(COMMITHASH)\"
-MKFLAGS = CFLAGS='$(CFLAGS)' CC=$(CC)
+MKFLAGS = CFLAGS='$(CFLAGS)' XFLAGS='$(XFLAGS)' CC=$(CC)
 
 all: $(BINARY)
 

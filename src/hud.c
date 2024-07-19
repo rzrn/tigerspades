@@ -1519,6 +1519,9 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 case WINDOW_KEY_TEAM_COLOR:   gamestate.team1.color = gamestate.team2.color = players[local_player.id].block; break;
             }
 
+            if (key == WINDOW_KEY_RELEASE_MOUSE)
+                window_mousemode(WINDOW_CURSOR_ENABLED);
+
             if (key == WINDOW_KEY_LASTTOOL) {
                 int tmp = players[local_player.id].held_item;
                 players[local_player.id].held_item = local_player.last_tool;

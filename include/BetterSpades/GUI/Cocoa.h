@@ -69,3 +69,4 @@
 #define TOOLKIT_KEY_COMMA        59
 #define TOOLKIT_KEY_PERIOD       60
 #define TOOLKIT_KEY_SLASH        61
+#define TOOLKIT_KEY_BACKSLASH    51

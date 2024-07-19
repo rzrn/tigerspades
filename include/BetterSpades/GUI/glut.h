@@ -65,3 +65,4 @@
 #define TOOLKIT_KEY_COMMA        ((int) ',')
 #define TOOLKIT_KEY_PERIOD       ((int) '.')
 #define TOOLKIT_KEY_SLASH        ((int) '/')
+#define TOOLKIT_KEY_BACKSLASH    ((int) '\\')

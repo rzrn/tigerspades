@@ -394,6 +394,9 @@ void getPacketChatMessage(uint8_t * data, size_t len) {
 
         case CHAT_ALL: case CHAT_TEAM: {
             if (IDVALID(p.player_id) && players[p.player_id].connected) {
+                if (settings.chat_beep)
+                    sound_create(SOUND_LOCAL, sound(SOUND_CHAT), 0.0F, 0.0F, 0.0F);
+
                 switch (players[p.player_id].team) {
                     case TEAM1: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team1.name); break;
                     case TEAM2: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team2.name); break;

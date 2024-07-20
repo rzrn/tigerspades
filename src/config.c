@@ -253,6 +253,15 @@ Setting config_settings[] = {
         .help     = "Show news on server list"
     },
     {
+        .value    = &settings_tmp.chat_beep,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "chat_beep",
+        .display  = "Enable chat alert",
+        .help     = "Beep sound on new messages"
+    },
+    {
         .value    = &settings_tmp.camera_fov,
         .type     = CONFIG_TYPE_FLOAT,
         .min      = CAMERA_DEFAULT_FOV,
@@ -463,6 +472,7 @@ Options settings = {
     .enable_particles   = 1,
     .smooth_orientation = 1,
     .map_cache          = 0,
+    .chat_beep          = 0,
 };
 
 char * config_filepath = "config.ini";

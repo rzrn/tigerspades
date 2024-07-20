@@ -83,6 +83,7 @@ typedef struct {
 #ifdef USE_SOUND
 static Resource wav_sound(enum WAV index) {
     switch (index) {
+        case SOUND_CHAT:           return (Resource) {"wav/chat.wav", 0.1F, 1024.0F};
         case SOUND_FOOTSTEP1:      return (Resource) {"wav/footstep1.wav", 0.1F, 32.0F};
         case SOUND_FOOTSTEP2:      return (Resource) {"wav/footstep2.wav", 0.1F, 32.0F};
         case SOUND_FOOTSTEP3:      return (Resource) {"wav/footstep3.wav", 0.1F, 32.0F};

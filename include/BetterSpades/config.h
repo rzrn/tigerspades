@@ -84,6 +84,7 @@ typedef struct {
     int   enable_particles;
     int   smooth_orientation;
     int   map_cache;
+    int   chat_beep;
 } Options;
 
 extern Options settings, settings_tmp;

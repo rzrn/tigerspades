@@ -1,4 +1,4 @@
-all clean nuke game depend chksum:
+all clean nuke game depend download chksum:
 	@case `uname -s` in\
 		Linux|FreeBSD|NetBSD|OpenBSD) PLATFORM=UNIX ;;\
 		MINGW32_NT*|MINGW64_NT*|MSYS_NT*|CYGWIN_NT*) PLATFORM=NT ;;\

@@ -53,6 +53,8 @@ game: $(BINARY) $(PACKFILE)
 	cp $(BINARY) $(GAMEDIR)
 	unzip -o $(PACKFILE) -d $(GAMEDIR) -x $(IGNORERES) || true
 
+download: $(PACKFILE)
+
 $(PACKFILE):
 	curl -o $(PACKFILE) $(PACKURL)
 

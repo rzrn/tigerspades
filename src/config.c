@@ -147,6 +147,30 @@ Setting config_settings[] = {
         .display  = "Show minimap"
     },
     {
+        .value    = &settings_tmp.show_crosshair,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "show_crosshair",
+        .display  = "Enable crosshair"
+    },
+    {
+        .value    = &settings_tmp.show_health,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "show_health",
+        .display  = "Show health",
+    },
+    {
+        .value    = &settings_tmp.show_ammo,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "show_ammo",
+        .display  = "Show ammo",
+    },
+    {
         .value    = &settings_tmp.min_lan_port,
         .type     = CONFIG_TYPE_INT,
         .max      = INT_MAX,
@@ -473,6 +497,9 @@ Options settings = {
     .smooth_orientation = 1,
     .map_cache          = 0,
     .chat_beep          = 0,
+    .show_crosshair     = 1,
+    .show_health        = 1,
+    .show_ammo          = 1,
 };
 
 char * config_filepath = "config.ini";

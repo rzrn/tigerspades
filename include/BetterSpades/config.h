@@ -85,6 +85,9 @@ typedef struct {
     int   smooth_orientation;
     int   map_cache;
     int   chat_beep;
+    int   show_crosshair;
+    int   show_health;
+    int   show_ammo;
 } Options;
 
 extern Options settings, settings_tmp;

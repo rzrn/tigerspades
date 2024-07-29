@@ -536,7 +536,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                 settings.window_height * zoom_factor, (texture_width(zoom) - 1) / texture_width(zoom), 0.0F,
                 1.0F / texture_width(zoom), 1.0F
             );
-        } else if (!window_key_down(WINDOW_KEY_HIDEHUD)) {
+        } else if (!window_key_down(WINDOW_KEY_HIDEHUD) && settings.show_crosshair) {
             texture_draw(
                 texture(HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1),
                 (settings.window_width - 32) / 2.0F, (settings.window_height + 32) / 2.0F, 32, 32
@@ -711,7 +711,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         }
 
         if (local_id == local_player.id) {
-            if (network_connected) {
+            if (network_connected && settings.show_health) {
                 int health = is_local ? (players[local_id].alive ? local_player.health : 0) : (players[local_id].alive ? 100 : 0);
 
                 if (health <= 30)
@@ -745,7 +745,12 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                 }
             }
 
-            font_render(settings.window_width - font_length(2.0F * scale, item_mini_str, 0, ASCII) - 8.0F * scale - off, 32.0F * scale, 2.0F * scale, item_mini_str, ASCII);
+            if (settings.show_ammo) {
+                font_render(
+                    settings.window_width - font_length(2.0F * scale, item_mini_str, 0, ASCII) - 8.0F * scale - off,
+                    32.0F * scale, 2.0F * scale, item_mini_str, ASCII
+                );
+            }
 
             glColor3f(1.0F, 1.0F, 1.0F);
         }

@@ -204,8 +204,12 @@ void getPacketSetTool(uint8_t * data, size_t len) {
 void getPacketSetColor(uint8_t * data, size_t len) {
     READPACKET(PacketSetColor, p, data, len);
 
-    if (IDVALID(p.player_id))
+    if (IDVALID(p.player_id)) {
         players[p.player_id].block = p.color;
+
+        if (p.player_id == local_player.id)
+            local_player.color[X] = local_player.color[Y] = -1;
+    }
 }
 
 void getPacketExistingPlayer(uint8_t * data, size_t len) {
@@ -606,6 +610,8 @@ void getPacketCreatePlayer(uint8_t * data, size_t len) {
             local_player.blocks    = 50;
             local_player.grenades  = 3;
             local_player.last_tool = TOOL_GUN;
+
+            local_player.color[X] = local_player.color[Y] = -1;
 
             network_logged_in = true;
 

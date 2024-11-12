@@ -286,6 +286,24 @@ Setting config_settings[] = {
         .help     = "Beep sound on new messages"
     },
     {
+        .value    = &settings_tmp.connect_beep,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "connect_beep",
+        .display  = "Enable connection alert",
+        .help     = "Beep sound when a player connects"
+    },
+    {
+        .value    = &settings_tmp.disconnect_beep,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "disconnect_beep",
+        .display  = "Enable disconnection alert",
+        .help     = "Beep sound when a player disconnects"
+    },
+    {
         .value    = &settings_tmp.camera_fov,
         .type     = CONFIG_TYPE_FLOAT,
         .min      = CAMERA_DEFAULT_FOV,

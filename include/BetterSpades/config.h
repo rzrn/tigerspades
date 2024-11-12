@@ -85,6 +85,8 @@ typedef struct {
     int   smooth_orientation;
     int   map_cache;
     int   chat_beep;
+    int   connect_beep;
+    int   disconnect_beep;
     int   show_crosshair;
     int   show_health;
     int   show_ammo;

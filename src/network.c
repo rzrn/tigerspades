@@ -89,6 +89,8 @@ const char * network_reason_disconnect(ErrorCode code) {
     }
 }
 
+static inline void beep() { sound_create(SOUND_LOCAL, sound(SOUND_CHAT), 0.0F, 0.0F, 0.0F); }
+
 static void printJoinMsg(int team, char * name) {
     char * t;
     switch (team) {
@@ -100,6 +102,8 @@ static void printJoinMsg(int team, char * name) {
 
     char buff[64]; sprintf(buff, "%s joined the %s team", name, t);
     chat_add(0, Red, buff, sizeof(buff), UTF8);
+
+    if (players[local_player.id].connected && settings.connect_beep) beep();
 }
 
 bool isdestructible(int x, int y, int z) {
@@ -398,8 +402,7 @@ void getPacketChatMessage(uint8_t * data, size_t len) {
 
         case CHAT_ALL: case CHAT_TEAM: {
             if (IDVALID(p.player_id) && players[p.player_id].connected) {
-                if (settings.chat_beep)
-                    sound_create(SOUND_LOCAL, sound(SOUND_CHAT), 0.0F, 0.0F, 0.0F);
+                if (settings.chat_beep) beep();
 
                 switch (players[p.player_id].team) {
                     case TEAM1: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team1.name); break;
@@ -894,6 +897,8 @@ void getPacketPlayerLeft(uint8_t * data, size_t len) {
 
         char buff[32]; sprintf(buff, "%s disconnected", players[p.player_id].name);
         chat_add(0, Red, buff, sizeof(buff), UTF8);
+
+        if (players[local_player.id].connected && settings.disconnect_beep) beep();
     }
 }
 

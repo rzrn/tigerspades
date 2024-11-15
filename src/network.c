@@ -103,7 +103,7 @@ static void printJoinMsg(int team, char * name) {
     char buff[64]; sprintf(buff, "%s joined the %s team", name, t);
     chat_add(0, Red, buff, sizeof(buff), UTF8);
 
-    if (players[local_player.id].connected && settings.connect_beep) beep();
+    if (network_logged_in && settings.connect_beep) beep();
 }
 
 bool isdestructible(int x, int y, int z) {
@@ -898,7 +898,7 @@ void getPacketPlayerLeft(uint8_t * data, size_t len) {
         char buff[32]; sprintf(buff, "%s disconnected", players[p.player_id].name);
         chat_add(0, Red, buff, sizeof(buff), UTF8);
 
-        if (players[local_player.id].connected && settings.disconnect_beep) beep();
+        if (network_logged_in && settings.disconnect_beep) beep();
     }
 }
 

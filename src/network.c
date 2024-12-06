@@ -1101,7 +1101,8 @@ void getPacketVersionGet(uint8_t * data, size_t len) {
     reply.revision        = BSPATCH;
     reply.operatingsystem = operatingsystem;
 
-    sendPacketVersionSend(&reply, sizeof(operatingsystem));
+    if (settings.report_client_version || HACKS_ENABLED)
+        sendPacketVersionSend(&reply, sizeof(operatingsystem));
 }
 
 void getPacketPlayerProperties(uint8_t * data, size_t len) {

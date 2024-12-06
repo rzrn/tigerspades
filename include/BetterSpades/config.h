@@ -90,6 +90,7 @@ typedef struct {
     int   show_crosshair;
     int   show_health;
     int   show_ammo;
+    int   report_client_version;
 } Options;
 
 extern Options settings, settings_tmp;

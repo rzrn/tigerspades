@@ -36,37 +36,37 @@
 #include <ini.h>
 
 static void config_label_scale(char * buffer, size_t length, int value, size_t index) {
-    if (value == 0) {
+    if (value == 0)
         snprintf(buffer, length, "Auto");
-    } else {
+    else
         snprintf(buffer, length, "%i", value);
-    }
 }
 
 static void config_label_pixels(char * buffer, size_t length, int value, size_t index) {
-    if (value == 800 || value == 600) {
+    if (value == 800 || value == 600)
         snprintf(buffer, length, "default: %ipx", value);
-    } else {
+    else
         snprintf(buffer, length, "%ipx", value);
-    }
 }
 
 static void config_label_vsync(char * buffer, size_t length, int value, size_t index) {
-    if (value == 0) {
+    if (value == 0)
         snprintf(buffer, length, "disabled");
-    } else if (value == 1) {
+    else if (value == 1)
         snprintf(buffer, length, "enabled");
-    } else {
+    else
         snprintf(buffer, length, "max %i fps", value);
-    }
 }
 
 static void config_label_msaa(char * buffer, size_t length, int value, size_t index) {
-    if (index == 0) {
+    if (index == 0)
         snprintf(buffer, length, "No MSAA");
-    } else {
+    else
         snprintf(buffer, length, "%ix MSAA", value);
-    }
+}
+
+static void config_label_left_handed(char * buffer, size_t length, int value, size_t index) {
+    snprintf(buffer, length, index == 0 ? "Right" : "Left");
 }
 
 ConfigKey _config_key[] = {
@@ -203,6 +203,16 @@ Setting config_settings[] = {
         .display  = "Report client version",
         .name     = "report_client_version",
         .help     = "Server can enable extensions based on this"
+    },
+    {
+        .value    = &settings_tmp.left_handed,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "left_handed",
+        .display  = "Main hand",
+        .help     = "Affects only your local character",
+        .label    = config_label_left_handed
     },
     {
         .value    = &settings_tmp.mouse_sensitivity,
@@ -528,6 +538,7 @@ Options settings = {
     .show_health           = 1,
     .show_ammo             = 1,
     .report_client_version = 1,
+    .left_handed           = 0,
 };
 
 char * config_filepath = "config.ini";

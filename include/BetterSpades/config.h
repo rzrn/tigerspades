@@ -91,6 +91,7 @@ typedef struct {
     int   show_health;
     int   show_ammo;
     int   report_client_version;
+    int   left_handed;
 } Options;
 
 extern Options settings, settings_tmp;

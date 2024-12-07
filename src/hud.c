@@ -2419,10 +2419,17 @@ static int int_number(mu_Context * ctx, int * value) {
     return res;
 }
 
-static void hud_bool(mu_Context * ctx, bool * value) {
-    mu_push_id(ctx, &value, sizeof(value));
+static void hud_bool(mu_Context * ctx, Setting * setting) {
+    mu_push_id(ctx, setting, sizeof(setting));
 
-    if (mu_button(ctx, *value ? "Yes" : "No"))
+    int * value = setting->value; char buf[64];
+
+    if (setting->label != NULL)
+        setting->label(buf, sizeof(buf), *value, *value);
+    else
+        snprintf(buf, sizeof(buf), *value ? "Yes" : "No");
+
+    if (mu_button(ctx, buf))
         *value = !(*value);
 
     mu_pop_id(ctx);
@@ -2459,7 +2466,7 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
                     }
                     case CONFIG_TYPE_INT: {
                         if (a->max == 1 && a->min == 0) {
-                            hud_bool(ctx, a->value);
+                            hud_bool(ctx, a);
                         } else if (a->defaults_length > 0) {
                             int_slider_defaults(ctx, a);
                         } else if (a->max == INT_MAX) {

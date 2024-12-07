@@ -852,6 +852,11 @@ void player_render(Player * p, int id) {
         matrix_rotate(matrix_model, angles[1], 0.0F, 1.0F, 0.0F);
     }
 
+    if (settings.left_handed && id == local_player.id) {
+        matrix_scale(matrix_model, -1.0F, 1.0F, 1.0F);
+        glCullFace(GL_FRONT);
+    }
+
     if (render_body || settings.player_arms) {
         matrix_upload();
         kv6_render(&model[MODEL_PLAYERARMS], p->team);
@@ -908,6 +913,8 @@ void player_render(Player * p, int id) {
     p->casing_dir.z = v[Z] - v2[Z];
 
     matrix_pop(matrix_model);
+
+    glCullFace(GL_BACK);
 }
 
 int player_clipbox(float x, float y, float z) {

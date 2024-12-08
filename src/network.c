@@ -475,7 +475,8 @@ void getPacketExtInfo(uint8_t * data, size_t len) {
                     ext.id >= 192 ? "(which is packetless)" : ""
                 );
 
-                if (ext.id == EXT_HIT_EFFECTS) local_hit_effects = false;
+                if (ext.id == EXT_HIT_EFFECTS)
+                    local_hit_effects = false;
             }
         } else log_info("Server does not support extensions");
 

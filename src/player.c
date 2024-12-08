@@ -454,7 +454,7 @@ void player_render_all() {
                                o[1], o[2]);
                     particle_create_casing(&players[k]);
 
-                    if (local_hit_effects) switch (hit.type) {
+                    if (!network_connected || local_hit_effects) switch (hit.type) {
                         case CAMERA_HITTYPE_PLAYER: {
                             sound_create_sticky(
                                 sound(hit.player_section == HITTYPE_HEAD ? SOUND_SPADE_WHACK : SOUND_HITPLAYER),

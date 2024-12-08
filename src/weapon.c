@@ -292,7 +292,7 @@ void weapon_shoot() {
         if (hit.y == 0 && hit.type == CAMERA_HITTYPE_BLOCK)
             hit.type = CAMERA_HITTYPE_NONE;
 
-        if (local_hit_effects) switch (hit.type) {
+        if (!network_connected || local_hit_effects) switch (hit.type) {
             case CAMERA_HITTYPE_PLAYER: {
                 sound_create_sticky(
                     sound(hit.player_section == HITTYPE_HEAD ? SOUND_SPADE_WHACK : SOUND_HITPLAYER),

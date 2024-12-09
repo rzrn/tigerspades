@@ -726,15 +726,6 @@ void player_render(Player * p, int id) {
     if (id != local_player.id)
         height -= 0.25F;
 
-    float len = hypot2f(p->orientation.x, p->orientation.z);
-    float fx  = p->orientation.x / len;
-    float fy  = p->orientation.z / len;
-
-    float a = (p->physics.velocity.x * fx + fy * p->physics.velocity.z) / (fx * fx + fy * fy);
-    float b = (p->physics.velocity.z - fy * a) / fx;
-    a /= 0.25F;
-    b /= 0.25F;
-
     int render_body = (id != local_player.id || !p->alive || camera.mode != CAMERAMODE_FPS)
         && !((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
              && cameracontroller_bodyview_mode && cameracontroller_bodyview_player == id);
@@ -797,6 +788,15 @@ void player_render(Player * p, int id) {
             kv6_render(model_intel, t);
             matrix_pop(matrix_model);
         }
+
+        float len = hypot2f(p->orientation.x, p->orientation.z);
+        float fx  = p->orientation.x / len;
+        float fy  = p->orientation.z / len;
+
+        float a = p->physics.velocity.x * fx + fy * p->physics.velocity.z;
+        float b = (p->physics.velocity.z - fy * a) / fx;
+
+        a /= 0.25F; b /= 0.25F;
 
         matrix_push(matrix_model);
         matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
@@ -1110,6 +1110,7 @@ int player_move(Player * p, float fsynctics, int id) {
             p->physics.velocity.y *= -0.36F;
             p->physics.velocity.z *= +0.36F;
         }
+
         return 0;
     }
 
@@ -1147,7 +1148,7 @@ int player_move(Player * p, float fsynctics, int id) {
     float sx  = p->orientation.x / len;
     float sy  = p->orientation.y / len;
 
-    // Servers (e.g. piqueserver) expects that player cannot move forwards/backwards while looking up.
+    // Servers (e.g. piqueserver) expect that player cannot move forwards/backwards while looking up.
     // https://github.com/piqueserver/piqueserver/blob/17f43a559abd6472263382aef271f93a6cb01b7e/pyspades/world_c.cpp#L690-L699
     if (HASBIT(p->input.keys, INPUT_UP)) {
         p->physics.velocity.x += p->orientation.x * f;

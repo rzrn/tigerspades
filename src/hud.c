@@ -137,45 +137,53 @@ static int playertable_sort(const void * a, const void * b) {
     return B->score - A->score;
 }
 
+static inline void kv6_center(mat4 matrix, kv6 * model) {
+    matrix_translate(
+        matrix,
+        (model->xpiv - model->xsiz * 0.5F) * model->scale,
+        (model->zpiv - model->zsiz * 0.5F) * model->scale,
+        (model->ypiv - model->ysiz * 0.5F) * model->scale
+    );
+}
+
 static void hud_ingame_render3D() {
     glDepthRange(0.0F, 0.05F);
 
+    const float aspect = ((float) settings.window_width) / ((float) settings.window_height);
+
     matrix_identity(matrix_projection);
-    matrix_perspective(matrix_projection, CAMERA_DEFAULT_FOV,
-                       ((float) settings.window_width) / ((float) settings.window_height), 0.1F, 128.0F);
+    matrix_perspective(matrix_projection, CAMERA_DEFAULT_FOV, aspect, 0.1F, 128.0F);
     matrix_identity(matrix_view);
     matrix_upload_p();
 
     if (camera.mode == CAMERAMODE_FPS && players[local_player.id].items_show) {
-        static kv6 * const model_spade = &model[MODEL_SPADE];
-
         players[local_player.id].input.buttons &= MASKOFF(BUTTON_SECONDARY);
 
-        matrix_identity(matrix_model);
-        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_SPADE) * 0.5F,
-                         -6.0F);
-        matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
-        matrix_translate(matrix_model, (model_spade->xpiv - model_spade->xsiz / 2) * 0.05F,
-                         (model_spade->zpiv - model_spade->zsiz / 2) * 0.05F,
-                         (model_spade->ypiv - model_spade->ysiz / 2) * 0.05F);
+        const float t = window_time() * 57.4F;
 
-        if (players[local_player.id].held_item == TOOL_SPADE)
-            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+        {
+            static kv6 * const model_spade = &model[MODEL_SPADE];
 
-        matrix_upload();
-        kv6_render(model_spade, players[local_player.id].team);
+            matrix_identity(matrix_model);
+            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_SPADE) * 0.5F, -6.0F);
+            matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+            kv6_center(matrix_model, model_spade);
+
+            if (players[local_player.id].held_item == TOOL_SPADE)
+                matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+            matrix_upload();
+            kv6_render(model_spade, players[local_player.id].team);
+        }
 
         if (local_player.blocks > 0) {
             static kv6 * const model_block = &model[MODEL_BLOCK];
 
             matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -2.25F,
-                             -1.5F - (players[local_player.id].held_item == TOOL_BLOCK) * 0.5F, -6.0F);
+            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_BLOCK) * 0.5F, -6.0F);
             matrix_translate(matrix_model, 1.5F, 0.0F, 0.0F);
-            matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
-            matrix_translate(matrix_model, (model_block->xpiv - model_block->xsiz / 2) * 0.05F,
-                             (model_block->zpiv - model_block->zsiz / 2) * 0.05F,
-                             (model_block->ypiv - model_block->ysiz / 2) * 0.05F);
+            matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+            kv6_center(matrix_model, model_block);
 
             if (players[local_player.id].held_item == TOOL_BLOCK)
                 matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
@@ -192,12 +200,10 @@ static void hud_ingame_render3D() {
             kv6 * gun = weapon_model(players[local_player.id].weapon);
 
             matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GUN) * 0.5F,
-                             -6.0F);
+            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GUN) * 0.5F, -6.0F);
             matrix_translate(matrix_model, 3.0F, 0.0F, 0.0F);
-            matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
-            matrix_translate(matrix_model, (gun->xpiv - gun->xsiz / 2) * 0.05F, (gun->zpiv - gun->zsiz / 2) * 0.05F,
-                             (gun->ypiv - gun->ysiz / 2) * 0.05F);
+            matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+            kv6_center(matrix_model, gun);
 
             if (players[local_player.id].held_item == TOOL_GUN)
                 matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
@@ -210,13 +216,10 @@ static void hud_ingame_render3D() {
             static kv6 * const model_grenade = &model[MODEL_GRENADE];
 
             matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -2.25F,
-                             -1.5F - (players[local_player.id].held_item == TOOL_GRENADE) * 0.5F, -6.0F);
+            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GRENADE) * 0.5F, -6.0F);
             matrix_translate(matrix_model, 4.5F, 0.0F, 0.0F);
-            matrix_rotate(matrix_model, window_time() * 57.4F, 0.0F, 1.0F, 0.0F);
-            matrix_translate(matrix_model, (model_grenade->xpiv - model_grenade->xsiz / 2) * 0.05F,
-                             (model_grenade->zpiv - model_grenade->zsiz / 2) * 0.05F,
-                             (model_grenade->ypiv - model_grenade->ysiz / 2) * 0.05F);
+            matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+            kv6_center(matrix_model, model_grenade);
 
             if (players[local_player.id].held_item == TOOL_GRENADE)
                 matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
@@ -227,46 +230,49 @@ static void hud_ingame_render3D() {
     }
 
     if (screen_current == SCREEN_TEAM_SELECT) {
-        matrix_identity(matrix_model);
-        matrix_translate(matrix_model, -1.4F, -2.0F, -3.0F);
-        matrix_rotate(matrix_model, -90.0F + 22.5F, 0.0F, 1.0F, 0.0F);
-        matrix_upload();
-        Player p_hud;
-        memset(&p_hud, 0, sizeof(Player));
-        p_hud.spade_use_timer    = FLT_MAX;
-        p_hud.input.keys         = 0;
-        p_hud.input.buttons      = 0;
-        p_hud.held_item          = TOOL_SPADE;
-        p_hud.physics.eye.x      = p_hud.pos.x = 0;
-        p_hud.physics.eye.y      = p_hud.pos.y = 0;
-        p_hud.physics.eye.z      = p_hud.pos.z = 0;
-        p_hud.physics.velocity.x = 0.0F;
-        p_hud.physics.velocity.y = 0.0F;
-        p_hud.physics.velocity.z = 0.0F;
-        p_hud.orientation.x = p_hud.orientation_smooth.x = 1.0F;
-        p_hud.orientation.y = p_hud.orientation_smooth.y = 0.0F;
-        p_hud.orientation.z = p_hud.orientation_smooth.z = 0.0F;
-        p_hud.alive = 1;
+        static Player player = {
+            .alive              = 1,
+            .spade_use_timer    = FLT_MAX,
+            .input.keys         = 0,
+            .input.buttons      = 0,
+            .held_item          = TOOL_SPADE,
+            .pos                = {0, 0, 0},
+            .orientation        = {1, 0, 0},
+            .orientation_smooth = {1, 0, 0},
+            .physics.eye        = {0, 0, 0},
+            .physics.velocity   = {0, 0, 0}
+        };
 
-        p_hud.team = TEAM1;
-        player_render(&p_hud, PLAYERS_MAX);
-        matrix_identity(matrix_model);
-        matrix_translate(matrix_model, 1.4F, -2.0F, -3.0F);
-        matrix_rotate(matrix_model, -90.0F - 22.5F, 0.0F, 1.0F, 0.0F);
-        matrix_upload();
-        p_hud.team = TEAM2;
-        player_render(&p_hud, PLAYERS_MAX);
+        {
+            player.team = TEAM1;
+            matrix_identity(matrix_model);
+            matrix_translate(matrix_model, -1.4F, -2.0F, -3.0F);
+            matrix_rotate(matrix_model, -90.0F + 22.5F, 0.0F, 1.0F, 0.0F);
+            matrix_upload();
+
+            player_render(&player, PLAYERS_MAX);
+        }
+
+        {
+            player.team = TEAM2;
+            matrix_identity(matrix_model);
+            matrix_translate(matrix_model, 1.4F, -2.0F, -3.0F);
+            matrix_rotate(matrix_model, -90.0F - 22.5F, 0.0F, 1.0F, 0.0F);
+            matrix_upload();
+
+            player_render(&player, PLAYERS_MAX);
+        }
     }
 
     if (screen_current == SCREEN_GUN_SELECT) {
+        const float t = window_time() * 90.0F;
+
         static kv6 * const model_semi = &model[MODEL_SEMI];
 
         matrix_identity(matrix_model);
         matrix_translate(matrix_model, -1.5F, -1.25F, -3.25F);
-        matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
-        matrix_translate(matrix_model, (model_semi->xpiv - model_semi->xsiz / 2.0F) * model_semi->scale,
-                         (model_semi->zpiv - model_semi->zsiz / 2.0F) * model_semi->scale,
-                         (model_semi->ypiv - model_semi->ysiz / 2.0F) * model_semi->scale);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_semi);
         matrix_upload();
         kv6_render(model_semi, TEAM_SPECTATOR);
 
@@ -274,10 +280,8 @@ static void hud_ingame_render3D() {
 
         matrix_identity(matrix_model);
         matrix_translate(matrix_model, 0.0F, -1.25F, -3.25F);
-        matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
-        matrix_translate(matrix_model, (model_smg->xpiv - model_smg->xsiz / 2.0F) * model_smg->scale,
-                         (model_smg->zpiv - model_smg->zsiz / 2.0F) * model_smg->scale,
-                         (model_smg->ypiv - model_smg->ysiz / 2.0F) * model_smg->scale);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_smg);
         matrix_upload();
         kv6_render(model_smg, TEAM_SPECTATOR);
 
@@ -285,16 +289,14 @@ static void hud_ingame_render3D() {
 
         matrix_identity(matrix_model);
         matrix_translate(matrix_model, 1.5F, -1.25F, -3.25F);
-        matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
-        matrix_translate(matrix_model, (model_shotgun->xpiv - model_shotgun->xsiz / 2.0F) * model_shotgun->scale,
-                         (model_shotgun->zpiv - model_shotgun->zsiz / 2.0F) * model_shotgun->scale,
-                         (model_shotgun->ypiv - model_shotgun->ysiz / 2.0F) * model_shotgun->scale);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_shotgun);
         matrix_upload();
         kv6_render(model_shotgun, TEAM_SPECTATOR);
     }
 
-    kv6 * rotating_model = NULL;
-    int rotating_model_team = TEAM_SPECTATOR;
+    kv6 * rotating_model = NULL; int rotating_model_team = TEAM_SPECTATOR;
+
     if (gamestate.mode == GAMEMODE_CTF) {
         switch (players[local_player.id].team) {
             case TEAM1: {
@@ -327,14 +329,12 @@ static void hud_ingame_render3D() {
         }
     }
 
-    if (rotating_model) {
+    if (rotating_model != NULL) {
         matrix_identity(matrix_model);
-        matrix_translate(matrix_model, 0.0F,
-                         -(rotating_model->zsiz * 0.5F + rotating_model->zpiv) * rotating_model->scale, -10.0F);
+        matrix_translate(matrix_model, 0.0F, -(rotating_model->zsiz * 0.5F + rotating_model->zpiv) * rotating_model->scale, -10.0F);
         matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
         matrix_upload();
-        glViewport(-settings.window_width * 0.4F, settings.window_height * 0.2F, settings.window_width,
-                   settings.window_height);
+        glViewport(-settings.window_width * 0.4F, settings.window_height * 0.2F, settings.window_width, settings.window_height);
         kv6_render(rotating_model, rotating_model_team);
         glViewport(0.0F, 0.0F, settings.window_width, settings.window_height);
     }
@@ -460,9 +460,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         char dbg_str[32];
 
         int max = 0;
-        for (int k = 0; k < 40; k++) {
+        for (int k = 0; k < 40; k++)
             max = max(max, network_stats[k].ingoing + network_stats[k].outgoing);
-        }
 
         for (int k = 0; k < 40; k++) {
             float in_h = (float) (network_stats[39 - k].ingoing) / max * 160.0F;
@@ -756,7 +755,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         }
 
         if (players[local_id].held_item == TOOL_BLOCK) {
-            if (local_player.color[X] >= 0 && local_player.color[Y] >= 0) {
+            if (0 <= local_player.color[X] && 0 <= local_player.color[Y]) {
                 unsigned char g = (((int) (window_time() * 4)) & 1) * 0xFF; glColor3ub(g, g, g);
                 texture_draw_empty(
                     settings.window_width + (local_player.color[X] * 8 - 65) * scale,
@@ -1205,9 +1204,11 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 static void hud_ingame_scroll(double yoffset) {
     if (camera.mode == CAMERAMODE_FPS && yoffset != 0.0F) {
         int h = players[local_player.id].held_item;
+
         if (!players[local_player.id].items_show)
             local_player.last_tool = h;
         h += (yoffset < 0) ? 1 : -1;
+
         if (h < 0)
             h = 3;
         if (h == TOOL_BLOCK && local_player.blocks == 0)
@@ -1218,6 +1219,7 @@ static void hud_ingame_scroll(double yoffset) {
             h += (yoffset < 0) ? 1 : -1;
         if (h > 3)
             h = 0;
+
         players[local_player.id].held_item = h;
         sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
         player_on_held_item_change(players + local_player.id);
@@ -1240,17 +1242,15 @@ static void hud_ingame_mouselocation(double dx, double dy) {
     if (window_get_mousemode() != WINDOW_CURSOR_DISABLED)
         return;
 
-    float s = 1.0F;
-    if (camera.mode == CAMERAMODE_FPS && players[local_player.id].held_item == TOOL_GUN &&
-        HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY)) {
-        s = 0.5F;
-    }
-
     if (settings.invert_y)
         dy *= -1.0F;
 
-    camera.rot.x -= dx * settings.mouse_sensitivity / 5.0F * (float) MOUSE_SENSITIVITY * s;
-    camera.rot.y += dy * settings.mouse_sensitivity / 5.0F * (float) MOUSE_SENSITIVITY * s;
+    float r = (settings.mouse_sensitivity / 5.0F) * (float) MOUSE_SENSITIVITY;
+    if (camera.mode == CAMERAMODE_FPS && ISSCOPING(&players[local_player.id]))
+        r *= 0.5F;
+
+    camera.rot.x -= dx * r;
+    camera.rot.y += dy * r;
 
     camera_overflow_adjust();
 }
@@ -1273,6 +1273,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
 
         if (local_player.drag_active && action == WINDOW_RELEASE && players[local_player.id].held_item == TOOL_BLOCK) {
             int * pos = camera_terrain_pick(0);
+
             if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
                 norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
                 int amount = map_cube_line(local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
@@ -1291,6 +1292,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
                 players[local_player.id].item_showup = window_time();
             }
         }
+
         local_player.drag_active = 0;
         if (action == WINDOW_PRESS && players[local_player.id].held_item == TOOL_BLOCK
            && window_time() - players[local_player.id].item_showup >= 0.5F) {
@@ -1322,7 +1324,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
             }
         }
 
-        if (nearest_player >= 0) cameracontroller_bodyview_player = nearest_player;
+        if (0 <= nearest_player) cameracontroller_bodyview_player = nearest_player;
     }
 
     if (button == WINDOW_MOUSE_RMB && action == WINDOW_PRESS) {
@@ -1341,30 +1343,35 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
     if (button == WINDOW_MOUSE_LMB) {
         if (camera.mode == CAMERAMODE_FPS && window_time() - players[local_player.id].item_showup >= 0.5F) {
             if (players[local_player.id].held_item == TOOL_GRENADE && local_player.grenades > 0) {
+                if (action == WINDOW_PRESS) {
+                    sound_create(SOUND_LOCAL, sound(SOUND_GRENADE_PIN), 0.0F, 0.0F, 0.0F);
+                }
+
                 if (action == WINDOW_RELEASE) {
-                    local_player.grenades = max(local_player.grenades - 1, 0);
+                    const float dt = window_time() - players[local_player.id].start.lmb;
+
+                    local_player.grenades--;
 
                     PacketGrenade contained;
                     contained.player_id   = local_player.id;
-                    contained.fuse_length = max(3.0F - (window_time() - players[local_player.id].start.lmb), 0.0F);
+                    contained.fuse_length = max(3.0F - dt, 0.0F);
 
                     contained.pos = htonv3f(players[local_player.id].pos);
 
-                    contained.vel.x = (contained.fuse_length == 0.0F) ? 0.0F :
-                                      (players[local_player.id].orientation.x + players[local_player.id].physics.velocity.x);
-                    contained.vel.y = (contained.fuse_length == 0.0F) ? 0.0F :
-                                      (players[local_player.id].orientation.z + players[local_player.id].physics.velocity.z);
-                    contained.vel.z = (contained.fuse_length == 0.0F) ? 0.0F :
-                                      (-players[local_player.id].orientation.y - players[local_player.id].physics.velocity.y);
+                    if (contained.fuse_length == 0.0F) {
+                        contained.vel.x = 0.0F;
+                        contained.vel.y = 0.0F;
+                        contained.vel.z = 0.0F;
+                    } else {
+                        contained.vel.x = +players[local_player.id].orientation.x + players[local_player.id].physics.velocity.x;
+                        contained.vel.y = +players[local_player.id].orientation.z + players[local_player.id].physics.velocity.z;
+                        contained.vel.z = -players[local_player.id].orientation.y - players[local_player.id].physics.velocity.y;
+                    }
 
                     sendPacketGrenade(&contained, 0);
 
                     handlePacketGrenade(&contained); // server won’t loop packet back
                     players[local_player.id].item_showup = window_time();
-                }
-
-                if (action == WINDOW_PRESS) {
-                    sound_create(SOUND_LOCAL, sound(SOUND_GRENADE_PIN), 0.0F, 0.0F, 0.0F);
                 }
             }
         }
@@ -1389,13 +1396,17 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         if (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) {
             if (camera.mode == CAMERAMODE_SPECTATOR)
                 cameracontroller_bodyview_mode = 1;
+
             for (int k = 0; k < PLAYERS_MAX * 2; k++) {
                 cameracontroller_bodyview_player = (cameracontroller_bodyview_player - 1) % PLAYERS_MAX;
+
                 if (cameracontroller_bodyview_player < 0)
                     cameracontroller_bodyview_player = PLAYERS_MAX - 1;
+
                 if (player_can_spectate(&players[cameracontroller_bodyview_player]))
                     break;
             }
+
             cameracontroller_bodyview_zoom = 0.0F;
         }
     }
@@ -1406,10 +1417,6 @@ typedef struct {
     int acceptance;
 } AutocompleteType;
 
-static int autocomplete_type_cmp(const void * a, const void * b) {
-    AutocompleteType * A = (AutocompleteType *) a, * B = (AutocompleteType *) b;
-    return B->acceptance - A->acceptance;
-}
 
 void broadcast_chat(unsigned char chat_type, const char * message, size_t size) {
     char buff[2048]; size_t written = encodeMagic(buff, sizeof(buff), message, size);
@@ -1420,6 +1427,11 @@ void broadcast_chat(unsigned char chat_type, const char * message, size_t size) 
     contained.message   = buff;
 
     sendPacketChatMessage(&contained, written);
+}
+
+static int autocomplete_type_cmp(const void * a, const void * b) {
+    AutocompleteType * A = (AutocompleteType *) a, * B = (AutocompleteType *) b;
+    return B->acceptance - A->acceptance;
 }
 
 static const char * hud_ingame_completeword(const char * s) {
@@ -1445,6 +1457,7 @@ static const char * hud_ingame_completeword(const char * s) {
         .str = gamestate.team2.name,
         .acceptance = 0,
     };
+
     candidates[candidates_cnt++] = (AutocompleteType) {"/help", 0};
     candidates[candidates_cnt++] = (AutocompleteType) {"/medkit", 0};
     candidates[candidates_cnt++] = (AutocompleteType) {"/squad", 0};
@@ -1610,39 +1623,19 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if (screen_current == SCREEN_NONE && camera.mode == CAMERAMODE_FPS) {
-                unsigned char tool_switch = 0;
+                int item = -1;
+
                 switch (key) {
-                    case WINDOW_KEY_TOOL1:
-                        if (players[local_player.id].held_item != TOOL_SPADE) {
-                            local_player.last_tool = players[local_player.id].held_item;
-                            players[local_player.id].held_item = TOOL_SPADE;
-                            tool_switch = 1;
-                        }
-                        break;
-                    case WINDOW_KEY_TOOL2:
-                        if (players[local_player.id].held_item != TOOL_BLOCK) {
-                            local_player.last_tool = players[local_player.id].held_item;
-                            players[local_player.id].held_item = TOOL_BLOCK;
-                            tool_switch = 1;
-                        }
-                        break;
-                    case WINDOW_KEY_TOOL3:
-                        if (players[local_player.id].held_item != TOOL_GUN) {
-                            local_player.last_tool = players[local_player.id].held_item;
-                            players[local_player.id].held_item = TOOL_GUN;
-                            tool_switch = 1;
-                        }
-                        break;
-                    case WINDOW_KEY_TOOL4:
-                        if (players[local_player.id].held_item != TOOL_GRENADE) {
-                            local_player.last_tool = players[local_player.id].held_item;
-                            players[local_player.id].held_item = TOOL_GRENADE;
-                            tool_switch = 1;
-                        }
-                        break;
+                    case WINDOW_KEY_TOOL1: item = TOOL_SPADE;   break;
+                    case WINDOW_KEY_TOOL2: item = TOOL_BLOCK;   break;
+                    case WINDOW_KEY_TOOL3: item = TOOL_GUN;     break;
+                    case WINDOW_KEY_TOOL4: item = TOOL_GRENADE; break;
                 }
 
-                if (tool_switch) {
+                if (0 <= item && players[local_player.id].held_item != item) {
+                    local_player.last_tool = players[local_player.id].held_item;
+                    players[local_player.id].held_item = item;
+
                     sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
                     player_on_held_item_change(players + local_player.id);
                 }
@@ -1736,27 +1729,30 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if (key == WINDOW_KEY_PICKCOLOR && players[local_player.id].held_item == TOOL_BLOCK) {
-                players[local_player.id].item_disabled = window_time();
+                players[local_player.id].item_disabled    = window_time();
                 players[local_player.id].items_show_start = window_time();
-                players[local_player.id].items_show = 1;
+                players[local_player.id].items_show       = 1;
 
-                CameraHit hit;
-                camera_hit_fromplayer(&hit, local_player.id, 128.0F);
+                CameraHit hit; camera_hit_fromplayer(&hit, local_player.id, 128.0F);
 
                 local_player.color[X] = local_player.color[Y] = -1;
 
                 switch (hit.type) {
                     case CAMERA_HITTYPE_BLOCK: {
-                        float dmg = (100.0F - map_damage_get(hit.x, hit.y, hit.z)) / 100.0F * 0.75F + 0.25F;
+                        float damage = map_damage_get(hit.x, hit.y, hit.z);
+                        float tint = (1.0F - damage / 100.0F) * 0.75F + 0.25F;
+
                         TrueColor color = map_get(hit.x, hit.y, hit.z);
-                        players[local_player.id].block.r = color.r * dmg;
-                        players[local_player.id].block.g = color.g * dmg;
-                        players[local_player.id].block.b = color.b * dmg;
+                        players[local_player.id].block.r = color.r * tint;
+                        players[local_player.id].block.g = color.g * tint;
+                        players[local_player.id].block.b = color.b * tint;
                         break;
                     }
+
                     case CAMERA_HITTYPE_PLAYER:
                         players[local_player.id].block = players[hit.player_id].block;
                         break;
+
                     case CAMERA_HITTYPE_NONE:
                     default:
                         players[local_player.id].block.r = fog_color[0] * 255;
@@ -1772,7 +1768,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
         if (action != WINDOW_RELEASE) {
             if (key == WINDOW_KEY_V && mods) {
                 const char * clipboard = window_clipboard();
-                if (clipboard) strcat(chat[0][0], clipboard);
+                if (clipboard != NULL) strcat(chat[0][0], clipboard);
             }
 
             if (key == WINDOW_KEY_ESCAPE || key == WINDOW_KEY_ENTER) {
@@ -2464,6 +2460,7 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
                         mu_textbox(ctx, a->value, a->max + 1);
                         break;
                     }
+
                     case CONFIG_TYPE_INT: {
                         if (a->max == 1 && a->min == 0) {
                             hud_bool(ctx, a);
@@ -2477,6 +2474,7 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
 
                         break;
                     }
+
                     case CONFIG_TYPE_FLOAT: {
                         if (a->max == INT_MAX) {
                             mu_number(ctx, a->value, 0.1F);

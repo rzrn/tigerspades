@@ -812,19 +812,16 @@ void getPacketKillAction(uint8_t * data, size_t len) {
         }
 
         if (p.killer_id == local_player.id || p.player_id == local_player.id) {
+            local_player.last_kill_timer = window_time();
             chat_add(1, Red, m, sizeof(m), UTF8);
-        } else {
-            switch (players[p.killer_id].team) {
-                case TEAM1: {
-                    chat_add(1, (TrueColor) {gamestate.team1.color.r, gamestate.team1.color.g, gamestate.team1.color.b, 255}, m, sizeof(m), UTF8);
-                    break;
-                }
 
-                case TEAM2: {
-                    chat_add(1, (TrueColor) {gamestate.team2.color.r, gamestate.team2.color.g, gamestate.team2.color.b, 255}, m, sizeof(m), UTF8);
-                    break;
-                }
+            if (settings.kill_indicator) {
+                if (p.kill_type == KILLTYPE_WEAPON || p.kill_type == KILLTYPE_HEADSHOT)
+                        sound_create(SOUND_LOCAL, sound(SOUND_SPADE_WHACK), 0.0F, 0.0F, 0.0F);
             }
+        } else switch (players[p.killer_id].team) {
+            case TEAM1: chat_add(1, opaque(gamestate.team1.color), m, sizeof(m), UTF8); break;
+            case TEAM2: chat_add(1, opaque(gamestate.team2.color), m, sizeof(m), UTF8); break;
         }
     }
 }

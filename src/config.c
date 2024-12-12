@@ -323,6 +323,15 @@ Setting config_settings[] = {
         .help     = "Beep sound when a player disconnects"
     },
     {
+        .value    = &settings_tmp.kill_indicator,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "kill_indicator",
+        .help     = "Confirmation sound + crosshair blink",
+        .display  = "Enable kill indicator"
+    },
+    {
         .value    = &settings_tmp.camera_fov,
         .type     = CONFIG_TYPE_FLOAT,
         .min      = CAMERA_DEFAULT_FOV,
@@ -539,6 +548,7 @@ Options settings = {
     .show_ammo             = 1,
     .report_client_version = 1,
     .left_handed           = 0,
+    .kill_indicator        = 0,
 };
 
 char * config_filepath = "config.ini";

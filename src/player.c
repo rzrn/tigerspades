@@ -54,6 +54,7 @@ LocalPlayer local_player = {
     .last_tool         = 0,
     .last_damage_timer = -INFINITY,
     .last_damage       = {0.0F, 0.0F, 0.0F},
+    .last_kill_timer   = -INFINITY,
     .drag_active       = false,
     .drag              = {0, 0, 0},
     .color             = {3, 0},

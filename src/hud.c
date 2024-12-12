@@ -536,6 +536,9 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                 1.0F / texture_width(zoom), 1.0F
             );
         } else if (!window_key_down(WINDOW_KEY_HIDEHUD) && settings.show_crosshair) {
+            if (settings.kill_indicator && window_time() - local_player.last_kill_timer < 0.3F)
+                glColor3f(1.0, 0.0, 0.0);
+
             texture_draw(
                 texture(HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1),
                 (settings.window_width - 32) / 2.0F, (settings.window_height + 32) / 2.0F, 32, 32
@@ -2478,7 +2481,7 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
                     case CONFIG_TYPE_FLOAT: {
                         if (a->max == INT_MAX) {
                             mu_number(ctx, a->value, 0.1F);
-                            *((float*) a->value) = max(a->min, *((float*) a->value));
+                            *((float *) a->value) = max(a->min, *((float *) a->value));
                         } else {
                             mu_slider(ctx, a->value, a->min, a->max);
                         }

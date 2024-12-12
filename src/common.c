@@ -14,25 +14,25 @@ const TrueColor Sky     = {0x80, 0xE8, 0xFF, 0xFF};
 const RGB3i Gray = {111, 111, 111};
 
 void writeRGBA(uint32_t * dest, TrueColor color) {
-    *((uint8_t*) dest + 0) = color.r;
-    *((uint8_t*) dest + 1) = color.g;
-    *((uint8_t*) dest + 2) = color.b;
-    *((uint8_t*) dest + 3) = color.a;
+    *((uint8_t *) dest + 0) = color.r;
+    *((uint8_t *) dest + 1) = color.g;
+    *((uint8_t *) dest + 2) = color.b;
+    *((uint8_t *) dest + 3) = color.a;
 }
 
 void writeBGR(uint32_t * dest, TrueColor color) {
-    *((uint8_t*) dest + 0) = color.b;
-    *((uint8_t*) dest + 1) = color.g;
-    *((uint8_t*) dest + 2) = color.r;
-    *((uint8_t*) dest + 3) = 255;
+    *((uint8_t *) dest + 0) = color.b;
+    *((uint8_t *) dest + 1) = color.g;
+    *((uint8_t *) dest + 2) = color.r;
+    *((uint8_t *) dest + 3) = 255;
 }
 
 TrueColor readBGR(uint32_t * src) {
     TrueColor retval;
 
-    retval.b = *((uint8_t*) src + 0);
-    retval.g = *((uint8_t*) src + 1);
-    retval.r = *((uint8_t*) src + 2);
+    retval.b = *((uint8_t *) src + 0);
+    retval.g = *((uint8_t *) src + 1);
+    retval.r = *((uint8_t *) src + 2);
     retval.a = 255;
 
     return retval;
@@ -41,10 +41,10 @@ TrueColor readBGR(uint32_t * src) {
 TrueColor readBGRA(uint32_t * src) {
     TrueColor retval;
 
-    retval.b = *((uint8_t*) src + 0);
-    retval.g = *((uint8_t*) src + 1);
-    retval.r = *((uint8_t*) src + 2);
-    retval.a = *((uint8_t*) src + 3);
+    retval.b = *((uint8_t *) src + 0);
+    retval.g = *((uint8_t *) src + 1);
+    retval.r = *((uint8_t *) src + 2);
+    retval.a = *((uint8_t *) src + 3);
 
     return retval;
 }

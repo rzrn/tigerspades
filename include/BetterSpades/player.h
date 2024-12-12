@@ -65,7 +65,7 @@ extern MouseButtons button_map;
 typedef struct {
     uint8_t id, health, blocks, grenades, ammo, ammo_reserved;
     uint8_t last_tool, respawn_time, respawn_cnt_last;
-    float death_time, last_damage_timer; Vector3f last_damage;
+    float death_time, last_damage_timer, last_kill_timer; Vector3f last_damage;
     bool drag_active; Vector3i drag; int color[2];
 } LocalPlayer;
 

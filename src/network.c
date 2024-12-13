@@ -787,7 +787,7 @@ void getPacketKillAction(uint8_t * data, size_t len) {
         players[p.player_id].input.keys    = 0;
         players[p.player_id].input.buttons = 0;
 
-        if (p.player_id != p.killer_id)
+        if (players[p.player_id].team != players[p.killer_id].team)
             players[p.killer_id].score++;
 
         char * gun_name[3] = {"Rifle", "SMG", "Shotgun"};

@@ -325,4 +325,25 @@ size_t strsize(const char *, size_t maxsize);
                         // └───────────────┴──────────────┴──────────────────────────────────────────────────────────────────────────┘
 #define HACKS_ENABLED ((HACK_NORELOAD || HACK_NORECOIL || HACK_NOSPREAD || HACK_WALLHACK || HACK_MAPHACK || HACK_NOFOG || HACK_ESP || HACK_HEADSHOT || HACK_NOCLIP) && 0)
 
+/*
+List of other known hacks:
+1) Big heads: just make the head model and its hitbox bigger so that aiming becomes *much* easier.
+   Fortunately, it is usually easy to spot.
+2) Grenade sniping: the governing equations for the flight of a grenade are dv = (0, 0, −1)dt and dr = 32vdt,
+   so it’s possible to calculate required angle and fuse time to hit someone’s head exactly (just make
+   t′ = 32t substitution and solve the standard free fall problem).
+   Relatively easy to detect even without going into spectator mode.
+3) Block painting: (vanilla) piqueserver doesn’t check if there was anything in place of the newly placed block
+   so you can effectively paint just by allowing the client to place blocks where they already exist.
+   Technically it’s still a hack, but it’s unlikely that *this* can ruin the game.
+   Very easy to detect and fix.
+4) Automatic crouch clicker: not much different from the manual crouch spam but still possible.
+5) Skywalking: since blocks can be placed literally behind you (piqueserver doesn’t check this
+   because otherwise building with the non-zero ping would be very frustrating), you can automatically
+   build a staircase right under your feet.
+   Hard to fix but trivial to detect.
+6) All sorts of NaN/INF-related problems (that is, just plug an invalid value into your favorite packet):
+   these seem to have been fixed in the latest versions of piqueserver.
+*/
+
 #endif

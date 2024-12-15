@@ -790,38 +790,39 @@ void getPacketKillAction(uint8_t * data, size_t len) {
         if (players[p.player_id].team != players[p.killer_id].team)
             players[p.killer_id].score++;
 
-        char * gun_name[3] = {"Rifle", "SMG", "Shotgun"};
-        char m[256];
+        static char * gun_name[] = {"Rifle", "SMG", "Shotgun"};
+
+        char buff[256];
         switch (p.kill_type) {
             case KILLTYPE_WEAPON:
-                sprintf(m, "%s killed %s (%s)", players[p.killer_id].name, players[p.player_id].name,
+                sprintf(buff, "%s killed %s (%s)", players[p.killer_id].name, players[p.player_id].name,
                         gun_name[players[p.killer_id].weapon]);
                 break;
             case KILLTYPE_HEADSHOT:
-                sprintf(m, "%s killed %s (Headshot)", players[p.killer_id].name, players[p.player_id].name);
+                sprintf(buff, "%s killed %s (Headshot)", players[p.killer_id].name, players[p.player_id].name);
                 break;
             case KILLTYPE_MELEE:
-                sprintf(m, "%s killed %s (Spade)", players[p.killer_id].name, players[p.player_id].name);
+                sprintf(buff, "%s killed %s (Spade)", players[p.killer_id].name, players[p.player_id].name);
                 break;
             case KILLTYPE_GRENADE:
-                sprintf(m, "%s killed %s (Grenade)", players[p.killer_id].name, players[p.player_id].name);
+                sprintf(buff, "%s killed %s (Grenade)", players[p.killer_id].name, players[p.player_id].name);
                 break;
-            case KILLTYPE_FALL: sprintf(m, "%s fell too far", players[p.player_id].name); break;
-            case KILLTYPE_TEAMCHANGE: sprintf(m, "%s changed teams", players[p.player_id].name); break;
-            case KILLTYPE_CLASSCHANGE: sprintf(m, "%s changed weapons", players[p.player_id].name); break;
+            case KILLTYPE_FALL: sprintf(buff, "%s fell too far", players[p.player_id].name); break;
+            case KILLTYPE_TEAMCHANGE: sprintf(buff, "%s changed teams", players[p.player_id].name); break;
+            case KILLTYPE_CLASSCHANGE: sprintf(buff, "%s changed weapons", players[p.player_id].name); break;
         }
 
         if (p.killer_id == local_player.id || p.player_id == local_player.id) {
             local_player.last_kill_timer = window_time();
-            chat_add(1, Red, m, sizeof(m), UTF8);
+            chat_add(1, Red, buff, sizeof(buff), UTF8);
 
             if (settings.kill_indicator) {
                 if (p.kill_type == KILLTYPE_WEAPON || p.kill_type == KILLTYPE_HEADSHOT)
                         sound_create(SOUND_LOCAL, sound(SOUND_SPADE_WHACK), 0.0F, 0.0F, 0.0F);
             }
         } else switch (players[p.killer_id].team) {
-            case TEAM1: chat_add(1, opaque(gamestate.team1.color), m, sizeof(m), UTF8); break;
-            case TEAM2: chat_add(1, opaque(gamestate.team2.color), m, sizeof(m), UTF8); break;
+            case TEAM1: chat_add(1, opaque(gamestate.team1.color), buff, sizeof(buff), UTF8); break;
+            case TEAM2: chat_add(1, opaque(gamestate.team2.color), buff, sizeof(buff), UTF8); break;
         }
     }
 }

@@ -250,20 +250,20 @@ void handlePacketBlockAction(PacketBlockAction * p) {
 
                 particle_create(col, x + 0.5F, 63 - z + 0.5F, y + 0.5F, 2.5F, 1.0F, 8, 0.1F, 0.25F);
             }
+
             break;
         }
 
         case ACTION_GRENADE: {
-            for (int j = (63 - z) - 1; j <= (63 - z) + 1; j++) {
-                for (int k = y - 1; k <= y + 1; k++) {
-                    for (int i = x - 1; i <= x + 1; i++) {
-                        if (j > 1) {
-                            map_set(i, j, k, NULL);
-                            map_update_physics(i, j, k);
-                        }
-                    }
+            for (int j = (63 - z) - 1; j <= (63 - z) + 1; j++)
+            for (int k = y - 1; k <= y + 1; k++)
+            for (int i = x - 1; i <= x + 1; i++) {
+                if (j > 1) {
+                    map_set(i, j, k, NULL);
+                    map_update_physics(i, j, k);
                 }
             }
+
             break;
         }
 
@@ -286,13 +286,12 @@ void handlePacketBlockAction(PacketBlockAction * p) {
                 map_set(x, 63 - z + 1, y, NULL);
                 map_update_physics(x, 63 - z + 1, y);
             }
+
             break;
         }
 
         case ACTION_BUILD: {
             if (IDVALID(p->player_id)) {
-                bool play_sound = map_isair(x, 63 - z, y);
-
                 TrueColor color = {
                     .r = players[p->player_id].block.r,
                     .g = players[p->player_id].block.g,
@@ -301,8 +300,12 @@ void handlePacketBlockAction(PacketBlockAction * p) {
                 };
 
                 map_set(x, 63 - z, y, &color);
-                if (play_sound) sound_create(SOUND_WORLD, sound(SOUND_BUILD), x + 0.5F, 63 - z + 0.5F, y + 0.5F);
+
+                if (map_isair(x, 63 - z, y)) sound_create(
+                    SOUND_WORLD, sound(SOUND_BUILD), x + 0.5F, 63 - z + 0.5F, y + 0.5F
+                );
             }
+
             break;
         }
     }
@@ -326,10 +329,11 @@ void handlePacketBlockLine(PacketBlockLine * p) {
     } else {
         Vector3i blocks[64];
         int len = map_cube_line(sx, sy, sz, ex, ey, ez, blocks);
+
         while (len > 0) {
-            if (map_isair(blocks[len - 1].x, 63 - blocks[len - 1].z, blocks[len - 1].y)) {
+            if (map_isair(blocks[len - 1].x, 63 - blocks[len - 1].z, blocks[len - 1].y))
                 map_set(blocks[len - 1].x, 63 - blocks[len - 1].z, blocks[len - 1].y, &color);
-            }
+
             len--;
         }
     }
@@ -379,7 +383,7 @@ void getPacketChatMessage(uint8_t * data, size_t len) {
     Codepage codepage = CP437; char * msg = p.message;
     if (msg[0] == '\xFF') { msg++; size--; codepage = UTF8; }
 
-    char n[32] = {0}; char buff[256];
+    char buff[256];
     switch (p.chat_type) {
         case CHAT_ERROR: sound_create(SOUND_LOCAL, sound(SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
         case CHAT_BIG:   chat_showpopup(msg, size, codepage, 5.0F, Red); return;
@@ -404,12 +408,15 @@ void getPacketChatMessage(uint8_t * data, size_t len) {
             if (IDVALID(p.player_id) && players[p.player_id].connected) {
                 if (settings.chat_beep) beep();
 
+                char prefix[32] = {0};
+
                 switch (players[p.player_id].team) {
-                    case TEAM1: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team1.name); break;
-                    case TEAM2: sprintf(n, "%s (%s)", players[p.player_id].name, gamestate.team2.name); break;
-                    case TEAM_SPECTATOR: sprintf(n, "%s (Spectator)", players[p.player_id].name); break;
+                    case TEAM1: sprintf(prefix, "%s (%s)", players[p.player_id].name, gamestate.team1.name); break;
+                    case TEAM2: sprintf(prefix, "%s (%s)", players[p.player_id].name, gamestate.team2.name); break;
+                    case TEAM_SPECTATOR: sprintf(prefix, "%s (Spectator)", players[p.player_id].name); break;
                 }
-                sprintf(buff, "%s: ", n);
+
+                sprintf(buff, "%s: ", prefix);
             } else {
                 sprintf(buff, ": ");
             }

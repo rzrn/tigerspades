@@ -295,18 +295,13 @@ void handlePacketBlockAction(PacketBlockAction * p) {
 
         case ACTION_BUILD: {
             if (IDVALID(p->player_id)) {
-                TrueColor color = {
-                    .r = players[p->player_id].block.r,
-                    .g = players[p->player_id].block.g,
-                    .b = players[p->player_id].block.b,
-                    .a = 255
-                };
+                float xc = x + 0.5F, yc = 63.0F - z + 0.5F, zc = y + 0.5F;
 
+                if (map_isair(x, 63 - z, y))
+                    sound_create(SOUND_WORLD, sound(SOUND_BUILD), xc, yc, zc);
+
+                TrueColor color = opaque(players[p->player_id].block);
                 map_set(x, 63 - z, y, &color);
-
-                if (map_isair(x, 63 - z, y)) sound_create(
-                    SOUND_WORLD, sound(SOUND_BUILD), x + 0.5F, 63 - z + 0.5F, y + 0.5F
-                );
             }
 
             break;

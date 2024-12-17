@@ -73,6 +73,9 @@ ENetPeer * peer = NULL;
 
 char network_custom_reason[128];
 
+static float connection_timestamp = -INFINITY;
+static ProtocolVersion connection_version;
+
 const char * network_reason_disconnect(ErrorCode code) {
     if (*network_custom_reason)
         return network_custom_reason;
@@ -501,40 +504,48 @@ void getPacketExtInfo(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketWorldUpdate(uint8_t * data, size_t len) {
-    if (len > 0) {
-        bool is075 = (len % sizePacketWorldUpdate075) == 0;
-        bool is076 = (len % sizePacketWorldUpdate076) == 0;
-
+static void getPacketWorldUpdate075(uint8_t * data, size_t len) {
+    if (len % sizePacketWorldUpdate075 == 0) {
         size_t index = 0;
 
-        if (is075) {
-            for (size_t k = 0; k < len / sizePacketWorldUpdate075; k++) { // supports up to 256 players
-                PacketWorldUpdate075 p; index += readPacketWorldUpdate075(data + index, &p);
+        for (size_t k = 0; k < len / sizePacketWorldUpdate075; k++) { // supports up to 256 players
+            PacketWorldUpdate075 p; index += readPacketWorldUpdate075(data + index, &p);
 
-                if (players[k].connected && players[k].alive && k != local_player.id) {
-                    Vector3f r = ntohv3f(p.pos);
+            if (players[k].connected && players[k].alive && k != local_player.id) {
+                Vector3f r = ntohv3f(p.pos);
 
-                    if (normv3f(players[k].pos, r) > 0.01F)
-                        players[k].pos = r;
+                if (normv3f(players[k].pos, r) > 0.01F)
+                    players[k].pos = r;
 
-                    players[k].orientation = ntohov3f(p.orient);
-                }
-            }
-        } else if (is076) {
-            for (size_t k = 0; k < len / sizePacketWorldUpdate076; k++) {
-                PacketWorldUpdate076 p; index += readPacketWorldUpdate076(data + index, &p);
-
-                if (players[p.player_id].connected && players[p.player_id].alive && p.player_id != local_player.id) {
-                    Vector3f r = ntohv3f(p.pos);
-
-                    if (normv3f(players[k].pos, r) > 0.01F)
-                        players[p.player_id].pos = r;
-
-                    players[p.player_id].orientation = ntohov3f(p.orient);
-                }
+                players[k].orientation = ntohov3f(p.orient);
             }
         }
+    } else log_error("Invalid PacketWorldUpdate of length %ld (0.75)", len);
+}
+
+static void getPacketWorldUpdate076(uint8_t * data, size_t len) {
+    if (len % sizePacketWorldUpdate076 == 0) {
+        size_t index = 0;
+
+        for (size_t k = 0; k < len / sizePacketWorldUpdate076; k++) {
+            PacketWorldUpdate076 p; index += readPacketWorldUpdate076(data + index, &p);
+
+            if (players[p.player_id].connected && players[p.player_id].alive && p.player_id != local_player.id) {
+                Vector3f r = ntohv3f(p.pos);
+
+                if (normv3f(players[p.player_id].pos, r) > 0.01F)
+                    players[p.player_id].pos = r;
+
+                players[p.player_id].orientation = ntohov3f(p.orient);
+            }
+        }
+    } else log_error("Invalid PacketWorldUpdate of length %ld (0.76)", len);
+}
+
+void getPacketWorldUpdate(uint8_t * data, size_t len) {
+    if (len > 0) switch (connection_version) {
+        case VERSION_075: getPacketWorldUpdate075(data, len); break;
+        case VERSION_076: getPacketWorldUpdate076(data, len); break;
     }
 }
 
@@ -737,6 +748,7 @@ void getPacketStateData(uint8_t * data, size_t len) {
             }
             if (r == LIBDEFLATE_SUCCESS) {
                 map_vxl_load(decompressed, decompressed_size);
+
 #ifndef USE_TOUCH
                 if (settings.map_cache) {
                     char filename[128];
@@ -835,7 +847,7 @@ void getPacketKillAction(uint8_t * data, size_t len) {
 }
 
 void getPacketMapStart(uint8_t * data, size_t len) {
-    // ffs someone fix the wrong map size of 1.5mb
+    // ffs someone fix the wrong map size of 1.5 MiB
     compressed_chunk_data_size = 1024 * 1024;
     compressed_chunk_data      = malloc(compressed_chunk_data_size);
     CHECK_ALLOCATION_ERROR(compressed_chunk_data)
@@ -851,32 +863,39 @@ void getPacketMapStart(uint8_t * data, size_t len) {
 
     hud_change(&hud_mapload);
 
-    if (len == sizePacketMapStart075) {
-        READPACKET(PacketMapStart075, p, data, len);
-        compressed_chunk_data_estimate = p.map_size;
-    } else {
-        READPACKET(PacketMapStart076, p, data, len);
-        compressed_chunk_data_estimate = p.map_size;
+    switch (connection_version) {
+        case VERSION_075: {
+            READPACKET(PacketMapStart075, p, data, len);
+            compressed_chunk_data_estimate = p.map_size;
 
-        data[len - 1] = 0;
-
-        char filename[128];
-        sprintf(filename, "cache/%08X.vxl", p.crc32);
-
-        if (file_exists(filename)) {
-            network_map_cached = true;
-            void * mapd = file_load(filename);
-            map_vxl_load(mapd, file_size(filename));
-            free(mapd);
-
-            chunk_rebuild_all();
+            break;
         }
 
-        log_info("Map name: %s %s", p.map_name, network_map_cached ? "(cached)" : "");
-        log_info("Map crc32: 0x%08X", p.crc32);
+        case VERSION_076: {
+            READPACKET(PacketMapStart076, p, data, len);
+            compressed_chunk_data_estimate = p.map_size;
 
-        PacketMapCached reply; reply.cached = network_map_cached;
-        sendPacketMapCached(&reply, 0);
+            data[len - 1] = 0;
+
+            char filename[128]; sprintf(filename, "cache/%08X.vxl", p.crc32);
+
+            if (file_exists(filename)) {
+                network_map_cached = true;
+                void * mapd = file_load(filename);
+                map_vxl_load(mapd, file_size(filename));
+                free(mapd);
+
+                chunk_rebuild_all();
+            }
+
+            log_info("Map name: %s %s", p.map_name, network_map_cached ? "(cached)" : "");
+            log_info("Map crc32: 0x%08X", p.crc32);
+
+            PacketMapCached reply; reply.cached = network_map_cached;
+            sendPacketMapCached(&reply, 0);
+
+            break;
+        }
     }
 }
 
@@ -1213,8 +1232,6 @@ void network_disconnect() {
     }
 }
 
-float connection_timestamp = -INFINITY;
-
 int network_connect_sub(char * ip, int port, ProtocolVersion version) {
     network_map_transfer = false;
     network_logged_in    = false;
@@ -1236,6 +1253,7 @@ int network_connect_sub(char * ip, int port, ProtocolVersion version) {
 
     memset(network_stats, 0, sizeof(NetworkStat) * 40);
 
+    connection_version = version;
     connection_timestamp = window_time();
 
     return 1;
@@ -1302,9 +1320,11 @@ int network_connect_string(const char * str, GameVersion version) {
     return network_connect(&addr);
 }
 
+#define CONNECTION_TIMEOUT 2.5F
+
 int network_update() {
     if (peer != NULL) {
-        if (!network_connected && window_time() - connection_timestamp >= 2.5F) {
+        if (!network_connected && CONNECTION_TIMEOUT <= window_time() - connection_timestamp) {
             network_destroy();
 
             hud_serverlist_popup = "No response";

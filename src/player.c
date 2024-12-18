@@ -279,22 +279,21 @@ int player_intersection_choose(Hit * s, float * dist) {
     return type;
 }
 
-void player_update(float dt, int locked) {
+void player_update_position(float dt) {
+    for (int k = 0; k < PLAYERS_MAX; k++)
+        if (players[k].connected || k == local_player.id)
+            player_move(&players[k], dt, k);
+}
+
+void player_update_orientation(float dt) {
     for (int k = 0; k < PLAYERS_MAX; k++) {
-        if (players[k].connected) {
-            if (locked) {
-                player_move(&players[k], dt, k);
-            } else {
-                if (k != local_player.id) {
-                    // smooth out player orientation
-                    players[k].orientation_smooth.x = players[k].orientation_smooth.x * pow(0.9F, dt * 60.0F)
-                        + players[k].orientation.x * pow(0.1F, dt * 60.0F);
-                    players[k].orientation_smooth.y = players[k].orientation_smooth.y * pow(0.9F, dt * 60.0F)
-                        + players[k].orientation.y * pow(0.1F, dt * 60.0F);
-                    players[k].orientation_smooth.z = players[k].orientation_smooth.z * pow(0.9F, dt * 60.0F)
-                        + players[k].orientation.z * pow(0.1F, dt * 60.0F);
-                }
-            }
+        if (players[k].connected && k != local_player.id) {
+            float t1 = pow(0.9F, dt * 60.0F), t2 = pow(0.1F, dt * 60.0F);
+
+            // smooth out player orientation
+            players[k].orientation_smooth.x = players[k].orientation_smooth.x * t1 + players[k].orientation.x * t2;
+            players[k].orientation_smooth.y = players[k].orientation_smooth.y * t1 + players[k].orientation.y * t2;
+            players[k].orientation_smooth.z = players[k].orientation_smooth.z * t1 + players[k].orientation.z * t2;
         }
     }
 }
@@ -446,14 +445,15 @@ void player_render_all() {
 
                     weapon_spread(&players[k], o);
 
-                    CameraHit hit;
-                    camera_hit(&hit, k, players[k].physics.eye.x, players[k].physics.eye.y + player_height(&players[k]),
-                               players[k].physics.eye.z, o[0], o[1], o[2], 128.0F);
                     tracer_pvelocity(o, &players[k]);
                     tracer_add(players[k].weapon, players[k].physics.eye.x,
                                players[k].physics.eye.y + player_height(&players[k]), players[k].physics.eye.z, o[0],
                                o[1], o[2]);
                     particle_create_casing(&players[k]);
+
+                    CameraHit hit;
+                    camera_hit(&hit, k, players[k].physics.eye.x, players[k].physics.eye.y + player_height(&players[k]),
+                               players[k].physics.eye.z, o[0], o[1], o[2], 128.0F);
 
                     if (!network_connected || local_hit_effects) switch (hit.type) {
                         case CAMERA_HITTYPE_PLAYER: {

@@ -733,28 +733,26 @@ void idle(double dt) {
     static double physics_time_fixed = 0.0F;
     static double physics_time_fast  = 0.0F;
 
-    if (hud_active->render_world) {
-        physics_time_fast  += dt;
-        physics_time_fixed += dt;
+    physics_time_fast  += dt;
+    physics_time_fixed += dt;
 
-        // these run at exactly ~60fps
-        #define PHYSICS_STEP_TIME (1.0 / 60.0)
-        while (physics_time_fixed >= PHYSICS_STEP_TIME) {
-            physics_time_fixed -= PHYSICS_STEP_TIME;
-            player_update(PHYSICS_STEP_TIME, 1); // just physics tick
-            grenade_update(PHYSICS_STEP_TIME);
-        }
+    // these run at exactly ~60fps
+    #define PHYSICS_STEP_TIME (1.0 / 60.0)
+    while (physics_time_fixed >= PHYSICS_STEP_TIME) {
+        physics_time_fixed -= PHYSICS_STEP_TIME;
+        player_update_position(PHYSICS_STEP_TIME); // just physics tick
+        grenade_update(PHYSICS_STEP_TIME);
+    }
 
-        // these run at min. ~60fps but as fast as possible
-        double step = fmin(dt, PHYSICS_STEP_TIME);
-        while (step > 0 && physics_time_fast >= step) {
-            physics_time_fast -= step;
-            player_update(step, 0); // smooth orientation update
-            camera_update(step);
-            tracer_update(step);
-            particle_update(step);
-            map_collapsing_update(step);
-        }
+    // these run at min. ~60fps but as fast as possible
+    double step = fmin(dt, PHYSICS_STEP_TIME);
+    while (step > 0 && physics_time_fast >= step) {
+        physics_time_fast -= step;
+        player_update_orientation(step); // smooth orientation update
+        camera_update(step);
+        tracer_update(step);
+        particle_update(step);
+        map_collapsing_update(step);
     }
 
     sound_update();

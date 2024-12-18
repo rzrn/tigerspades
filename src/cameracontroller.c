@@ -79,8 +79,7 @@ void cameracontroller_death_render() {
 
 float last_cy;
 void cameracontroller_fps(float dt) {
-    players[local_player.id].connected = 1;
-    players[local_player.id].alive     = 1;
+    players[local_player.id].alive = 1;
 
     int cooldown = 0;
     if (players[local_player.id].held_item == TOOL_GRENADE && local_player.grenades == 0) {

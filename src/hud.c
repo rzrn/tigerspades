@@ -441,6 +441,19 @@ static int hud_ingame_onscreencontrol(int index, char * str, int activate) {
     return 0;
 }
 
+inline static bool visible_on_minimap(Player * p) {
+    if (&players[local_player.id] == p)
+        return true;
+
+    if (!p->connected || p->team == TEAM_SPECTATOR)
+        return false;
+
+    if (players[local_player.id].team == TEAM_SPECTATOR)
+        return true;
+
+    return p->team == players[local_player.id].team;
+}
+
 static void hud_ingame_render(mu_Context * ctx, float scale) {
     hud_active->render_localplayer = players[local_player.id].team != TEAM_SPECTATOR
         && (screen_current == SCREEN_NONE || camera.mode != CAMERAMODE_FPS);
@@ -1009,8 +1022,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             #if HACKS_ENABLED && HACK_MAPHACK
                 if (players[k].connected && players[k].alive && k != local_player.id)
             #else
-                if (players[k].connected && players[k].alive && k != local_player.id && players[k].team != TEAM_SPECTATOR
-                && (players[k].team == players[local_player.id].team || camera.mode == CAMERAMODE_SPECTATOR))
+                if (k != local_player.id && visible_on_minimap(&players[k]))
             #endif
                 {
                     switch (players[k].team) {
@@ -1111,10 +1123,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             #if HACKS_ENABLED && HACK_MAPHACK
                 if (players[k].connected && players[k].alive)
             #else
-                if (players[k].connected && players[k].alive
-                   && (players[k].team == players[local_player.id].team
-                       || (camera.mode == CAMERAMODE_SPECTATOR
-                           && (k == local_player.id || players[k].team != TEAM_SPECTATOR))))
+                if (visible_on_minimap(&players[k]))
             #endif
                 {
                     if (k == local_player.id) {

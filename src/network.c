@@ -706,13 +706,13 @@ void getPacketStateData(uint8_t * data, size_t len) {
 
     players[local_player.id].block = Gray;
 
-    if (default_team >= 0 && default_gun >= 0) {
+    if (0 <= default_team && 0 <= default_gun) {
         network_join_game(default_team, default_gun);
         screen_current = SCREEN_NONE;
     } else if (default_team == TEAM_SPECTATOR) {
         network_join_game(default_team, WEAPON_RIFLE);
         screen_current = SCREEN_NONE;
-    } else if (default_team >= 0) {
+    } else if (0 <= default_team) {
         screen_current = SCREEN_GUN_SELECT;
     } else {
         screen_current = SCREEN_TEAM_SELECT;
@@ -1202,7 +1202,11 @@ static inline int network_destroy() {
     for (size_t k = 0; k < PLAYERS_MAX; k++)
         players[k].connected = 0;
 
-    players[local_player.id].team = TEAM1;
+    players[local_player.id].team  = TEAM1;
+    players[local_player.id].alive = 1;
+
+    screen_current = SCREEN_NONE;
+    camera.mode = CAMERAMODE_FPS;
 
     return 0;
 }

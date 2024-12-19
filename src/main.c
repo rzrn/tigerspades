@@ -100,12 +100,19 @@ void chat_showpopup(const char * msg, size_t size, Codepage codepage, float dura
     chat_popup_color    = color;
 }
 
+void drawEntity(kv6 * model, Vector3f * r, unsigned char team) {
+    float x = r->x, y = r->y + 1.0F, z = r->z;
+
+    matrix_push(matrix_model);
+    matrix_translate(matrix_model, x, y, z);
+    kv6_calclight(x, y, z);
+    matrix_upload();
+    kv6_render(model, team);
+    matrix_pop(matrix_model);
+}
+
 void drawScene() {
-    if (settings.ambient_occlusion) {
-        glShadeModel(GL_SMOOTH);
-    } else {
-        glShadeModel(GL_FLAT);
-    }
+    glShadeModel(settings.ambient_occlusion ? GL_SMOOTH : GL_FLAT);
 
     matrix_upload();
     chunk_draw_visible();
@@ -132,70 +139,22 @@ void drawScene() {
     matrix_upload();
 
     if (gamestate.mode == GAMEMODE_CTF) {
-        if (!gamestate.ctf.team2_has_intel) {
-            float x = gamestate.ctf.team1_flag.x;
-            float y = gamestate.ctf.team1_flag.y + 1.0F;
-            float z = gamestate.ctf.team1_flag.z;
+        if (!gamestate.ctf.team2_has_intel)
+            drawEntity(&model[MODEL_INTEL], &gamestate.ctf.team1_flag, TEAM1);
 
-            matrix_push(matrix_model);
-            matrix_translate(matrix_model, x, y, z);
-            kv6_calclight(x, y, z);
-            matrix_upload();
-            kv6_render(&model[MODEL_INTEL], TEAM1);
-            matrix_pop(matrix_model);
-        }
+        if (!gamestate.ctf.team1_has_intel)
+            drawEntity(&model[MODEL_INTEL], &gamestate.ctf.team2_flag, TEAM2);
 
-        if (!gamestate.ctf.team1_has_intel) {
-            float x = gamestate.ctf.team2_flag.x;
-            float y = gamestate.ctf.team2_flag.y + 1.0F;
-            float z = gamestate.ctf.team2_flag.z;
-            matrix_push(matrix_model);
-            matrix_translate(matrix_model, x, y, z);
-            kv6_calclight(x, y, z);
-            matrix_upload();
-            kv6_render(&model[MODEL_INTEL], TEAM2);
-            matrix_pop(matrix_model);
-        }
+        if (map_object_visible(gamestate.ctf.team1_base.x, gamestate.ctf.team1_base.y + 1.0F, gamestate.ctf.team1_base.z))
+            drawEntity(&model[MODEL_TENT], &gamestate.ctf.team1_base, TEAM1);
 
-        if (map_object_visible(gamestate.ctf.team1_base.x, gamestate.ctf.team1_base.y + 1.0F, gamestate.ctf.team1_base.z)) {
-            matrix_push(matrix_model);
-            matrix_translate(matrix_model, gamestate.ctf.team1_base.x, gamestate.ctf.team1_base.y + 1.0F, gamestate.ctf.team1_base.z);
-            kv6_calclight(gamestate.ctf.team1_base.x, gamestate.ctf.team1_base.y + 1.0F, gamestate.ctf.team1_base.z);
-            matrix_upload();
-            kv6_render(&model[MODEL_TENT], TEAM1);
-            matrix_pop(matrix_model);
-        }
-
-        if (map_object_visible(gamestate.ctf.team2_base.x, gamestate.ctf.team2_base.y + 1.0F, gamestate.ctf.team2_base.z)) {
-            matrix_push(matrix_model);
-            matrix_translate(matrix_model, gamestate.ctf.team2_base.x, gamestate.ctf.team2_base.y + 1.0F, gamestate.ctf.team2_base.z);
-            kv6_calclight(gamestate.ctf.team2_base.x, gamestate.ctf.team2_base.y + 1.0F, gamestate.ctf.team2_base.z);
-            matrix_upload();
-            kv6_render(&model[MODEL_TENT], TEAM2);
-            matrix_pop(matrix_model);
-        }
+        if (map_object_visible(gamestate.ctf.team2_base.x, gamestate.ctf.team2_base.y + 1.0F, gamestate.ctf.team2_base.z))
+            drawEntity(&model[MODEL_TENT], &gamestate.ctf.team2_base, TEAM2);
     }
 
     if (gamestate.mode == GAMEMODE_TC) {
-        for (int k = 0; k < gamestate.tc.territory_count; k++) {
-            matrix_push(matrix_model);
-            matrix_translate(
-                matrix_model,
-                gamestate.tc.territory[k].pos.x,
-                gamestate.tc.territory[k].pos.y + 1.0F,
-                gamestate.tc.territory[k].pos.z
-            );
-
-            kv6_calclight(
-                gamestate.tc.territory[k].pos.x,
-                gamestate.tc.territory[k].pos.y + 1.0F,
-                gamestate.tc.territory[k].pos.z
-            );
-
-            matrix_upload();
-            kv6_render(&model[MODEL_TENT], min(gamestate.tc.territory[k].team, 2));
-            matrix_pop(matrix_model);
-        }
+        for (int k = 0; k < gamestate.tc.territory_count; k++)
+            drawEntity(&model[MODEL_TENT], &gamestate.tc.territory[k].pos, gamestate.tc.territory[k].team);
     }
 }
 
@@ -215,9 +174,10 @@ void display() {
 
         if (settings.opengl14) {
             matrix_identity(matrix_projection);
-            matrix_perspective(matrix_projection, camera_fov_scaled(),
-                               ((float) settings.window_width) / ((float) settings.window_height), 0.1F,
-                               settings.render_distance + CHUNK_SIZE * 4.0F);
+            matrix_perspective(
+                matrix_projection, camera_fov_scaled(), window_aspect(), 0.1F,
+                settings.render_distance + CHUNK_SIZE * 4.0F
+            );
             matrix_upload_p();
 
             matrix_identity(matrix_view);

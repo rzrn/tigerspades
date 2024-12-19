@@ -140,6 +140,8 @@ void window_fromsettings(void);
 void window_deinit(void);
 int window_cpucores();
 
+float window_aspect();
+
 void window_settitle(char *);
 void window_title(const char * suffix);
 void window_sendkey(int action, int keycode, int mod);

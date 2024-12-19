@@ -114,3 +114,10 @@ void window_sendkey(int action, int keycode, int mod) {
 
     if (count == 0) sendkey(keycode, WINDOW_KEY_UNKNOWN, action, mod);
 }
+
+float window_aspect() {
+    float w = settings.window_width;
+    float h = settings.window_height;
+
+    return w / h;
+}

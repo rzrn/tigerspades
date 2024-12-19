@@ -149,7 +149,7 @@ static inline void kv6_center(mat4 matrix, kv6 * model) {
 static void hud_ingame_render3D() {
     glDepthRange(0.0F, 0.05F);
 
-    const float aspect = ((float) settings.window_width) / ((float) settings.window_height);
+    const float aspect = window_aspect();
 
     matrix_identity(matrix_projection);
     matrix_perspective(matrix_projection, CAMERA_DEFAULT_FOV, aspect, 0.1F, 128.0F);

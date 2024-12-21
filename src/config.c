@@ -44,9 +44,9 @@ static void config_label_scale(char * buffer, size_t length, int value, size_t i
 
 static void config_label_pixels(char * buffer, size_t length, int value, size_t index) {
     if (value == 800 || value == 600)
-        snprintf(buffer, length, "default: %ipx", value);
+        snprintf(buffer, length, "default: %i px", value);
     else
-        snprintf(buffer, length, "%ipx", value);
+        snprintf(buffer, length, "%i px", value);
 }
 
 static void config_label_vsync(char * buffer, size_t length, int value, size_t index) {

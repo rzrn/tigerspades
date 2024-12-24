@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <BetterSpades/unicode.h>
+#include <bs/unicode.h>
 
 uint32_t cp437[] = {
     0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007,

@@ -20,7 +20,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <BetterSpades/common.h>
+#include <bs/common.h>
 
 typedef struct _Texture Texture;
 

@@ -20,9 +20,9 @@
 #ifndef TRACER_H
 #define TRACER_H
 
-#include <BetterSpades/aabb.h>
-#include <BetterSpades/player.h>
-#include <BetterSpades/camera.h>
+#include <bs/aabb.h>
+#include <bs/player.h>
+#include <bs/camera.h>
 
 typedef struct {
     CameraHit hit;

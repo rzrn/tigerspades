@@ -23,9 +23,9 @@
 #include <discord_rpc.h>
 #endif
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/player.h>
-#include <BetterSpades/rpc.h>
+#include <bs/common.h>
+#include <bs/player.h>
+#include <bs/rpc.h>
 
 #include <log.h>
 

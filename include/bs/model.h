@@ -23,10 +23,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/aabb.h>
-#include <BetterSpades/glx.h>
-#include <BetterSpades/tesselator.h>
+#include <bs/common.h>
+#include <bs/aabb.h>
+#include <bs/glx.h>
+#include <bs/tesselator.h>
 
 #define KV6_VIS_NEG_X (1 << 0)
 #define KV6_VIS_POS_X (1 << 1)

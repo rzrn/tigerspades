@@ -25,8 +25,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/file.h>
+#include <bs/common.h>
+#include <bs/file.h>
 
 #include <log.h>
 

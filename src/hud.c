@@ -25,29 +25,29 @@
 #include <limits.h>
 #include <ctype.h>
 
-#include <BetterSpades/main.h>
-#include <BetterSpades/file.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/list.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/texture.h>
-#include <BetterSpades/hud.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/network.h>
-#include <BetterSpades/rpc.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/cameracontroller.h>
-#include <BetterSpades/ping.h>
-#include <BetterSpades/chunk.h>
-#include <BetterSpades/utils.h>
-#include <BetterSpades/weapon.h>
-#include <BetterSpades/tracer.h>
-#include <BetterSpades/font.h>
-#include <BetterSpades/unicode.h>
-#include <BetterSpades/player.h>
-#include <BetterSpades/particle.h>
-#include <BetterSpades/opengl.h>
+#include <bs/main.h>
+#include <bs/file.h>
+#include <bs/common.h>
+#include <bs/list.h>
+#include <bs/matrix.h>
+#include <bs/texture.h>
+#include <bs/hud.h>
+#include <bs/config.h>
+#include <bs/network.h>
+#include <bs/rpc.h>
+#include <bs/map.h>
+#include <bs/camera.h>
+#include <bs/cameracontroller.h>
+#include <bs/ping.h>
+#include <bs/chunk.h>
+#include <bs/utils.h>
+#include <bs/weapon.h>
+#include <bs/tracer.h>
+#include <bs/font.h>
+#include <bs/unicode.h>
+#include <bs/player.h>
+#include <bs/particle.h>
+#include <bs/opengl.h>
 
 HUD * hud_active;
 

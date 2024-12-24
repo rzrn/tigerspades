@@ -19,11 +19,11 @@
 
 #include <math.h>
 
-#include <BetterSpades/texture.h>
-#include <BetterSpades/opengl.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/file.h>
-#include <BetterSpades/map.h>
+#include <bs/texture.h>
+#include <bs/opengl.h>
+#include <bs/common.h>
+#include <bs/file.h>
+#include <bs/map.h>
 
 #include <log.h>
 #include <lodepng/lodepng.c>

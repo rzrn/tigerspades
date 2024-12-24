@@ -5,11 +5,11 @@
 #include <ctype.h>
 #include <time.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/main.h>
-#include <BetterSpades/hud.h>
+#include <bs/common.h>
+#include <bs/window.h>
+#include <bs/config.h>
+#include <bs/main.h>
+#include <bs/hud.h>
 
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>

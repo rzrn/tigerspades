@@ -20,8 +20,9 @@
 #ifndef FONT_H
 #define FONT_H
 
-#include <BetterSpades/common.h>
 #include <stdbool.h>
+
+#include <bs/common.h>
 
 typedef enum {
     FONT_FIXEDSYS,

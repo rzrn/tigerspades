@@ -23,7 +23,7 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <AceOfSpades/types.h>
+#include <ace/types.h>
 
 #define UNUSED(x) ((void) x)
 

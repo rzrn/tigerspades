@@ -12,7 +12,7 @@ HASHPROG = sha512sum
 PACKFILE = build/bsresources.zip
 PACKHASH = $(PACKFILE).sha512
 
-MFILES = src/GUI/Cocoa.m
+MFILES = src/gui/cocoa.m
 
 # Things like `-g` are passed here.
 EXTRAFLAGS = -DUSE_SOUND -DUSE_GL_SHORT

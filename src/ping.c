@@ -32,15 +32,15 @@
 
 #include <hashtable.h>
 
-#include <BetterSpades/config.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/ping.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/list.h>
-#include <BetterSpades/hud.h>
-#include <BetterSpades/channel.h>
-#include <BetterSpades/utils.h>
-#include <BetterSpades/network.h>
+#include <bs/config.h>
+#include <bs/window.h>
+#include <bs/ping.h>
+#include <bs/common.h>
+#include <bs/list.h>
+#include <bs/hud.h>
+#include <bs/channel.h>
+#include <bs/utils.h>
+#include <bs/network.h>
 
 typedef struct {
     ServerEntry * entry;

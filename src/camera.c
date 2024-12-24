@@ -21,13 +21,13 @@
 #include <string.h>
 #include <float.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/cameracontroller.h>
-#include <BetterSpades/player.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/config.h>
+#include <bs/common.h>
+#include <bs/cameracontroller.h>
+#include <bs/player.h>
+#include <bs/map.h>
+#include <bs/matrix.h>
+#include <bs/camera.h>
+#include <bs/config.h>
 
 float frustum[6][4];
 

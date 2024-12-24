@@ -21,9 +21,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/aabb.h>
-#include <BetterSpades/map.h>
+#include <bs/common.h>
+#include <bs/aabb.h>
+#include <bs/map.h>
 
 // see: https://tavianator.com/2011/ray_box.html
 bool aabb_intersection_ray(AABB * a, Ray * r, float * distance) {

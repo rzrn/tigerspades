@@ -25,7 +25,7 @@
 #include <enet/enet.h>
 #include <parson.h>
 
-#include <BetterSpades/hud.h>
+#include <bs/hud.h>
 
 typedef struct {
     int         current, max;

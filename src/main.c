@@ -26,30 +26,30 @@
 #include <lodepng/lodepng.h>
 #include <log.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/ping.h>
-#include <BetterSpades/file.h>
-#include <BetterSpades/font.h>
-#include <BetterSpades/weapon.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/rpc.h>
-#include <BetterSpades/network.h>
-#include <BetterSpades/sound.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/particle.h>
-#include <BetterSpades/tracer.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/cameracontroller.h>
-#include <BetterSpades/grenade.h>
-#include <BetterSpades/player.h>
-#include <BetterSpades/hud.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/texture.h>
-#include <BetterSpades/chunk.h>
-#include <BetterSpades/unicode.h>
-#include <BetterSpades/main.h>
-#include <BetterSpades/opengl.h>
+#include <bs/common.h>
+#include <bs/ping.h>
+#include <bs/file.h>
+#include <bs/font.h>
+#include <bs/weapon.h>
+#include <bs/window.h>
+#include <bs/rpc.h>
+#include <bs/network.h>
+#include <bs/sound.h>
+#include <bs/map.h>
+#include <bs/particle.h>
+#include <bs/tracer.h>
+#include <bs/camera.h>
+#include <bs/cameracontroller.h>
+#include <bs/grenade.h>
+#include <bs/player.h>
+#include <bs/hud.h>
+#include <bs/config.h>
+#include <bs/matrix.h>
+#include <bs/texture.h>
+#include <bs/chunk.h>
+#include <bs/unicode.h>
+#include <bs/main.h>
+#include <bs/opengl.h>
 
 int fps = 0;
 

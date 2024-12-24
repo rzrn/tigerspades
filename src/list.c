@@ -2,8 +2,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/list.h>
+#include <bs/common.h>
+#include <bs/list.h>
 
 int list_created(List * l) {
     assert(l != NULL);

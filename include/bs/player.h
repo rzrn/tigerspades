@@ -22,8 +22,8 @@
 
 #include <stdbool.h>
 
-#include <BetterSpades/aabb.h>
-#include <BetterSpades/network.h>
+#include <bs/aabb.h>
+#include <bs/network.h>
 
 typedef struct {
     char name[11];

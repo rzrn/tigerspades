@@ -23,9 +23,9 @@
 #include <stdbool.h>
 #include <microui.h>
 
-#include <BetterSpades/texture.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/common.h>
+#include <bs/texture.h>
+#include <bs/window.h>
+#include <bs/common.h>
 
 typedef struct {
     void (*init)();

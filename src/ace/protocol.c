@@ -1,6 +1,7 @@
-#include <AceOfSpades/protocol.h>
-#include <BetterSpades/common.h>
 #include <string.h>
+
+#include <ace/protocol.h>
+#include <bs/common.h>
 
 #define begin(T) size_t read##T(uint8_t * buff, T * contained) { size_t index = 0;
 #define end() return index; }
@@ -16,7 +17,7 @@
 #define string(dest)  contained->dest = (char *) &buff[index];
 #define blob(dest, n) contained->dest = (Blob) {.data = &buff[index], .size = n}; index += n;
 
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>
 
 #define begin(T) size_t write##T(uint8_t * buff, T * contained) { size_t index = 0;
 #define end() return index; }
@@ -32,7 +33,7 @@
 #define string(src)  strcpy((char *) &buff[index], contained->src);
 #define blob(src, n) memcpy(&buff[index], contained->src.data, n); index += n;
 
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>
 
 #define begin(T) const size_t size##T = 0
 #define end() ;
@@ -48,4 +49,4 @@
 #define string(dest)  + 0
 #define blob(dest, n) + n
 
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>

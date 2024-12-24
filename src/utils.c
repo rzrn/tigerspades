@@ -19,7 +19,7 @@
 
 #include <assert.h>
 
-#include <BetterSpades/utils.h>
+#include <bs/utils.h>
 
 static int base64_map(char c) {
     if (c >= '0' && c <= '9')

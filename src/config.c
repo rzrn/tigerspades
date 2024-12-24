@@ -24,14 +24,15 @@
 #include <limits.h>
 #include <math.h>
 
-#include <BetterSpades/window.h>
-#include <BetterSpades/file.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/sound.h>
-#include <BetterSpades/model.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/utils.h>
-#include <BetterSpades/gui.h>
+#include <bs/window.h>
+#include <bs/file.h>
+#include <bs/config.h>
+#include <bs/sound.h>
+#include <bs/model.h>
+#include <bs/camera.h>
+#include <bs/utils.h>
+
+#include <bs/gui/toolkit.h>
 
 #include <ini.h>
 

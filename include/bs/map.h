@@ -20,11 +20,11 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <AceOfSpades/types.h>
-
 #include <stdint.h>
 #include <libvxl.h>
 #undef pos_key
+
+#include <ace/types.h>
 
 extern int map_size_x;
 extern int map_size_y;

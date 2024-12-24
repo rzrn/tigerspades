@@ -21,18 +21,18 @@
 #include <string.h>
 #include <math.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/particle.h>
-#include <BetterSpades/model.h>
-#include <BetterSpades/weapon.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/tesselator.h>
-#include <BetterSpades/entitysystem.h>
-#include <BetterSpades/opengl.h>
+#include <bs/common.h>
+#include <bs/window.h>
+#include <bs/camera.h>
+#include <bs/map.h>
+#include <bs/matrix.h>
+#include <bs/particle.h>
+#include <bs/model.h>
+#include <bs/weapon.h>
+#include <bs/config.h>
+#include <bs/tesselator.h>
+#include <bs/entitysystem.h>
+#include <bs/opengl.h>
 
 bool local_hit_effects = true;
 

@@ -22,7 +22,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include <BetterSpades/entitysystem.h>
+#include <bs/entitysystem.h>
 
 void entitysys_create(EntitySystem * es, size_t object_size, size_t initial_size) {
     assert(es != NULL && object_size > 0 && initial_size > 0);

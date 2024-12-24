@@ -21,17 +21,17 @@
 #include <string.h>
 #include <math.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/player.h>
-#include <BetterSpades/file.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/model.h>
-#include <BetterSpades/model_normals.h>
-#include <BetterSpades/texture.h>
-#include <BetterSpades/opengl.h>
+#include <bs/common.h>
+#include <bs/player.h>
+#include <bs/file.h>
+#include <bs/camera.h>
+#include <bs/matrix.h>
+#include <bs/map.h>
+#include <bs/config.h>
+#include <bs/model.h>
+#include <bs/model_normals.h>
+#include <bs/texture.h>
+#include <bs/opengl.h>
 
 #include <log.h>
 

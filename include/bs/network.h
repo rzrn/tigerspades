@@ -20,8 +20,8 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#include <AceOfSpades/protocol.h>
-#include <BetterSpades/common.h>
+#include <ace/protocol.h>
+#include <bs/common.h>
 
 #define MASKON(X)   (1 << X)
 #define MASKOFF(X) ~(1 << X)
@@ -108,6 +108,6 @@ static inline char sector2f(float y) { return '1' + (int) (y / 64.0F); }
 #define PACKET_EXTRA      0
 #define PACKET_SERVERSIDE 0
 #define begin(T) extern void send##T(T * contained, size_t len);
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>
 
 #endif

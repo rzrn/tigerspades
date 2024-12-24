@@ -21,9 +21,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include <BetterSpades/opengl.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/tesselator.h>
+#include <bs/opengl.h>
+#include <bs/common.h>
+#include <bs/tesselator.h>
 
 static size_t vertex_type_size(TesselatorVertexType type) {
     switch (type) {

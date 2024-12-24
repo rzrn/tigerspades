@@ -20,8 +20,9 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <BetterSpades/common.h>
 #include <stddef.h>
+
+#include <bs/common.h>
 
 enum {
     WINDOW_PRESS,

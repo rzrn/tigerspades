@@ -20,11 +20,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/main.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/hud.h>
+#include <bs/common.h>
+#include <bs/main.h>
+#include <bs/window.h>
+#include <bs/config.h>
+#include <bs/hud.h>
 
 #ifdef OS_WINDOWS
     #include <sysinfoapi.h>

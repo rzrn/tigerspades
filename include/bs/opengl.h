@@ -1,7 +1,7 @@
 #ifndef OPENGL_H
 #define OPENGL_H
 
-#include <AceOfSpades/types.h>
+#include <ace/types.h>
 
 #ifndef OPENGL_ES
     #define GLEW_STATIC

@@ -22,23 +22,23 @@
 
 #include <stddef.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/list.h>
+#include <bs/common.h>
+#include <bs/list.h>
 
 #ifdef USE_GLFW
-    #include <BetterSpades/GUI/glfw.h>
+    #include <bs/gui/glfw.h>
 #endif
 
 #ifdef USE_SDL
-    #include <BetterSpades/GUI/sdl.h>
+    #include <bs/gui/sdl.h>
 #endif
 
 #ifdef USE_GLUT
-    #include <BetterSpades/GUI/glut.h>
+    #include <bs/gui/glut.h>
 #endif
 
 #ifdef USE_COCOA
-    #include <BetterSpades/GUI/Cocoa.h>
+    #include <bs/gui/cocoa.h>
 #endif
 
 typedef struct {

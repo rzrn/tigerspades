@@ -24,17 +24,17 @@
 #include <float.h>
 #include <string.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/texture.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/tesselator.h>
-#include <BetterSpades/chunk.h>
-#include <BetterSpades/channel.h>
-#include <BetterSpades/utils.h>
+#include <bs/common.h>
+#include <bs/window.h>
+#include <bs/config.h>
+#include <bs/texture.h>
+#include <bs/matrix.h>
+#include <bs/map.h>
+#include <bs/camera.h>
+#include <bs/tesselator.h>
+#include <bs/chunk.h>
+#include <bs/channel.h>
+#include <bs/utils.h>
 
 #include <log.h>
 

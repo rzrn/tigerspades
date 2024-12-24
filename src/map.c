@@ -28,22 +28,22 @@
 #include <log.h>
 #include <hashtable.h>
 
-#include <BetterSpades/window.h>
-#include <BetterSpades/sound.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/glx.h>
-#include <BetterSpades/chunk.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/particle.h>
-#include <BetterSpades/minheap.h>
-#include <BetterSpades/tesselator.h>
-#include <BetterSpades/utils.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/channel.h>
-#include <BetterSpades/entitysystem.h>
-#include <BetterSpades/opengl.h>
+#include <bs/window.h>
+#include <bs/sound.h>
+#include <bs/matrix.h>
+#include <bs/glx.h>
+#include <bs/chunk.h>
+#include <bs/common.h>
+#include <bs/map.h>
+#include <bs/camera.h>
+#include <bs/particle.h>
+#include <bs/minheap.h>
+#include <bs/tesselator.h>
+#include <bs/utils.h>
+#include <bs/config.h>
+#include <bs/channel.h>
+#include <bs/entitysystem.h>
+#include <bs/opengl.h>
 
 int map_size_x = 512;
 int map_size_y = 64;

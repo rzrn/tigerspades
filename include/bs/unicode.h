@@ -1,7 +1,7 @@
 #ifndef UNICODE_H
 #define UNICODE_H
 
-#include <BetterSpades/common.h>
+#include <bs/common.h>
 
 #define OCT1(c) ((((uint8_t) c) & 0x80) == 0x00)
 #define OCT2(c) ((((uint8_t) c) & 0xE0) == 0xC0)

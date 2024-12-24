@@ -6,14 +6,15 @@
 #include <string.h>
 #include <time.h>
 
-#include <BetterSpades/unicode.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/main.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/hud.h>
-#include <BetterSpades/font.h>
-#include <BetterSpades/gui.h>
+#include <bs/unicode.h>
+#include <bs/common.h>
+#include <bs/main.h>
+#include <bs/window.h>
+#include <bs/config.h>
+#include <bs/hud.h>
+#include <bs/font.h>
+
+#include <bs/gui/toolkit.h>
 
 #ifdef OS_WINDOWS
     #include <sysinfoapi.h>

@@ -20,7 +20,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include <BetterSpades/player.h>
+#include <bs/player.h>
 
 typedef struct {
     float x, y, z;

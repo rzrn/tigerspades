@@ -1,7 +1,7 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-#include <AceOfSpades/types.h>
+#include <ace/types.h>
 
 typedef enum {
     VERSION_075 = 3,
@@ -218,15 +218,15 @@ enum HitEffectTarget {
 #define string(dest)  char * dest;
 #define blob(dest, n) Blob dest;
 
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>
 
 #define begin(T) extern size_t read##T(uint8_t * buff, T *);
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>
 
 #define begin(T) extern size_t write##T(uint8_t * buff, T *);
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>
 
 #define begin(T) extern const size_t size##T;
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>
 
 #endif

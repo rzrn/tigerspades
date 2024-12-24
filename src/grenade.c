@@ -19,15 +19,15 @@
 
 #include <math.h>
 
-#include <BetterSpades/network.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/particle.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/model.h>
-#include <BetterSpades/sound.h>
-#include <BetterSpades/grenade.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/entitysystem.h>
+#include <bs/network.h>
+#include <bs/window.h>
+#include <bs/particle.h>
+#include <bs/matrix.h>
+#include <bs/model.h>
+#include <bs/sound.h>
+#include <bs/grenade.h>
+#include <bs/map.h>
+#include <bs/entitysystem.h>
 
 EntitySystem grenades;
 

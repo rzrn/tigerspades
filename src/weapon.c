@@ -19,12 +19,12 @@
 
 #include <math.h>
 
-#include <BetterSpades/particle.h>
-#include <BetterSpades/weapon.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/tracer.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/map.h>
+#include <bs/particle.h>
+#include <bs/weapon.h>
+#include <bs/camera.h>
+#include <bs/tracer.h>
+#include <bs/window.h>
+#include <bs/map.h>
 
 float weapon_reload_start, weapon_last_shot = -INFINITY;
 bool weapon_reload_inprogress = false;

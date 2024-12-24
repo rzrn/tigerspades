@@ -24,23 +24,23 @@
 #include <libdeflate.h>
 #include <enet/enet.h>
 
-#include <BetterSpades/texture.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/sound.h>
-#include <BetterSpades/weapon.h>
-#include <BetterSpades/grenade.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/cameracontroller.h>
-#include <BetterSpades/file.h>
-#include <BetterSpades/hud.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/player.h>
-#include <BetterSpades/network.h>
-#include <BetterSpades/particle.h>
-#include <BetterSpades/texture.h>
-#include <BetterSpades/chunk.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/unicode.h>
+#include <bs/texture.h>
+#include <bs/common.h>
+#include <bs/sound.h>
+#include <bs/weapon.h>
+#include <bs/grenade.h>
+#include <bs/camera.h>
+#include <bs/cameracontroller.h>
+#include <bs/file.h>
+#include <bs/hud.h>
+#include <bs/map.h>
+#include <bs/player.h>
+#include <bs/network.h>
+#include <bs/particle.h>
+#include <bs/texture.h>
+#include <bs/chunk.h>
+#include <bs/config.h>
+#include <bs/unicode.h>
 
 void (*packets[256])(uint8_t * data, size_t len) = {NULL};
 
@@ -146,7 +146,7 @@ void network_join_game(unsigned char team, unsigned char weapon) {
 #define begin(T) void send##T(T * contained, size_t len) \
                  { write##T(network_buffer + 1, contained); \
                    network_send(id##T, size##T + len); }
-#include <AceOfSpades/packets.h>
+#include <ace/packets.h>
 
 #define ERRLEN(T, len) { log_error(#T " of invalid size (%ld) was received.", len); return; }
 #define READPACKET(T, contained, src, len) T contained; if (size##T <= len) read##T(src, &contained); else ERRLEN(T, len);

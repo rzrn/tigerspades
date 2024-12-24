@@ -62,7 +62,7 @@
     #define PACKET_EXTRA 1
 #endif
 
-#include <AceOfSpades/_packets.h>
+#include <ace/_packets.h>
 
 #undef begin
 #undef end

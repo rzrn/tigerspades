@@ -21,11 +21,11 @@
 #include <string.h>
 #include <math.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/sound.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/entitysystem.h>
+#include <bs/common.h>
+#include <bs/sound.h>
+#include <bs/config.h>
+#include <bs/camera.h>
+#include <bs/entitysystem.h>
 
 #include <log.h>
 

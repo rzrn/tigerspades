@@ -24,33 +24,33 @@
 
 #include <hashtable.h>
 
-#include <BetterSpades/opengl.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/unicode.h>
-#include <BetterSpades/file.h>
-#include <BetterSpades/font.h>
-#include <BetterSpades/utils.h>
+#include <bs/opengl.h>
+#include <bs/common.h>
+#include <bs/unicode.h>
+#include <bs/file.h>
+#include <bs/font.h>
+#include <bs/utils.h>
 
 #define begin(T) typedef struct _##T T; struct _##T {
 #define end() };
 #define u8(dest)      uint8_t dest;
 #define u16(dest)     uint16_t dest;
 #define blob(dest, n) Blob dest;
-#include <BetterSpades/bitmap.h>
+#include <bs/bitmap.h>
 
 #define begin(T) const size_t size##T = 0
 #define end() ;
 #define u8(dest)      + 1
 #define u16(dest)     + 2
 #define blob(dest, n) + n
-#include <BetterSpades/bitmap.h>
+#include <bs/bitmap.h>
 
 #define begin(T) T read##T(uint8_t * buff) { T retval; size_t index = 0;
 #define end() return retval; }
 #define u8(dest)      retval.dest = getu8le(buff, &index);
 #define u16(dest)     retval.dest = getu16le(buff, &index);
 #define blob(dest, n) retval.dest = (Blob) {.data = &buff[index], .size = n}; index += n;
-#include <BetterSpades/bitmap.h>
+#include <bs/bitmap.h>
 
 typedef struct {
     uint8_t  page, stride;

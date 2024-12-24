@@ -25,8 +25,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include <BetterSpades/glx.h>
-#include <BetterSpades/tesselator.h>
+#include <bs/glx.h>
+#include <bs/tesselator.h>
 
 #include <libvxl.h>
 

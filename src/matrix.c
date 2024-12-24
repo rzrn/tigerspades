@@ -21,9 +21,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <BetterSpades/opengl.h>
-#include <BetterSpades/common.h>
-#include <BetterSpades/matrix.h>
+#include <bs/opengl.h>
+#include <bs/common.h>
+#include <bs/matrix.h>
 
 mat4 matrix_view;
 mat4 matrix_model;

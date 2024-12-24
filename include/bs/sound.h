@@ -20,7 +20,7 @@
 #ifndef SOUND_H
 #define SOUND_H
 
-#include <BetterSpades/player.h>
+#include <bs/player.h>
 
 #define SOUND_SCALE 0.6F
 

@@ -20,8 +20,9 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include <BetterSpades/window.h>
 #include <stdbool.h>
+
+#include <bs/window.h>
 
 void reshape(int width, int height);
 void text_input(const uint8_t *);

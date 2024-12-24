@@ -21,21 +21,21 @@
 #include <math.h>
 #include <limits.h>
 
-#include <BetterSpades/common.h>
-#include <BetterSpades/camera.h>
-#include <BetterSpades/player.h>
-#include <BetterSpades/sound.h>
-#include <BetterSpades/map.h>
-#include <BetterSpades/matrix.h>
-#include <BetterSpades/model.h>
-#include <BetterSpades/font.h>
-#include <BetterSpades/cameracontroller.h>
-#include <BetterSpades/config.h>
-#include <BetterSpades/tracer.h>
-#include <BetterSpades/weapon.h>
-#include <BetterSpades/window.h>
-#include <BetterSpades/particle.h>
-#include <BetterSpades/opengl.h>
+#include <bs/common.h>
+#include <bs/camera.h>
+#include <bs/player.h>
+#include <bs/sound.h>
+#include <bs/map.h>
+#include <bs/matrix.h>
+#include <bs/model.h>
+#include <bs/font.h>
+#include <bs/cameracontroller.h>
+#include <bs/config.h>
+#include <bs/tracer.h>
+#include <bs/weapon.h>
+#include <bs/window.h>
+#include <bs/particle.h>
+#include <bs/opengl.h>
 
 GameState gamestate;
 

@@ -51,13 +51,11 @@
 
 HUD * hud_active;
 
-static int is_inside_centered(double mx, double my, int x, int y, int w, int h) {
-    return mx >= x - w / 2 && mx < x + w / 2 && my >= y - h / 2 && my < y + h / 2;
-}
+static inline int is_inside_centered(double mx, double my, int x, int y, int w, int h)
+{ return mx >= x - w / 2 && mx < x + w / 2 && my >= y - h / 2 && my < y + h / 2; }
 
-/*static int is_inside(double mx, double my, int x, int y, int w, int h) {
-    return mx >= x && mx < x + w && my >= y && my < y + h;
-}*/
+/*static inline int is_inside(double mx, double my, int x, int y, int w, int h)
+{ return mx >= x && mx < x + w && my >= y && my < y + h; }*/
 
 static void serverlist_refresh();
 
@@ -191,8 +189,8 @@ static void hud_ingame_render3D() {
             model_block->red   = players[local_player.id].block.r / 255.0F;
             model_block->green = players[local_player.id].block.g / 255.0F;
             model_block->blue  = players[local_player.id].block.b / 255.0F;
-            matrix_upload();
 
+            matrix_upload();
             kv6_render(model_block, players[local_player.id].team);
         }
 
@@ -1806,28 +1804,28 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
 
 static void hud_ingame_touch(void * finger, int action, float x, float y, float dx, float dy) {
     window_setmouseloc(x, y);
-    WindowFinger * f = (WindowFinger *) finger;
+    WindowFinger * f = finger;
 
     if (action != TOUCH_MOVE) {
         int k = 0;
         while (hud_ingame_onscreencontrol(k, NULL, -1)) {
             if (is_inside_centered(f->start.x, settings.window_height - f->start.y,
-                                  settings.window_height * (0.2F + 0.175F * k), settings.window_height * 0.96F,
-                                  settings.window_height * 0.15F, settings.window_height * 0.1F)) {
+                                   settings.window_height * (0.2F + 0.175F * k), settings.window_height * 0.96F,
+                                   settings.window_height * 0.15F, settings.window_height * 0.1F)) {
                 hud_ingame_onscreencontrol(k, NULL, (action == TOUCH_DOWN) ? 1 : 0);
                 return;
             }
             k++;
         }
         if (is_inside_centered(f->start.x, settings.window_height - f->start.y,
-                              settings.window_width - settings.window_height * 0.075F, settings.window_height * 0.6F,
-                              settings.window_height * 0.15F, settings.window_height * 0.1F)) {
+                               settings.window_width - settings.window_height * 0.075F, settings.window_height * 0.6F,
+                               settings.window_height * 0.15F, settings.window_height * 0.1F)) {
             hud_ingame_onscreencontrol(64, NULL, (action == TOUCH_DOWN) ? 1 : 0);
             return;
         }
         if (is_inside_centered(f->start.x, settings.window_height - f->start.y,
-                              settings.window_width - settings.window_height * 0.075F, settings.window_height * 0.45F,
-                              settings.window_height * 0.15F, settings.window_height * 0.1F)) {
+                               settings.window_width - settings.window_height * 0.075F, settings.window_height * 0.45F,
+                               settings.window_height * 0.15F, settings.window_height * 0.1F)) {
             hud_ingame_onscreencontrol(65, NULL, (action == TOUCH_DOWN) ? 1 : 0);
             return;
         }

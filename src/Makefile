@@ -1,4 +1,4 @@
-CFILES = src/AceOfSpades/protocol.c src/GUI/GLFW.c src/GUI/SDL.c src/GUI/GLUT.c\
+CFILES = src/ace/protocol.c src/GUI/GLFW.c src/GUI/SDL.c src/GUI/GLUT.c\
          src/main.c src/player.c src/map.c src/list.c src/ping.c src/tesselator.c\
          src/rpc.c src/channel.c src/minheap.c\
          src/entitysystem.c src/grenade.c src/model.c src/glx.c src/texture.c src/aabb.c\

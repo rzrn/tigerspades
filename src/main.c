@@ -287,32 +287,35 @@ void display() {
                 if (amount <= (is_local ? local_player.blocks : 50))
                     glColor3f(1.0F, 1.0F, 1.0F);
 
-                short vertices[72] = {cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                short vertices[72] = {
+                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
+                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
 
-                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
 
-                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                                      cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1};
+                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
+                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1
+                };
+
                 glEnableClientState(GL_VERTEX_ARRAY);
                 glVertexPointer(3, GL_SHORT, 0, vertices);
                 glDrawArrays(GL_LINES, 0, 24);

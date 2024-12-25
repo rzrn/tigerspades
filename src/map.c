@@ -92,7 +92,7 @@ bool map_damage_action(int x, int y, int z) {
     uint32_t key = pos_key(x, y, z);
     DamagedVoxel * voxel = ht_lookup(&map_damaged_voxels, &key);
 
-    if (!voxel) {
+    if (voxel == NULL) {
         return false;
     } else if (voxel->damage >= 100 && window_time() - voxel->action_timer > 5.0F) {
         voxel->action_timer = window_time();
@@ -113,9 +113,8 @@ static bool damaged_voxel_update(void * key, void * value, void * user) {
     uint32_t pos = *(uint32_t *) key;
     DamagedVoxel * voxel = (DamagedVoxel*) value;
     Tesselator * tess = (Tesselator*) user;
-    int x = pos_keyx(pos);
-    int y = pos_keyy(pos);
-    int z = pos_keyz(pos);
+
+    int x = pos_keyx(pos), y = pos_keyy(pos), z = pos_keyz(pos);
 
     if (window_time() - voxel->timer > 10.0F || map_isair(x, y, z))
         return true;
@@ -640,6 +639,7 @@ int map_cube_line(int x1, int y1, int z1, int x2, int y2, int z2, Vector3i * cub
         dyi = (long) (!d.y ? 0x3fffffff / 512 : abs(d.z * 1024 / d.y));
         dy = dyi / 2;
     }
+
     if (ixi >= 0)
         dx = dxi - dx;
     if (iyi >= 0)

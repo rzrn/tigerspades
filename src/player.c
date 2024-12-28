@@ -312,7 +312,10 @@ void player_render_all() {
     ray.direction[Z] = cos(camera.rot.x) * sin(camera.rot.y);
 
     for (int k = 0; k < PLAYERS_MAX; k++) {
-        if (!players[k].connected || players[k].team == TEAM_SPECTATOR)
+        if (players[k].team == TEAM_SPECTATOR)
+            continue;
+
+        if (!players[k].connected && k != local_player.id)
             continue;
 
         if (!HASBIT(players[k].input.buttons, BUTTON_PRIMARY) &&

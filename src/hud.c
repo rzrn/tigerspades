@@ -952,8 +952,13 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         glColor3f(1.0F, 1.0F, 1.0F);
         // large
         if (window_key_down(WINDOW_KEY_MAP)) {
-            float minimap_x = (settings.window_width  - (map_size_x + 1) * scale) / 2.0F;
-            float minimap_y = (settings.window_height - (map_size_z + 1) * scale) / 2.0F + (map_size_z + 1) * scale;
+            float cx = 0.5F * settings.window_width;
+            float cy = 0.5F * settings.window_height;
+
+            float w = map_size_x * scale, h = map_size_z * scale;
+
+            float minimap_x = floor(cx - 0.5F * w);
+            float minimap_y = floor(cy + 0.5F * h);
 
             texture_draw(texture_minimap, minimap_x, minimap_y, 512 * scale, 512 * scale);
 

@@ -157,20 +157,7 @@ void texture_delete(Texture * t) {
     glDeleteTextures(1, &t->texture_id);
 }
 
-void texture_draw_sector(Texture * t, float x, float y, float w, float h, float u, float v, float us, float vs) {
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBindTexture(GL_TEXTURE_2D, t->texture_id);
-
-    float x1 = x, x2 = x + w, y1 = y, y2 = y - h;
-
-    float du = 0.5f / t->width, dv = 0.5f / t->height;
-    float u1 = u + du, u2 = u + us - du, v1 = v + dv, v2 = v + vs - dv;
-
-    float vertices[12]  = {x1, y1, x1, y2, x2, y2, x1, y1, x2, y2, x2, y1};
-    float texcoords[12] = {u1, v1, u1, v2, u2, v2, u1, v1, u2, v2, u2, v1};
-
+static inline void draw_rectangle(float * vertices, float * texcoords) {
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
     glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
@@ -178,6 +165,39 @@ void texture_draw_sector(Texture * t, float x, float y, float w, float h, float 
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+static inline void texture_draw_rectangle(float x, float y, float w, float h, float u1, float u2, float v1, float v2) {
+    float x1 = x, x2 = x + w, y1 = y, y2 = y - h;
+    float vertices[12] = {x1, y1, x1, y2, x2, y2, x1, y1, x2, y2, x2, y1};
+
+    float texcoords[12] = {u1, v1, u1, v2, u2, v2, u1, v1, u2, v2, u2, v1};
+
+    draw_rectangle(vertices, texcoords);
+}
+
+#define texture_emit_rotated(tx, ty, x, y, a) cos(a) * (x) - sin(a) * (y) + (tx), sin(a) * (x) + cos(a) * (y) + (ty)
+
+static inline void texture_draw_rotated_rectangle(float x, float y, float w, float h, float phi, float u1, float u2, float v1, float v2) {
+    float vertices[12] = {
+        texture_emit_rotated(x, y, -w / 2, +h / 2, phi), texture_emit_rotated(x, y, -w / 2, -h / 2, phi),
+        texture_emit_rotated(x, y, +w / 2, -h / 2, phi), texture_emit_rotated(x, y, -w / 2, +h / 2, phi),
+        texture_emit_rotated(x, y, +w / 2, -h / 2, phi), texture_emit_rotated(x, y, +w / 2, +h / 2, phi)
+    };
+
+    float texcoords[12] = {u1, v1, u1, v2, u2, v2, u1, v1, u2, v2, u2, v1};
+
+    draw_rectangle(vertices, texcoords);
+}
+
+void texture_draw_sector(Texture * t, float x, float y, float w, float h, float u, float v, float us, float vs) {
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBindTexture(GL_TEXTURE_2D, t->texture_id);
+
+    float du = 0.5f / t->width, dv = 0.5f / t->height;
+    texture_draw_rectangle(x, y, w, h, u + du, u + us - du, v + dv, v + vs - dv);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);
@@ -189,50 +209,36 @@ void texture_draw(Texture * t, float x, float y, float w, float h) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
+
+    float du = 0.5f / t->width, dv = 0.5f / t->height;
+    texture_draw_rectangle(x, y, w, h, du, 1.0f - du, dv, 1.0f - dv);
+
     texture_draw_empty(x, y, w, h);
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
 }
 
-void texture_draw_rotated(Texture * t, float x, float y, float w, float h, float angle) {
+void texture_draw_rotated(Texture * t, float x, float y, float w, float h, float phi) {
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
-    texture_draw_empty_rotated(x, y, w, h, angle);
+
+    float du = 0.5f / t->width, dv = 0.5f / t->height;
+    texture_draw_rotated_rectangle(x, y, w, h, phi, du, 1.0f - du, dv, 1.0f - dv);
+
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
 }
 
 void texture_draw_empty(float x, float y, float w, float h) {
-    float vertices[12] = {x, y, x, y - h, x + w, y - h, x, y, x + w, y - h, x + w, y};
-    float texcoords[12] = {0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F};
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
-    glVertexPointer(2, GL_FLOAT, 0, vertices);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    texture_draw_rectangle(x, y, w, h, 0.0f, 1.0f, 0.0f, 1.0f);
 }
 
-#define texture_emit_rotated(tx, ty, x, y, a) cos(a) * (x)-sin(a) * (y) + (tx), sin(a) * (x) + cos(a) * (y) + (ty)
-
-void texture_draw_empty_rotated(float x, float y, float w, float h, float angle) {
-    float vertices[12]
-        = {texture_emit_rotated(x, y, -w / 2, h / 2, angle), texture_emit_rotated(x, y, -w / 2, -h / 2, angle),
-           texture_emit_rotated(x, y, w / 2, -h / 2, angle), texture_emit_rotated(x, y, -w / 2, h / 2, angle),
-           texture_emit_rotated(x, y, w / 2, -h / 2, angle), texture_emit_rotated(x, y, w / 2, h / 2, angle)};
-    float texcoords[12] = {0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F};
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
-    glVertexPointer(2, GL_FLOAT, 0, vertices);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+void texture_draw_empty_rotated(float x, float y, float w, float h, float phi) {
+    texture_draw_rotated_rectangle(x, y, w, h, phi, 0.0f, 1.0f, 0.0f, 1.0f);
 }
 
 void texture_load(enum Texture index, Filtering filter) {

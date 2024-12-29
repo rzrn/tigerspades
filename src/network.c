@@ -724,8 +724,9 @@ void getPacketStateData(uint8_t * data, size_t len) {
 
     hud_change(&hud_ingame);
 
-    log_info("Map data was %i bytes", compressed_chunk_data_offset);
     if (!network_map_cached && compressed_chunk_data != NULL) {
+        log_info("Map data was %i bytes", compressed_chunk_data_offset);
+
         int avail_size = 1024 * 1024;
 
         void * decompressed = malloc(avail_size);

@@ -725,22 +725,28 @@ void getPacketStateData(uint8_t * data, size_t len) {
     hud_change(&hud_ingame);
 
     log_info("Map data was %i bytes", compressed_chunk_data_offset);
-    if (!network_map_cached) {
+    if (!network_map_cached && compressed_chunk_data != NULL) {
         int avail_size = 1024 * 1024;
+
         void * decompressed = malloc(avail_size);
         CHECK_ALLOCATION_ERROR(decompressed)
+
         size_t decompressed_size;
         struct libdeflate_decompressor * d = libdeflate_alloc_decompressor();
 
         for (;;) {
-            int r = libdeflate_zlib_decompress(d, compressed_chunk_data, compressed_chunk_data_offset, decompressed,
-                                               avail_size, &decompressed_size);
+            int r = libdeflate_zlib_decompress(
+                d, compressed_chunk_data, compressed_chunk_data_offset,
+                decompressed, avail_size, &decompressed_size
+            );
+
             // switch not fancy enough here, breaking out of the loop is not aesthetic
             if (r == LIBDEFLATE_INSUFFICIENT_SPACE) {
                 avail_size += 1024 * 1024;
                 decompressed = realloc(decompressed, avail_size);
                 CHECK_ALLOCATION_ERROR(decompressed)
             }
+
             if (r == LIBDEFLATE_SUCCESS) {
                 map_vxl_load(decompressed, decompressed_size);
 
@@ -757,13 +763,17 @@ void getPacketStateData(uint8_t * data, size_t len) {
                 chunk_rebuild_all();
                 break;
             }
+
             if (r == LIBDEFLATE_BAD_DATA || r == LIBDEFLATE_SHORT_OUTPUT)
                 break;
         }
 
         free(decompressed);
-        free(compressed_chunk_data);
+
         libdeflate_free_decompressor(d);
+
+        free(compressed_chunk_data);
+        compressed_chunk_data = NULL;
     }
 }
 
@@ -842,6 +852,8 @@ void getPacketKillAction(uint8_t * data, size_t len) {
 }
 
 void getPacketMapStart(uint8_t * data, size_t len) {
+    free(compressed_chunk_data);
+
     // ffs someone fix the wrong map size of 1.5 MiB
     compressed_chunk_data_size = 1024 * 1024;
     compressed_chunk_data      = malloc(compressed_chunk_data_size);
@@ -883,7 +895,7 @@ void getPacketMapStart(uint8_t * data, size_t len) {
                 chunk_rebuild_all();
             }
 
-            log_info("Map name: %s %s", p.map_name, network_map_cached ? "(cached)" : "");
+            log_info("Map name: %.*s %s", len - sizePacketMapStart076, p.map_name, network_map_cached ? "(cached)" : "");
             log_info("Map crc32: 0x%08X", p.crc32);
 
             PacketMapCached reply; reply.cached = network_map_cached;
@@ -895,6 +907,9 @@ void getPacketMapStart(uint8_t * data, size_t len) {
 }
 
 void getPacketMapChunk(uint8_t * data, size_t len) {
+    if (compressed_chunk_data == NULL)
+        return;
+
     // increase allocated memory if it is not enough to store the next chunk
     if (compressed_chunk_data_offset + len > compressed_chunk_data_size) {
         compressed_chunk_data_size += 1024 * 1024;

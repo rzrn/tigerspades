@@ -163,8 +163,14 @@ void texture_draw_sector(Texture * t, float x, float y, float w, float h, float 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
 
-    float vertices[12] = {x, y, x, y - h, x + w, y - h, x, y, x + w, y - h, x + w, y};
-    float texcoords[12] = {u, v, u, v + vs, u + us, v + vs, u, v, u + us, v + vs, u + us, v};
+    float x1 = x, x2 = x + w, y1 = y, y2 = y - h;
+
+    float du = 0.5f / t->width, dv = 0.5f / t->height;
+    float u1 = u + du, u2 = u + us - du, v1 = v + dv, v2 = v + vs - dv;
+
+    float vertices[12]  = {x1, y1, x1, y2, x2, y2, x1, y1, x2, y2, x2, y1};
+    float texcoords[12] = {u1, v1, u1, v2, u2, v2, u1, v1, u2, v2, u2, v1};
+
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
     glTexCoordPointer(2, GL_FLOAT, 0, texcoords);

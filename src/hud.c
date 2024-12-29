@@ -1039,8 +1039,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             glColor3f(1.0F, 1.0F, 1.0F);
         } else if (settings.show_minimap) {
             // minimized, top right
-            float view_x = camera.pos.x - 64.0F; // min(max(camera.pos.x-64.0F,0.0F),map_size_x+1-128.0F);
-            float view_z = camera.pos.z - 64.0F; // min(max(camera.pos.z-64.0F,0.0F),map_size_z+1-128.0F);
+            float view_x = floor(camera.pos.x - 64.0F), view_z = floor(camera.pos.z - 64.0F);
 
             switch (players[local_player.id].team) {
                 case TEAM1: glColorRGB3i(gamestate.team1.color); break;
@@ -1058,9 +1057,10 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             texture_draw_empty(minimap_x - 1 * scale, minimap_y + 1 * scale, 130 * scale, 130 * scale);
             glColor3f(1.0F, 1.0F, 1.0F);
 
-            texture_draw_sector(texture_minimap, minimap_x, minimap_y, 128 * scale,
-                                128 * scale, (camera.pos.x - 64.0F) / 512.0F, (camera.pos.z - 64.0F) / 512.0F, 0.25F,
-                                0.25F);
+            texture_draw_sector(
+                texture_minimap, minimap_x, minimap_y, 128 * scale, 128 * scale,
+                view_x / 512.0F, view_z / 512.0F, 128.0F / 512.0, 128.0F / 512.0
+            );
 
             tracer_minimap(0, scale, view_x, view_z);
 

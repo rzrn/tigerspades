@@ -210,10 +210,8 @@ void texture_draw(Texture * t, float x, float y, float w, float h) {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
 
-    float du = 0.5f / t->width, dv = 0.5f / t->height;
-    texture_draw_rectangle(x, y, w, h, du, 1.0f - du, dv, 1.0f - dv);
+    texture_draw_rectangle(x, y, w, h, 0.0f, 1.0f, 0.0f, 1.0f);
 
-    texture_draw_empty(x, y, w, h);
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
@@ -225,8 +223,7 @@ void texture_draw_rotated(Texture * t, float x, float y, float w, float h, float
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
 
-    float du = 0.5f / t->width, dv = 0.5f / t->height;
-    texture_draw_rotated_rectangle(x, y, w, h, phi, du, 1.0f - du, dv, 1.0f - dv);
+    texture_draw_rotated_rectangle(x, y, w, h, phi, 0.0f, 1.0f, 0.0f, 1.0f);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);

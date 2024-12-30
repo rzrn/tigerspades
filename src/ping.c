@@ -275,6 +275,8 @@ void * ping_update(void * data) {
 
             case HTTP_STATUS_FAILED: {
                 http_release(request_serverlist);
+                request_serverlist = NULL;
+
                 break;
             }
         }

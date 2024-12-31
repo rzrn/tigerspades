@@ -151,17 +151,17 @@ void network_join_game(unsigned char team, unsigned char weapon) {
 #define ERRLEN(T, len) { log_error(#T " of invalid size (%ld) was received.", len); return; }
 #define READPACKET(T, contained, src, len) T contained; if (size##T <= len) read##T(src, &contained); else ERRLEN(T, len);
 
-void getPacketPositionData(uint8_t * data, size_t len) {
+static void getPacketPositionData(uint8_t * data, size_t len) {
     READPACKET(PacketPositionData, p, data, len);
     players[local_player.id].pos = ntohv3f(p.pos);
 }
 
-void getPacketOrientationData(uint8_t * data, size_t len) {
+static void getPacketOrientationData(uint8_t * data, size_t len) {
     READPACKET(PacketOrientationData, p, data, len);
     players[local_player.id].orientation = ntohov3f(p.orient);
 }
 
-void getPacketInputData(uint8_t * data, size_t len) {
+static void getPacketInputData(uint8_t * data, size_t len) {
     READPACKET(PacketInputData, p, data, len);
 
     if (IDVALID(p.player_id)) {
@@ -172,7 +172,7 @@ void getPacketInputData(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketWeaponInput(uint8_t * data, size_t len) {
+static void getPacketWeaponInput(uint8_t * data, size_t len) {
     READPACKET(PacketWeaponInput, p, data, len);
 
     if (IDVALID(p.player_id) && p.player_id != local_player.id) {
@@ -196,19 +196,19 @@ void handlePacketGrenade(PacketGrenade * p) {
     });
 }
 
-void getPacketGrenade(uint8_t * data, size_t len) {
+static void getPacketGrenade(uint8_t * data, size_t len) {
     READPACKET(PacketGrenade, p, data, len);
     handlePacketGrenade(&p);
 }
 
-void getPacketSetTool(uint8_t * data, size_t len) {
+static void getPacketSetTool(uint8_t * data, size_t len) {
     READPACKET(PacketSetTool, p, data, len);
 
     if (IDVALID(p.player_id) && p.tool < 4)
         players[p.player_id].held_item = TOOL(p.tool);
 }
 
-void getPacketSetColor(uint8_t * data, size_t len) {
+static void getPacketSetColor(uint8_t * data, size_t len) {
     READPACKET(PacketSetColor, p, data, len);
 
     if (IDVALID(p.player_id)) {
@@ -219,7 +219,7 @@ void getPacketSetColor(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketExistingPlayer(uint8_t * data, size_t len) {
+static void getPacketExistingPlayer(uint8_t * data, size_t len) {
     READPACKET(PacketExistingPlayer, p, data, len);
 
     if (IDVALID(p.player_id)) {
@@ -363,17 +363,17 @@ void doPacketBlockLine(PacketBlockLine * p, int amount) {
         handlePacketBlockLine(p);
 }
 
-void getPacketBlockLine(uint8_t * data, size_t len) {
+static void getPacketBlockLine(uint8_t * data, size_t len) {
     READPACKET(PacketBlockLine, p, data, len);
     handlePacketBlockLine(&p);
 }
 
-void getPacketBlockAction(uint8_t * data, size_t len) {
+static void getPacketBlockAction(uint8_t * data, size_t len) {
     READPACKET(PacketBlockAction, p, data, len);
     handlePacketBlockAction(&p);
 }
 
-void getPacketChatMessage(uint8_t * data, size_t len) {
+static void getPacketChatMessage(uint8_t * data, size_t len) {
     READPACKET(PacketChatMessage, p, data, len);
 
     size_t size = len - sizePacketChatMessage;
@@ -463,7 +463,7 @@ static const char * getExtensionName(uint8_t id) {
     }
 }
 
-void getPacketExtInfo(uint8_t * data, size_t len) {
+static void getPacketExtInfo(uint8_t * data, size_t len) {
     READPACKET(PacketExtInfo, p, data, len);
 
     if (len >= sizePacketExtInfo + p.length * sizePacketExtInfoEntry) {
@@ -537,14 +537,14 @@ static void getPacketWorldUpdate076(uint8_t * data, size_t len) {
     } else log_error("Invalid PacketWorldUpdate of length %ld (0.76)", len);
 }
 
-void getPacketWorldUpdate(uint8_t * data, size_t len) {
+static void getPacketWorldUpdate(uint8_t * data, size_t len) {
     if (len > 0) switch (connection_version) {
         case VERSION_075: getPacketWorldUpdate075(data, len); break;
         case VERSION_076: getPacketWorldUpdate076(data, len); break;
     }
 }
 
-void getPacketSetHP(uint8_t * data, size_t len) {
+static void getPacketSetHP(uint8_t * data, size_t len) {
     READPACKET(PacketSetHP, p, data, len);
 
     local_player.health = p.hp;
@@ -557,12 +557,12 @@ void getPacketSetHP(uint8_t * data, size_t len) {
     local_player.last_damage = ntohv3f(p.pos);
 }
 
-void getPacketShortPlayerData(uint8_t * data, size_t len) {
+static void getPacketShortPlayerData(uint8_t * data, size_t len) {
     UNUSED(data); UNUSED(len); // should never be received
     log_warn("Unexpected ShortPlayerDataPacket");
 }
 
-void getPacketMoveObject(uint8_t * data, size_t len) {
+static void getPacketMoveObject(uint8_t * data, size_t len) {
     READPACKET(PacketMoveObject, p, data, len);
 
     if (gamestate.mode == GAMEMODE_CTF) {
@@ -590,7 +590,7 @@ void getPacketMoveObject(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketCreatePlayer(uint8_t * data, size_t len) {
+static void getPacketCreatePlayer(uint8_t * data, size_t len) {
     READPACKET(PacketCreatePlayer, p, data, len);
 
     if (IDVALID(p.player_id)) {
@@ -643,7 +643,7 @@ static inline uint8_t readu8le(uint8_t * buff)
 static inline Vector3f readv3f(uint8_t * buff)
 { size_t dummy = 0; return getv3f(buff, &dummy); }
 
-void getPacketStateData(uint8_t * data, size_t len) {
+static void getPacketStateData(uint8_t * data, size_t len) {
     if (len < sizePacketStateData) ERRLEN(PacketStateData, len);
 
     PacketStateData p; size_t index = readPacketStateData(data, &p);
@@ -786,7 +786,7 @@ void player_reset_toggleable_input() {
         window_pressed_keys[WINDOW_KEY_SPRINT] = 0;
 }
 
-void getPacketKillAction(uint8_t * data, size_t len) {
+static void getPacketKillAction(uint8_t * data, size_t len) {
     READPACKET(PacketKillAction, p, data, len);
 
     if (IDVALID(p.player_id) && IDVALID(p.killer_id) && KILLTYPEVALID(p.kill_type)) {
@@ -852,7 +852,7 @@ void getPacketKillAction(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketMapStart(uint8_t * data, size_t len) {
+static void getPacketMapStart(uint8_t * data, size_t len) {
     free(compressed_chunk_data);
 
     // ffs someone fix the wrong map size of 1.5 MiB
@@ -907,7 +907,7 @@ void getPacketMapStart(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketMapChunk(uint8_t * data, size_t len) {
+static void getPacketMapChunk(uint8_t * data, size_t len) {
     if (compressed_chunk_data == NULL)
         return;
 
@@ -923,7 +923,7 @@ void getPacketMapChunk(uint8_t * data, size_t len) {
     compressed_chunk_data_offset += len;
 }
 
-void getPacketPlayerLeft(uint8_t * data, size_t len) {
+static void getPacketPlayerLeft(uint8_t * data, size_t len) {
     READPACKET(PacketPlayerLeft, p, data, len);
 
     if (IDVALID(p.player_id)) {
@@ -938,7 +938,7 @@ void getPacketPlayerLeft(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketTerritoryCapture(uint8_t * data, size_t len) {
+static void getPacketTerritoryCapture(uint8_t * data, size_t len) {
     READPACKET(PacketTerritoryCapture, p, data, len);
 
     if (gamestate.mode == GAMEMODE_TC && p.tent < gamestate.tc.territory_count) {
@@ -969,7 +969,7 @@ void getPacketTerritoryCapture(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketProgressBar(uint8_t * data, size_t len) {
+static void getPacketProgressBar(uint8_t * data, size_t len) {
     READPACKET(PacketProgressBar, p, data, len);
 
     if (gamestate.mode == GAMEMODE_TC && p.tent < gamestate.tc.territory_count) {
@@ -981,7 +981,7 @@ void getPacketProgressBar(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketIntelCapture(uint8_t * data, size_t len) {
+static void getPacketIntelCapture(uint8_t * data, size_t len) {
     READPACKET(PacketIntelCapture, p, data, len);
 
     if (gamestate.mode == GAMEMODE_CTF && IDVALID(p.player_id)) {
@@ -1018,7 +1018,7 @@ void getPacketIntelCapture(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketIntelPickup(uint8_t * data, size_t len) {
+static void getPacketIntelPickup(uint8_t * data, size_t len) {
     READPACKET(PacketIntelPickup, p, data, len);
 
     if (gamestate.mode == GAMEMODE_CTF && IDVALID(p.player_id)) {
@@ -1044,7 +1044,7 @@ void getPacketIntelPickup(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketIntelDrop(uint8_t * data, size_t len) {
+static void getPacketIntelDrop(uint8_t * data, size_t len) {
     READPACKET(PacketIntelDrop, p, data, len);
 
     if (gamestate.mode == GAMEMODE_CTF && IDVALID(p.player_id)) {
@@ -1075,18 +1075,18 @@ void restock() {
     sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
 }
 
-void getPacketRestock(uint8_t * data, size_t len) {
+static void getPacketRestock(uint8_t * data, size_t len) {
     UNUSED(data); UNUSED(len); restock();
 }
 
-void getPacketFogColor(uint8_t * data, size_t len) {
+static void getPacketFogColor(uint8_t * data, size_t len) {
     READPACKET(PacketFogColor, p, data, len);
     fog_color[0] = ((float) p.color.r) / 255.0F;
     fog_color[1] = ((float) p.color.g) / 255.0F;
     fog_color[2] = ((float) p.color.b) / 255.0F;
 }
 
-void getPacketWeaponReload(uint8_t * data, size_t len) {
+static void getPacketWeaponReload(uint8_t * data, size_t len) {
     READPACKET(PacketWeaponReload, p, data, len);
 
     if (p.player_id == local_player.id) {
@@ -1101,7 +1101,7 @@ void getPacketWeaponReload(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketChangeWeapon(uint8_t * data, size_t len) {
+static void getPacketChangeWeapon(uint8_t * data, size_t len) {
     READPACKET(PacketChangeWeapon, p, data, len);
 
     if (IDVALID(p.player_id)) {
@@ -1114,7 +1114,7 @@ void getPacketChangeWeapon(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketHandshakeInit(uint8_t * data, size_t len) {
+static void getPacketHandshakeInit(uint8_t * data, size_t len) {
     READPACKET(PacketHandshakeInit, p, data, len);
 
     PacketHandshakeReturn reply; reply.challenge = p.challenge;
@@ -1127,7 +1127,7 @@ void getPacketHandshakeInit(uint8_t * data, size_t len) {
     static char operatingsystem[] = OS " " ARCH;
 #endif
 
-void getPacketVersionGet(uint8_t * data, size_t len) {
+static void getPacketVersionGet(uint8_t * data, size_t len) {
     UNUSED(data); UNUSED(len);
 
     PacketVersionSend reply;
@@ -1141,7 +1141,7 @@ void getPacketVersionGet(uint8_t * data, size_t len) {
         sendPacketVersionSend(&reply, sizeof(operatingsystem));
 }
 
-void getPacketPlayerProperties(uint8_t * data, size_t len) {
+static void getPacketPlayerProperties(uint8_t * data, size_t len) {
     READPACKET(PacketPlayerProperties, p, data, len);
 
     if (len >= sizePacketPlayerProperties && p.subID == 0) {
@@ -1159,7 +1159,7 @@ void getPacketPlayerProperties(uint8_t * data, size_t len) {
     }
 }
 
-void getPacketBulletTrace(uint8_t * data, size_t len) {
+static void getPacketBulletTrace(uint8_t * data, size_t len) {
     READPACKET(PacketBulletTrace, p, data, len);
 
     if (projectiles.head == NULL || projectiles.size == 0 || projectiles.length == 0) return;
@@ -1179,7 +1179,7 @@ void getPacketBulletTrace(uint8_t * data, size_t len) {
     if (t->begin == t->end) NEXT(t->begin, projectiles);
 }
 
-void getPacketHitEffect(uint8_t * data, size_t len) {
+static void getPacketHitEffect(uint8_t * data, size_t len) {
     READPACKET(PacketHitEffect, p, data, len);
 
     Vector3f r = ntohv3f(p.pos);

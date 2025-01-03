@@ -1342,6 +1342,8 @@ int network_update() {
         if (!network_connected && CONNECTION_TIMEOUT <= window_time() - connection_timestamp) {
             network_destroy();
 
+            log_error("Disconnected: connection timed out");
+
             hud_serverlist_popup = "No response";
             hud_change(&hud_serverlist);
 
@@ -1388,12 +1390,12 @@ int network_update() {
                 case ENET_EVENT_TYPE_DISCONNECT: {
                     network_destroy();
 
-                    log_error("Disconnected: %s", network_reason_disconnect(event.data));
-
                     if (event.data == ERROR_WRONG_PROTOCOL && network_address.version == VER07X) {
                         if (network_connect_sub(network_address.ip, network_address.port, VERSION_076)) // retry
                             goto exit;
                     }
+
+                    log_error("Disconnected: %s", network_reason_disconnect(event.data));
 
                     hud_change(&hud_serverlist);
                     hud_serverlist_popup = network_reason_disconnect(event.data);

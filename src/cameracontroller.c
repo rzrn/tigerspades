@@ -26,6 +26,7 @@
 #include <bs/matrix.h>
 #include <bs/cameracontroller.h>
 #include <bs/config.h>
+#include <bs/hud.h>
 
 int cameracontroller_bodyview_mode = 0;
 int cameracontroller_bodyview_player = 0;
@@ -108,7 +109,7 @@ void cameracontroller_fps(float dt) {
 
     last_cy = players[local_player.id].physics.eye.y - players[local_player.id].physics.velocity.y * 0.4F;
 
-    if (chat_input_mode == CHAT_NO_INPUT) {
+    if (hud_active->render_world && chat_input_mode == CHAT_NO_INPUT) {
         SETBIT(players[local_player.id].input.keys, INPUT_UP,    window_key_down(WINDOW_KEY_UP));
         SETBIT(players[local_player.id].input.keys, INPUT_DOWN,  window_key_down(WINDOW_KEY_DOWN));
         SETBIT(players[local_player.id].input.keys, INPUT_LEFT,  window_key_down(WINDOW_KEY_LEFT));

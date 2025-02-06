@@ -584,10 +584,10 @@ void player_collision(const Player * p, Ray * ray, Hit * intersects) {
     float fx  = p->orientation.x / len;
     float fy  = p->orientation.z / len;
 
-    float a = (p->physics.velocity.x * fx + fy * p->physics.velocity.z) / (fx * fx + fy * fy);
-    float b = (p->physics.velocity.z - fy * a) / fx;
-    a /= 0.25F;
-    b /= 0.25F;
+    float a = fx * p->physics.velocity.x + fy * p->physics.velocity.z;
+    float b = fx * p->physics.velocity.z - fy * p->physics.velocity.x;
+
+    a /= 0.25F; b /= 0.25F;
 
     float dist; // distance
 
@@ -797,8 +797,8 @@ void player_render(Player * p, int id) {
         float fx  = p->orientation.x / len;
         float fy  = p->orientation.z / len;
 
-        float a = p->physics.velocity.x * fx + fy * p->physics.velocity.z;
-        float b = (p->physics.velocity.z - fy * a) / fx;
+        float a = fx * p->physics.velocity.x + fy * p->physics.velocity.z;
+        float b = fx * p->physics.velocity.z - fy * p->physics.velocity.x;
 
         a /= 0.25F; b /= 0.25F;
 

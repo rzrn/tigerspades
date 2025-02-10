@@ -103,6 +103,8 @@ void chat_showpopup(const char * msg, size_t size, Codepage codepage, float dura
 void drawEntity(kv6 * model, Vector3f * r, unsigned char team) {
     float x = r->x, y = r->y + 1.0F, z = r->z;
 
+    if (!isfinite(x) || !isfinite(y) || !isfinite(z)) return;
+
     matrix_push(matrix_model);
     matrix_translate(matrix_model, x, y, z);
     kv6_calclight(x, y, z);

@@ -1210,11 +1210,12 @@ int player_move(Player * p, float fsynctics, int id) {
            && (!HASBIT(p->input.keys, INPUT_CROUCH) && !HASBIT(p->input.keys, INPUT_SNEAK))
            && !p->physics.airborne
            && norm2f(p->physics.velocity.x, p->physics.velocity.z, 0.0F, 0.0F) > sqrf(0.125F)) {
-
             static enum WAV footstep[] = {SOUND_FOOTSTEP1, SOUND_FOOTSTEP2, SOUND_FOOTSTEP3, SOUND_FOOTSTEP4};
             static enum WAV wade[]     = {SOUND_WADE1,     SOUND_WADE2,     SOUND_WADE3,     SOUND_WADE4};
 
-            size_t num = rand() % 4; WAV * wav = sound(p->physics.wade ? wade[num] : footstep[num]);
+            size_t idx = rand();
+
+            WAV * wav = sound(p->physics.wade ? wade[idx % lengthof(wade)] : footstep[idx % lengthof(footstep)]);
 
             if (local) sound_create(SOUND_LOCAL, wav, p->pos.x, p->pos.y, p->pos.z);
             else sound_create_sticky(wav, p, id);

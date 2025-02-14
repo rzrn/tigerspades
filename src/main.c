@@ -262,68 +262,76 @@ void display() {
             default: pos = NULL;
         }
 
-        if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
-            norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
+        if (pos != NULL && norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
             matrix_upload();
-            glColor3f(1.0F, 0.0F, 0.0F);
             glLineWidth(1.0F);
             glDisable(GL_DEPTH_TEST);
             glDepthMask(GL_FALSE);
+
             Vector3i cubes[64];
+
             int amount = 0;
-            if (is_local && local_player.drag_active && HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY)
+
+            if (is_local && local_player.drag_active
+               && HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY)
                && players[local_player.id].held_item == TOOL_BLOCK) {
-                amount = map_cube_line(local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
-                                       pos[0], pos[2], 63 - pos[1], cubes);
+                amount = map_cube_line(
+                    local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
+                    pos[X], pos[Z], 63 - pos[Y], cubes
+                );
             } else {
                 amount = 1;
-                cubes[0].x = pos[0];
-                cubes[0].y = pos[2];
-                cubes[0].z = 63 - pos[1];
+
+                cubes[0].x = pos[X];
+                cubes[0].y = pos[Z];
+                cubes[0].z = 63 - pos[Y];
             }
-            while (amount > 0) {
-                int tmp = cubes[amount - 1].y;
-                cubes[amount - 1].y = 63 - cubes[amount - 1].z;
-                cubes[amount - 1].z = tmp;
 
-                if (amount <= (is_local ? local_player.blocks : 50))
+            for (int i = amount - 1; 0 <= i; i--) {
+                int x = cubes[i].x, y = 63 - cubes[i].z, z = cubes[i].y;
+
+                int avail = is_local ? local_player.blocks : 50;
+
+                if (i < avail && isdestructible(x, y, z))
                     glColor3f(1.0F, 1.0F, 1.0F);
+                else
+                    glColor3f(1.0F, 0.0F, 0.0F);
 
-                short vertices[72] = {
-                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
+                short vertices[] = {
+                    x,       y,        z,
+                    x,       y,        z + 1,
+                    x,       y,        z,
+                    x + 1,   y,        z,
+                    x + 1,   y,        z + 1,
+                    x + 1,   y,        z,
+                    x + 1,   y,        z + 1,
+                    x,       y,        z + 1,
 
-                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
+                    x,       y + 1,    z,
+                    x,       y + 1,    z + 1,
+                    x,       y + 1,    z,
+                    x + 1,   y + 1,    z,
+                    x + 1,   y + 1,    z + 1,
+                    x + 1,   y + 1,    z,
+                    x + 1,   y + 1,    z + 1,
+                    x,       y + 1,    z + 1,
 
-                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z,
-                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x + 1,   cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x,       cubes[amount - 1].y,        cubes[amount - 1].z + 1,
-                    cubes[amount - 1].x,       cubes[amount - 1].y + 1,    cubes[amount - 1].z + 1
+                    x,       y,        z,
+                    x,       y + 1,    z,
+                    x + 1,   y,        z,
+                    x + 1,   y + 1,    z,
+                    x + 1,   y,        z + 1,
+                    x + 1,   y + 1,    z + 1,
+                    x,       y,        z + 1,
+                    x,       y + 1,    z + 1
                 };
 
                 glEnableClientState(GL_VERTEX_ARRAY);
                 glVertexPointer(3, GL_SHORT, 0, vertices);
-                glDrawArrays(GL_LINES, 0, 24);
+                glDrawArrays(GL_LINES, 0, lengthof(vertices) / 3);
                 glDisableClientState(GL_VERTEX_ARRAY);
-                amount--;
             }
+
             glEnable(GL_DEPTH_TEST);
             glDepthMask(GL_TRUE);
         }

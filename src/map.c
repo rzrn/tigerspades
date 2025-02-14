@@ -617,7 +617,7 @@ int map_cube_line(int x1, int y1, int z1, int x2, int y2, int z2, Vector3i * cub
     else
         izi = 1;
 
-    if ((abs(d.x) >= abs(d.y)) && (abs(d.x) >= abs(d.z))) {
+    if (abs(d.x) >= abs(d.y) && abs(d.x) >= abs(d.z)) {
         dxi = 1024;
         dx = 512;
         dyi = (long) (!d.y ? 0x3fffffff / 512 : abs(d.x * 1024 / d.y));
@@ -659,21 +659,19 @@ int map_cube_line(int x1, int y1, int z1, int x2, int y2, int z2, Vector3i * cub
 
         if (dz <= dx && dz <= dy) {
             c.z += izi;
-            if (c.z < 0 || c.z >= 64)
-                return count;
             dz += dzi;
+        } else if (dx < dy) {
+            c.x += ixi;
+            dx += dxi;
+
+            if ((unsigned long) c.x >= 512)
+                return count;
         } else {
-            if (dx < dy) {
-                c.x += ixi;
-                if ((unsigned long) c.x >= 512)
-                    return count;
-                dx += dxi;
-            } else {
-                c.y += iyi;
-                if ((unsigned long) c.y >= 512)
-                    return count;
-                dy += dyi;
-            }
+            c.y += iyi;
+            dy += dyi;
+
+            if ((unsigned long) c.y >= 512)
+                return count;
         }
     }
 }

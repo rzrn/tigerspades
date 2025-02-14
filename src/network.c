@@ -111,7 +111,8 @@ static void printJoinMsg(int team, char * name) {
 
 bool isdestructible(int x, int y, int z) {
     UNUSED(x); UNUSED(z);
-    return y > 1 || !network_connected;
+
+    return (network_connected ? y > 1 : y > 0) && y < 64;
 }
 
 static uint8_t network_buffer[512];

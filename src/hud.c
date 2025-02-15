@@ -1291,8 +1291,11 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
 
             if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
                 norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
-                int amount = map_cube_line(local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
-                                           pos[0], pos[2], 63 - pos[1], NULL);
+                int amount = cube_line_length(
+                    local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
+                    pos[X], pos[Z], 63 - pos[Y]
+                );
+
                 if (amount <= local_player.blocks) {
                     PacketBlockLine contained;
                     contained.player_id = local_player.id;

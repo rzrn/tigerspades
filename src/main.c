@@ -160,6 +160,40 @@ void drawScene() {
     }
 }
 
+static inline void drawCubeEdges(int x, int y, int z) {
+    short vertices[] = {
+        x,       y,        z,
+        x,       y,        z + 1,
+        x,       y,        z,
+        x + 1,   y,        z,
+        x + 1,   y,        z + 1,
+        x + 1,   y,        z,
+        x + 1,   y,        z + 1,
+        x,       y,        z + 1,
+
+        x,       y + 1,    z,
+        x,       y + 1,    z + 1,
+        x,       y + 1,    z,
+        x + 1,   y + 1,    z,
+        x + 1,   y + 1,    z + 1,
+        x + 1,   y + 1,    z,
+        x + 1,   y + 1,    z + 1,
+        x,       y + 1,    z + 1,
+
+        x,       y,        z,
+        x,       y + 1,    z,
+        x + 1,   y,        z,
+        x + 1,   y + 1,    z,
+        x + 1,   y,        z + 1,
+        x + 1,   y + 1,    z + 1,
+        x,       y,        z + 1,
+        x,       y + 1,    z + 1
+    };
+
+    glVertexPointer(3, GL_SHORT, 0, vertices);
+    glDrawArrays(GL_LINES, 0, lengthof(vertices) / 3);
+}
+
 void display() {
     if (hud_active->render_world)
         glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
@@ -255,83 +289,51 @@ void display() {
                         pos = camera_terrain_pick(0);
                     else
                         pos = camera_terrain_pickEx(
-                            0, camera.pos.x, camera.pos.y, camera.pos.z, players[local_id].orientation_smooth.x,
-                            players[local_id].orientation_smooth.y, players[local_id].orientation_smooth.z);
+                            0, camera.pos.x, camera.pos.y, camera.pos.z,
+                            players[local_id].orientation_smooth.x,
+                            players[local_id].orientation_smooth.y,
+                            players[local_id].orientation_smooth.z
+                        );
                 }
+
                 break;
+
             default: pos = NULL;
         }
 
+        if (players[local_id].held_item == TOOL_BLOCK)
         if (pos != NULL && norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
             matrix_upload();
             glLineWidth(1.0F);
             glDisable(GL_DEPTH_TEST);
             glDepthMask(GL_FALSE);
+            glEnableClientState(GL_VERTEX_ARRAY);
 
-            Vector3i cubes[64];
+            LineRasterizer i = is_local && local_player.drag_active ?
+            cube_line(
+                local_player.drag.x,
+                local_player.drag.z,
+                63 - local_player.drag.y,
+                pos[X], pos[Z], 63 - pos[Y]
+            ) :
+            cube_rasterizer(
+                pos[X], pos[Z], 63 - pos[Y]
+            );
 
-            int amount = 0;
-
-            if (is_local && local_player.drag_active
-               && HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY)
-               && players[local_player.id].held_item == TOOL_BLOCK) {
-                amount = map_cube_line(
-                    local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
-                    pos[X], pos[Z], 63 - pos[Y], cubes
-                );
-            } else {
-                amount = 1;
-
-                cubes[0].x = pos[X];
-                cubes[0].y = pos[Z];
-                cubes[0].z = 63 - pos[Y];
-            }
-
-            for (int i = amount - 1; 0 <= i; i--) {
-                int x = cubes[i].x, y = 63 - cubes[i].z, z = cubes[i].y;
+            for (; !i.exhausted; rasterizer_next(&i)) {
+                int x = i.x, y = 63 - i.z, z = i.y;
 
                 int avail = is_local ? local_player.blocks : 50;
 
-                if (i < avail && isdestructible(x, y, z))
+                if (i.index < avail && isdestructible(x, y, z))
                     glColor3f(1.0F, 1.0F, 1.0F);
                 else
                     glColor3f(1.0F, 0.0F, 0.0F);
 
-                short vertices[] = {
-                    x,       y,        z,
-                    x,       y,        z + 1,
-                    x,       y,        z,
-                    x + 1,   y,        z,
-                    x + 1,   y,        z + 1,
-                    x + 1,   y,        z,
-                    x + 1,   y,        z + 1,
-                    x,       y,        z + 1,
-
-                    x,       y + 1,    z,
-                    x,       y + 1,    z + 1,
-                    x,       y + 1,    z,
-                    x + 1,   y + 1,    z,
-                    x + 1,   y + 1,    z + 1,
-                    x + 1,   y + 1,    z,
-                    x + 1,   y + 1,    z + 1,
-                    x,       y + 1,    z + 1,
-
-                    x,       y,        z,
-                    x,       y + 1,    z,
-                    x + 1,   y,        z,
-                    x + 1,   y + 1,    z,
-                    x + 1,   y,        z + 1,
-                    x + 1,   y + 1,    z + 1,
-                    x,       y,        z + 1,
-                    x,       y + 1,    z + 1
-                };
-
-                glEnableClientState(GL_VERTEX_ARRAY);
-                glVertexPointer(3, GL_SHORT, 0, vertices);
-                glDrawArrays(GL_LINES, 0, lengthof(vertices) / 3);
-                glDisableClientState(GL_VERTEX_ARRAY);
+                drawCubeEdges(x, y, z);
             }
 
+            glDisableClientState(GL_VERTEX_ARRAY);
             glEnable(GL_DEPTH_TEST);
             glDepthMask(GL_TRUE);
         }

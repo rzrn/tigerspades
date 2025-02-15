@@ -590,90 +590,84 @@ void map_set(int x, int y, int z, TrueColor * color) {
 }
 
 // Copyright © Mathias Kaerlev 2011–2012 (but might be original code by Ben himself)
-int map_cube_line(int x1, int y1, int z1, int x2, int y2, int z2, Vector3i * cube_array) {
-    Vector3i c, d;
-    long ixi, iyi, izi, dx, dy, dz, dxi, dyi, dzi;
-    int count = 0;
+LineRasterizer cube_line(int x1, int y1, int z1, int x2, int y2, int z2) {
+    // NB: positions must be rounded towards −∞
+    LineRasterizer i = {.exhausted = false, .index = 0, .x = x1, .y = y1, .z = z1, .ex = x2, .ey = y2, .ez = z2};
+    Vector3i d = {.x = x2 - x1, .y = y2 - y1, .z = z2 - z1};
 
-    // Note: positions MUST be rounded towards -inf
-    c.x = x1;
-    c.y = y1;
-    c.z = z1;
-
-    d.x = x2 - x1;
-    d.y = y2 - y1;
-    d.z = z2 - z1;
-
-    if (d.x < 0)
-        ixi = -1;
-    else
-        ixi = 1;
-    if (d.y < 0)
-        iyi = -1;
-    else
-        iyi = 1;
-    if (d.z < 0)
-        izi = -1;
-    else
-        izi = 1;
+    i.ixi = d.x < 0 ? -1 : 1;
+    i.iyi = d.y < 0 ? -1 : 1;
+    i.izi = d.z < 0 ? -1 : 1;
 
     if (abs(d.x) >= abs(d.y) && abs(d.x) >= abs(d.z)) {
-        dxi = 1024;
-        dx = 512;
-        dyi = (long) (!d.y ? 0x3fffffff / 512 : abs(d.x * 1024 / d.y));
-        dy = dyi / 2;
-        dzi = (long) (!d.z ? 0x3fffffff / 512 : abs(d.x * 1024 / d.z));
-        dz = dzi / 2;
+        i.dxi = 1024;
+        i.dx  = 512;
+
+        i.dyi = (long) (!d.y ? 0x3fffffff / 512 : abs(d.x * 1024 / d.y));
+        i.dy  = i.dyi / 2;
+
+        i.dzi = (long) (!d.z ? 0x3fffffff / 512 : abs(d.x * 1024 / d.z));
+        i.dz  = i.dzi / 2;
     } else if (abs(d.y) >= abs(d.z)) {
-        dyi = 1024;
-        dy = 512;
-        dxi = (long) (!d.x ? 0x3fffffff / 512 : abs(d.y * 1024 / d.x));
-        dx = dxi / 2;
-        dzi = (long) (!d.z ? 0x3fffffff / 512 : abs(d.y * 1024 / d.z));
-        dz = dzi / 2;
+        i.dyi = 1024;
+        i.dy  = 512;
+
+        i.dxi = (long) (!d.x ? 0x3fffffff / 512 : abs(d.y * 1024 / d.x));
+        i.dx  = i.dxi / 2;
+
+        i.dzi = (long) (!d.z ? 0x3fffffff / 512 : abs(d.y * 1024 / d.z));
+        i.dz  = i.dzi / 2;
     } else {
-        dzi = 1024;
-        dz = 512;
-        dxi = (long) (!d.x ? 0x3fffffff / 512 : abs(d.z * 1024 / d.x));
-        dx = dxi / 2;
-        dyi = (long) (!d.y ? 0x3fffffff / 512 : abs(d.z * 1024 / d.y));
-        dy = dyi / 2;
+        i.dzi = 1024;
+        i.dz  = 512;
+
+        i.dxi = (long) (!d.x ? 0x3fffffff / 512 : abs(d.z * 1024 / d.x));
+        i.dx  = i.dxi / 2;
+
+        i.dyi = (long) (!d.y ? 0x3fffffff / 512 : abs(d.z * 1024 / d.y));
+        i.dy  = i.dyi / 2;
     }
 
-    if (ixi >= 0)
-        dx = dxi - dx;
-    if (iyi >= 0)
-        dy = dyi - dy;
-    if (izi >= 0)
-        dz = dzi - dz;
+    if (0 <= i.ixi) i.dx = i.dxi - i.dx;
+    if (0 <= i.iyi) i.dy = i.dyi - i.dy;
+    if (0 <= i.izi) i.dz = i.dzi - i.dz;
 
-    for (;;) {
-        if (cube_array != NULL)
-            cube_array[count] = c;
+    return i;
+}
 
-        if (count++ == 63)
-            return count;
-
-        if (c.x == x2 && c.y == y2 && c.z == z2)
-            return count;
-
-        if (dz <= dx && dz <= dy) {
-            c.z += izi;
-            dz += dzi;
-        } else if (dx < dy) {
-            c.x += ixi;
-            dx += dxi;
-
-            if ((unsigned long) c.x >= 512)
-                return count;
-        } else {
-            c.y += iyi;
-            dy += dyi;
-
-            if ((unsigned long) c.y >= 512)
-                return count;
-        }
+void rasterizer_next(LineRasterizer * i) {
+    if (i->x == i->ex && i->y == i->ey && i->z == i->ez) {
+        i->exhausted = true; return;
     }
+
+    if (i->dz <= i->dx && i->dz <= i->dy) {
+        i->z  += i->izi;
+        i->dz += i->dzi;
+
+        if (i->z < 0 || 512 <= i->z)
+            i->exhausted = true;
+    } else if (i->dx < i->dy) {
+        i->x  += i->ixi;
+        i->dx += i->dxi;
+
+        if (i->x < 0 || 512 <= i->x)
+            i->exhausted = true;
+    } else {
+        i->y  += i->iyi;
+        i->dy += i->dyi;
+
+        if (i->y < 0 || 512 <= i->y)
+            i->exhausted = true;
+    }
+
+    i->index++;
+}
+
+int cube_line_length(int x1, int y1, int z1, int x2, int y2, int z2) {
+    LineRasterizer i = cube_line(x1, y1, z1, x2, y2, z2);
+    for (; !i.exhausted; rasterizer_next(&i));
+
+    return i.index;
 }
 
 static int gkrand = 0;

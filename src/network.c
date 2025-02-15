@@ -325,16 +325,9 @@ void handlePacketBlockLine(PacketBlockLine * p) {
 
     if (sx == ex && sy == ey && sz == ez) {
         map_set(sx, 63 - sz, sy, &color);
-    } else {
-        Vector3i blocks[64];
-        int len = map_cube_line(sx, sy, sz, ex, ey, ez, blocks);
-
-        while (len > 0) {
-            if (map_isair(blocks[len - 1].x, 63 - blocks[len - 1].z, blocks[len - 1].y))
-                map_set(blocks[len - 1].x, 63 - blocks[len - 1].z, blocks[len - 1].y, &color);
-
-            len--;
-        }
+    } else for (LineRasterizer i = cube_line(sx, sy, sz, ex, ey, ez); !i.exhausted; rasterizer_next(&i)) {
+        int x = i.x, y = 63 - i.z, z = i.y;
+        if (map_isair(x, y, z)) map_set(x, y, z, &color);
     }
 
     sound_create(

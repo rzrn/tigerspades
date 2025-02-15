@@ -43,7 +43,6 @@ float map_sunblock(int x, int y, int z);
 bool map_isair(int x, int y, int z);
 TrueColor map_get(int x, int y, int z);
 void map_set(int x, int y, int z, TrueColor *);
-int map_cube_line(int x1, int y1, int z1, int x2, int y2, int z2, Vector3i * cube_array);
 void map_vxl_setgeom(int x, int y, int z, unsigned int t, unsigned int * map);
 void map_vxl_setcolor(int x, int y, int z, unsigned int t, unsigned int * map);
 int map_placedblock_color(int color);
@@ -54,5 +53,18 @@ int map_height_at(int x, int z);
 void map_save_file(char * filename);
 void map_copy_blocks(struct libvxl_chunk_copy * copy, size_t x, size_t y);
 bool map_empty();
+
+typedef struct {
+    bool exhausted; int index; int x, y, z;
+    int ex, ey, ez; long ixi, iyi, izi, dx, dy, dz, dxi, dyi, dzi;
+} LineRasterizer;
+
+static inline LineRasterizer cube_rasterizer(int x, int y, int z)
+{ return (LineRasterizer) {.exhausted = false, .index = 0, .x = x, .y = y, .z = z, .ex = x, .ey = y, .ez = z}; }
+
+LineRasterizer cube_line(int x1, int y1, int z1, int x2, int y2, int z2);
+void rasterizer_next(LineRasterizer *);
+
+int cube_line_length(int x1, int y1, int z1, int x2, int y2, int z2);
 
 #endif

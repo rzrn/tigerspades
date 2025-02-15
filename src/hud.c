@@ -1296,7 +1296,8 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
                     pos[X], pos[Z], 63 - pos[Y]
                 );
 
-                if (amount <= local_player.blocks) {
+                // see “handlePacketBlockLine” in src/network.c
+                if (amount <= min(local_player.blocks, BLOCKLINE_MAX_LENGTH)) {
                     PacketBlockLine contained;
                     contained.player_id = local_player.id;
                     contained.start     = htonv3i(local_player.drag);

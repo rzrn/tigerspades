@@ -69,6 +69,8 @@ typedef enum {
     ERROR_INVALID_NICKNAME     = 20,
 } ErrorCode;
 
+#define BLOCKLINE_MAX_LENGTH 64 // https://github.com/piqueserver/piqueserver/blob/6f84ae49774c73b61943950b01c51210fa090480/pyspades/world_c.cpp#L32
+
 #define PLAYERS_MAX 256 // just because 32 players are not enough
 
 #if PLAYERS_MAX < 256

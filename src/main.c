@@ -323,7 +323,8 @@ void display() {
             for (; !i.exhausted; rasterizer_next(&i)) {
                 int x = i.x, y = 63 - i.z, z = i.y;
 
-                int avail = is_local ? local_player.blocks : 50;
+                // see “handlePacketBlockLine” in “src/network.c”
+                int avail = is_local ? min(local_player.blocks, BLOCKLINE_MAX_LENGTH) : 50;
 
                 if (i.index < avail && isdestructible(x, y, z))
                     glColor3f(1.0F, 1.0F, 1.0F);

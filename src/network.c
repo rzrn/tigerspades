@@ -326,6 +326,8 @@ void handlePacketBlockLine(PacketBlockLine * p) {
     if (sx == ex && sy == ey && sz == ez) {
         map_set(sx, 63 - sz, sy, &color);
     } else for (LineRasterizer i = cube_line(sx, sy, sz, ex, ey, ez); !i.exhausted; rasterizer_next(&i)) {
+        if (BLOCKLINE_MAX_LENGTH <= i.index) break; // current piqueserver’s implementation limit, may be extended in the future as an extension
+
         int x = i.x, y = 63 - i.z, z = i.y;
         if (map_isair(x, y, z)) map_set(x, y, z, &color);
     }

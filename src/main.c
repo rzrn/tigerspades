@@ -743,13 +743,16 @@ static inline bool startswith(const char * prefix, const char * str)
 #define THROW(retcode, ...) { printf(__VA_ARGS__); return retcode; }
 
 int main(int argc, char ** argv) {
-    const char * default_server = NULL;
+    const char * vxl_file = NULL, * default_server = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (startswith("-aos://", argv[i])) {
             default_server = argv[i] + 1;
+        } else MATCH(argv[i], "--vxl") {
+            if (argc <= ++i) THROW(-1, "The “--vxl” option requires an argument.\n")
+            else vxl_file = argv[i];
         } else MATCH(argv[i], "--help") {
-            THROW(0, "Usage: %s -aos://<ip>:<port> --config <file> --team <team> --weapon <weapon> --serverlist <url> --newslist <url>\n", argv[0]);
+            THROW(0, "Usage: %s -aos://<ip>:<port> --vxl <file.vxl> --config <file.ini> --team <team> --weapon <weapon> --serverlist <url> --newslist <url>\n", argv[0]);
         } else MATCH(argv[i], "--serverlist") {
             if (argc <= ++i) THROW(-1, "The “--serverlist” option requires an argument.\n")
             else strnzcpy(serverlist_url, argv[i], sizeof(serverlist_url));
@@ -830,9 +833,16 @@ int main(int argc, char ** argv) {
     if (settings.vsync > 1)
         window_swapping(0);
 
-    if (default_server != NULL) {
+    if (vxl_file != NULL) {
+        if (file_exists(vxl_file))
+            load_map(vxl_file);
+        else {
+            log_error("Error: file not found: %s", vxl_file);
+            exit(1);
+        }
+    } else if (default_server != NULL) {
         if (!network_connect_string(default_server, VER07X)) {
-            log_error("Error: Connection failed (use --help for instructions)");
+            log_error("Error: connection failed (use --help for instructions)");
             exit(1);
         } else {
             log_info("Connection to %s successful", default_server);

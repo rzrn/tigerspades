@@ -93,6 +93,7 @@ typedef struct {
     int   report_client_version;
     int   left_handed;
     int   kill_indicator;
+    int   persistent_block_color;
 } Options;
 
 extern Options settings, settings_tmp;

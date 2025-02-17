@@ -594,6 +594,8 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
 
         if (!players[p.player_id].connected) printJoinMsg(p.team, players[p.player_id].name);
 
+        RGB3i rgb = players[p.player_id].block;
+
         player_reset(&players[p.player_id]);
         players[p.player_id].connected = 1;
         players[p.player_id].alive     = 1;
@@ -624,7 +626,10 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
             local_player.grenades  = 3;
             local_player.last_tool = TOOL_GUN;
 
-            local_player.color[X] = local_player.color[Y] = -1;
+            if (settings.persistent_block_color) {
+                players[local_player.id].block = rgb;
+                network_updateColor();
+            } else local_player.color[X] = local_player.color[Y] = -1;
 
             network_logged_in = true;
 

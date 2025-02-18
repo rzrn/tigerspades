@@ -644,7 +644,7 @@ void rasterizer_next(LineRasterizer * i) {
         i->z  += i->izi;
         i->dz += i->dzi;
 
-        if (i->z < 0 || 512 <= i->z)
+        if (i->z < -256 || 256 <= i->z)
             i->exhausted = true;
     } else if (i->dx < i->dy) {
         i->x  += i->ixi;

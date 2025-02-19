@@ -670,13 +670,6 @@ int cube_line_length(int x1, int y1, int z1, int x2, int y2, int z2) {
     return i.index;
 }
 
-static int gkrand = 0;
-int map_placedblock_color(int color) {
-    color = color | 0x7F000000;
-    gkrand = 0x1A4E86D * gkrand + 1;
-    return color ^ (gkrand & 0x70707);
-}
-
 void map_vxl_load(void * v, size_t size) {
     pthread_rwlock_wrlock(&map_lock);
     libvxl_free(&map);

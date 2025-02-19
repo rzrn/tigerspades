@@ -68,10 +68,9 @@ float player_intersection_dist = 1024.0F;
 
 Player players[PLAYERS_MAX];
 
+#define ISQRT2               0.70710678F
 #define FALL_DAMAGE_VELOCITY 0.58F
 #define FALL_SLOW_DOWN       0.24F
-#define SQRT                 0.70710678F
-#define WEAPON_PRIMARY       1
 #define FALL_DAMAGE_SCALAR   4096
 
 void player_init() {
@@ -121,7 +120,7 @@ float player_swing_func(float x) {
 }
 
 float player_spade_func(float x) {
-    return 1.0F - (x * 5 - (int)(x * 5));
+    return 1.0F - (x * 5 - (int) (x * 5));
 }
 
 float * player_tool_func(const Player * p) {
@@ -1146,7 +1145,7 @@ int player_move(Player * p, float fsynctics, int id) {
 
     if ((HASBIT(p->input.keys, INPUT_UP)   || HASBIT(p->input.keys, INPUT_DOWN)) &&
         (HASBIT(p->input.keys, INPUT_LEFT) || HASBIT(p->input.keys, INPUT_RIGHT)))
-        f *= SQRT; // if strafe + forward/backwards then limit diagonal velocity
+        f *= ISQRT2; // if strafe + forward/backwards then limit diagonal velocity
 
     float len = hypot2f(p->orientation.x, p->orientation.y);
     float sx  = p->orientation.x / len;

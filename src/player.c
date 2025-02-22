@@ -427,13 +427,19 @@ void player_render_all() {
                 Hit intersects = {0};
                 player_render(players + k, k);
                 player_collision(players + k, &ray, &intersects);
-                if (player_intersection_exists(&intersects)) {
-                    float d;
-                    int type = player_intersection_choose(&intersects, &d);
+
+                bool is_bodyview_player =
+                   camera.mode == CAMERAMODE_SPECTATOR
+                && cameracontroller_bodyview_mode
+                && cameracontroller_bodyview_player == k;
+
+                if (!is_bodyview_player && player_intersection_exists(&intersects)) {
+                    float d; int type = player_intersection_choose(&intersects, &d);
+
                     if (d < player_intersection_dist) {
-                        player_intersection_dist = d;
+                        player_intersection_dist   = d;
                         player_intersection_player = k;
-                        player_intersection_type = type;
+                        player_intersection_type   = type;
                     }
                 }
             }

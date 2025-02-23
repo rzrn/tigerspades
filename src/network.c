@@ -834,8 +834,13 @@ static void getPacketKillAction(uint8_t * data, size_t len) {
                 sprintf(buff, "%s killed %s (Grenade)", players[p.killer_id].name, players[p.player_id].name);
                 break;
             case KILLTYPE_FALL: sprintf(buff, "%s fell too far", players[p.player_id].name); break;
-            case KILLTYPE_TEAMCHANGE: sprintf(buff, "%s changed teams", players[p.player_id].name); break;
             case KILLTYPE_CLASSCHANGE: sprintf(buff, "%s changed weapons", players[p.player_id].name); break;
+            case KILLTYPE_TEAMCHANGE: {
+                sprintf(buff, "%s changed teams", players[p.player_id].name);
+                if (settings.team_change_beep) beep();
+
+                break;
+            }
         }
 
         if (p.killer_id == local_player.id || p.player_id == local_player.id) {

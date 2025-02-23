@@ -333,6 +333,15 @@ Setting config_settings[] = {
         .help     = "Beep sound when a player disconnects"
     },
     {
+        .value    = &settings_tmp.team_change_beep,
+        .type     = CONFIG_TYPE_INT,
+        .min      = 0,
+        .max      = 1,
+        .name     = "team_change_beep",
+        .display  = "Enable team change alert",
+        .help     = "Beep sound when a player changes team"
+    },
+    {
         .value    = &settings_tmp.kill_indicator,
         .type     = CONFIG_TYPE_INT,
         .min      = 0,
@@ -553,6 +562,9 @@ Options settings = {
     .smooth_orientation     = 1,
     .map_cache              = 0,
     .chat_beep              = 0,
+    .connect_beep           = 0,
+    .disconnect_beep        = 0,
+    .team_change_beep       = 0,
     .show_crosshair         = 1,
     .show_health            = 1,
     .show_ammo              = 1,

@@ -87,6 +87,7 @@ typedef struct {
     int   chat_beep;
     int   connect_beep;
     int   disconnect_beep;
+    int   team_change_beep;
     int   show_crosshair;
     int   show_health;
     int   show_ammo;

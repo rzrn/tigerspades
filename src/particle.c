@@ -41,22 +41,18 @@ Tesselator particle_tesselator;
 
 Projectiles projectiles = { .size = 0, .length = 0, .head = NULL };
 
-typedef struct {
-    float r, g, b;
-} TrueColorf;
+RGB3f Whitef = {1.0F, 1.0F, 1.0F}, Bluef = {0.0F, 0.0F, 1.0F}, Greenf = {0.0F, 1.0F, 0.0F};
+RGB3f Yellowf = {1.0F, 1.0F, 0.0F}, Redf = {1.0F, 0.0F, 0.0F};
 
-TrueColorf Whitef = {1.0F, 1.0F, 1.0F}, Bluef = {0.0F, 0.0F, 1.0F}, Greenf = {0.0F, 1.0F, 0.0F};
-TrueColorf Yellowf = {1.0F, 1.0F, 0.0F}, Redf = {1.0F, 0.0F, 0.0F};
-
-static inline TrueColorf mix(TrueColorf A, TrueColorf B, float t) {
-    return (TrueColorf) {.r = (1 - t) * A.r + t * B.r,
-                         .g = (1 - t) * A.g + t * B.g,
-                         .b = (1 - t) * A.b + t * B.b};
+static inline RGB3f mix(RGB3f A, RGB3f B, float t) {
+    return (RGB3f) {.r = (1 - t) * A.r + t * B.r,
+                    .g = (1 - t) * A.g + t * B.g,
+                    .b = (1 - t) * A.b + t * B.b};
 }
 
 #define GRADIENT(x, y, A, B, v) { if (x <= v && v < y) return mix(A, B, (v - x) / (y - x)); }
 
-TrueColorf value2Color(float value) {
+RGB3f value2Color(float value) {
     if (value < 0.05F) return Whitef;
 
     GRADIENT(0.05F, 0.25F, Whitef,  Bluef,   value);
@@ -80,7 +76,7 @@ void trajectories_render_all() {
         for (size_t j = t->begin; j != t->end; NEXT(j, projectiles)) {
             Vertex * vertex = &t->data[j];
 
-            TrueColorf color = value2Color(vertex->value);
+            RGB3f color = value2Color(vertex->value);
             glColor3f(color.r, color.g, color.b);
 
             glVertex3f(vertex->pos.x, vertex->pos.y, vertex->pos.z);

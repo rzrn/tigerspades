@@ -153,7 +153,7 @@ void grenade_render() {
     entitysys_iterate(&grenades, NULL, grenade_render_single);
 }
 
-TrueColor gray = {0x50, 0x50, 0x50, 0xFF};
+RGBA4i gray = {0x50, 0x50, 0x50, 0xFF};
 
 bool grenade_update_single(void * obj, void * user) {
     Grenade * g = (Grenade *) obj;

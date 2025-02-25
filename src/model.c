@@ -303,7 +303,7 @@ void kv6_render(kv6 * model, unsigned char team) {
                     size_t max_x, max_z;
                     greedy_mesh(model, voxel, marked, &max_x, &max_z, KV6_VIS_POS_Y);
 
-                    tesselator_set_color(tess, (TrueColor) {r, g, b, 0});
+                    tesselator_set_color(tess, (RGBA4i) {r, g, b, 0});
                     tesselator_addi_cube_face_adv(tess, CUBE_FACE_Y_P, voxel->x, voxel->z, voxel->y, max_x, 1, max_z);
                 }
 
@@ -311,7 +311,7 @@ void kv6_render(kv6 * model, unsigned char team) {
                     size_t max_x, max_z;
                     greedy_mesh(model, voxel, marked, &max_x, &max_z, KV6_VIS_NEG_Y);
 
-                    tesselator_set_color(tess, (TrueColor) {r * 0.6F, g * 0.6F, b * 0.6F, 0});
+                    tesselator_set_color(tess, (RGBA4i) {r * 0.6F, g * 0.6F, b * 0.6F, 0});
                     tesselator_addi_cube_face_adv(tess, CUBE_FACE_Y_N, voxel->x, voxel->z, voxel->y, max_x, 1, max_z);
                 }
 
@@ -319,7 +319,7 @@ void kv6_render(kv6 * model, unsigned char team) {
                     size_t max_x, max_y;
                     greedy_mesh(model, voxel, marked, &max_x, &max_y, KV6_VIS_NEG_Z);
 
-                    tesselator_set_color(tess, (TrueColor) {r * 0.95F, g * 0.95F, b * 0.95F, 0});
+                    tesselator_set_color(tess, (RGBA4i) {r * 0.95F, g * 0.95F, b * 0.95F, 0});
                     tesselator_addi_cube_face_adv(tess, CUBE_FACE_Z_N, voxel->x, voxel->z - (max_y - 1), voxel->y,
                                                   max_x, max_y, 1);
                 }
@@ -328,7 +328,7 @@ void kv6_render(kv6 * model, unsigned char team) {
                     size_t max_x, max_y;
                     greedy_mesh(model, voxel, marked, &max_x, &max_y, KV6_VIS_POS_Z);
 
-                    tesselator_set_color(tess, (TrueColor) {r * 0.9F, g * 0.9F, b * 0.9F, 0});
+                    tesselator_set_color(tess, (RGBA4i) {r * 0.9F, g * 0.9F, b * 0.9F, 0});
                     tesselator_addi_cube_face_adv(tess, CUBE_FACE_Z_P, voxel->x, voxel->z - (max_y - 1), voxel->y,
                                                   max_x, max_y, 1);
                 }
@@ -337,7 +337,7 @@ void kv6_render(kv6 * model, unsigned char team) {
                     size_t max_y, max_z;
                     greedy_mesh(model, voxel, marked, &max_y, &max_z, KV6_VIS_NEG_X);
 
-                    tesselator_set_color(tess, (TrueColor) {r * 0.85F, g * 0.85F, b * 0.85F, 0});
+                    tesselator_set_color(tess, (RGBA4i) {r * 0.85F, g * 0.85F, b * 0.85F, 0});
                     tesselator_addi_cube_face_adv(tess, CUBE_FACE_X_N, voxel->x, voxel->z - (max_y - 1), voxel->y, 1,
                                                   max_y, max_z);
                 }
@@ -346,7 +346,7 @@ void kv6_render(kv6 * model, unsigned char team) {
                     size_t max_y, max_z;
                     greedy_mesh(model, voxel, marked, &max_y, &max_z, KV6_VIS_POS_X);
 
-                    tesselator_set_color(tess, (TrueColor) {r * 0.8F, g * 0.8F, b * 0.8F, 0});
+                    tesselator_set_color(tess, (RGBA4i) {r * 0.8F, g * 0.8F, b * 0.8F, 0});
                     tesselator_addi_cube_face_adv(tess, CUBE_FACE_X_P, voxel->x, voxel->z - (max_y - 1), voxel->y, 1,
                                                   max_y, max_z);
                 }

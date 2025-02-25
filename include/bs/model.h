@@ -38,7 +38,7 @@
 typedef struct {
     uint16_t x, y, z;
     uint8_t visfaces;
-    TrueColor color;
+    RGBA4i color;
 } Voxel;
 
 typedef struct {

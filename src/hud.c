@@ -1761,7 +1761,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                         float damage = map_damage_get(hit.x, hit.y, hit.z);
                         float tint = (1.0F - damage / 100.0F) * 0.75F + 0.25F;
 
-                        TrueColor color = map_get(hit.x, hit.y, hit.z);
+                        RGBA4i color = map_get(hit.x, hit.y, hit.z);
                         players[local_player.id].block.r = color.r * tint;
                         players[local_player.id].block.g = color.g * tint;
                         players[local_player.id].block.b = color.b * tint;

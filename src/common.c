@@ -2,34 +2,34 @@
 
 #include <bs/common.h>
 
-const TrueColor White   = {0xFF, 0xFF, 0xFF, 0xFF};
-const TrueColor Black   = {0x00, 0x00, 0x00, 0xFF};
-const TrueColor Red     = {0xFF, 0x00, 0x00, 0xFF};
-const TrueColor Green   = {0x00, 0xFF, 0x00, 0xFF};
-const TrueColor Blue    = {0x00, 0x00, 0xFF, 0xFF};
-const TrueColor Yellow  = {0xFF, 0xFF, 0x00, 0xFF};
-const TrueColor Cyan    = {0x00, 0xFF, 0xFF, 0xFF};
-const TrueColor Magenta = {0xFF, 0x00, 0xFF, 0xFF};
-const TrueColor Sky     = {0x80, 0xE8, 0xFF, 0xFF};
+const RGBA4i White   = {0xFF, 0xFF, 0xFF, 0xFF};
+const RGBA4i Black   = {0x00, 0x00, 0x00, 0xFF};
+const RGBA4i Red     = {0xFF, 0x00, 0x00, 0xFF};
+const RGBA4i Green   = {0x00, 0xFF, 0x00, 0xFF};
+const RGBA4i Blue    = {0x00, 0x00, 0xFF, 0xFF};
+const RGBA4i Yellow  = {0xFF, 0xFF, 0x00, 0xFF};
+const RGBA4i Cyan    = {0x00, 0xFF, 0xFF, 0xFF};
+const RGBA4i Magenta = {0xFF, 0x00, 0xFF, 0xFF};
+const RGBA4i Sky     = {0x80, 0xE8, 0xFF, 0xFF};
 
 const RGB3i Gray = {111, 111, 111};
 
-void writeRGBA(uint32_t * dest, TrueColor color) {
+void writeRGBA(uint32_t * dest, RGBA4i color) {
     *((uint8_t *) dest + 0) = color.r;
     *((uint8_t *) dest + 1) = color.g;
     *((uint8_t *) dest + 2) = color.b;
     *((uint8_t *) dest + 3) = color.a;
 }
 
-void writeBGR(uint32_t * dest, TrueColor color) {
+void writeBGR(uint32_t * dest, RGBA4i color) {
     *((uint8_t *) dest + 0) = color.b;
     *((uint8_t *) dest + 1) = color.g;
     *((uint8_t *) dest + 2) = color.r;
     *((uint8_t *) dest + 3) = 255;
 }
 
-TrueColor readBGR(uint32_t * src) {
-    TrueColor retval;
+RGBA4i readBGR(uint32_t * src) {
+    RGBA4i retval;
 
     retval.b = *((uint8_t *) src + 0);
     retval.g = *((uint8_t *) src + 1);
@@ -39,8 +39,8 @@ TrueColor readBGR(uint32_t * src) {
     return retval;
 }
 
-TrueColor readBGRA(uint32_t * src) {
-    TrueColor retval;
+RGBA4i readBGRA(uint32_t * src) {
+    RGBA4i retval;
 
     retval.b = *((uint8_t *) src + 0);
     retval.g = *((uint8_t *) src + 1);

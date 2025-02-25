@@ -152,7 +152,7 @@ void tesselator_glx(Tesselator * t, GLXDisplayList * x) {
 #endif
 }
 
-void tesselator_set_color(Tesselator * t, TrueColor color) {
+void tesselator_set_color(Tesselator * t, RGBA4i color) {
     t->color = color;
 }
 
@@ -192,7 +192,7 @@ static void tesselator_check_space(Tesselator * t) {
     }
 }
 
-static void tesselator_emit_color(Tesselator * t, TrueColor * colors) {
+static void tesselator_emit_color(Tesselator * t, RGBA4i * colors) {
 #ifdef TESSELATE_QUADS
     uint32_t * dest = t->colors + t->quad_count * 4;
 
@@ -223,7 +223,7 @@ static void tesselator_emit_normals(Tesselator * t, int8_t * normals) {
     }
 }
 
-void tesselator_addi(Tesselator * t, int16_t * coords, TrueColor * colors, int8_t * normals) {
+void tesselator_addi(Tesselator * t, int16_t * coords, RGBA4i * colors, int8_t * normals) {
     assert(t->vertex_type == VERTEX_INT);
 
     tesselator_check_space(t);
@@ -243,7 +243,7 @@ void tesselator_addi(Tesselator * t, int16_t * coords, TrueColor * colors, int8_
     t->quad_count++;
 }
 
-void tesselator_addf(Tesselator * t, float * coords, TrueColor * colors, int8_t * normals) {
+void tesselator_addf(Tesselator * t, float * coords, RGBA4i * colors, int8_t * normals) {
     assert(t->vertex_type == VERTEX_FLOAT);
 
     tesselator_check_space(t);
@@ -264,7 +264,7 @@ void tesselator_addf(Tesselator * t, float * coords, TrueColor * colors, int8_t 
 }
 
 void tesselator_addi_simple(Tesselator * t, int16_t * coords) {
-    tesselator_addi(t, coords, (TrueColor[]) {t->color, t->color, t->color, t->color},
+    tesselator_addi(t, coords, (RGBA4i[]) {t->color, t->color, t->color, t->color},
                     t->has_normal ? (int8_t[]) {t->normal[0], t->normal[1], t->normal[2], t->normal[0], t->normal[1],
                                                 t->normal[2], t->normal[0], t->normal[1], t->normal[2], t->normal[0],
                                                 t->normal[1], t->normal[2]} :
@@ -272,7 +272,7 @@ void tesselator_addi_simple(Tesselator * t, int16_t * coords) {
 }
 
 void tesselator_addf_simple(Tesselator * t, float * coords) {
-    tesselator_addf(t, coords, (TrueColor[]) {t->color, t->color, t->color, t->color},
+    tesselator_addf(t, coords, (RGBA4i[]) {t->color, t->color, t->color, t->color},
                     t->has_normal ? (int8_t[]) {t->normal[0], t->normal[1], t->normal[2], t->normal[0], t->normal[1],
                                                 t->normal[2], t->normal[0], t->normal[1], t->normal[2], t->normal[0],
                                                 t->normal[1], t->normal[2]} :

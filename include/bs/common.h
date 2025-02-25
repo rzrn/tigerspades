@@ -157,7 +157,7 @@ typedef enum {
     UTF8, ASCII, CP437, CP1252
 } Codepage;
 
-extern const TrueColor White, Black, Red, Green, Blue, Yellow, Cyan, Magenta, Sky;
+extern const RGBA4i White, Black, Red, Green, Blue, Yellow, Cyan, Magenta, Sky;
 
 extern const RGB3i Gray;
 
@@ -167,14 +167,14 @@ extern float last_cy;
 extern int fps;
 
 extern char chat[2][10][256];
-extern TrueColor chat_color[2][10];
+extern RGBA4i chat_color[2][10];
 extern float chat_timer[2][10];
 extern char chat_popup[256];
 extern float chat_popup_timer;
 extern float chat_popup_duration;
-extern TrueColor chat_popup_color;
-void chat_add(int channel, TrueColor, const char *, size_t, Codepage);
-void chat_showpopup(const char *, size_t, Codepage, float duration, TrueColor);
+extern RGBA4i chat_popup_color;
+void chat_add(int channel, RGBA4i, const char *, size_t, Codepage);
+void chat_showpopup(const char *, size_t, Codepage, float duration, RGBA4i);
 const char * reason_disconnect(int code);
 
 int ms_rand(void);
@@ -284,23 +284,23 @@ static inline void setbgr(uint8_t * const buff, size_t * index, RGB3i color) {
     setu8le(buff, index, color.r);
 }
 
-static inline TrueColor getbgra(uint8_t * const buff, size_t * index) {
+static inline RGBA4i getbgra(uint8_t * const buff, size_t * index) {
     uint8_t b = getu8le(buff, index);
     uint8_t g = getu8le(buff, index);
     uint8_t r = getu8le(buff, index);
     uint8_t a = getu8le(buff, index);
 
-    return (TrueColor) {r, g, b, a};
+    return (RGBA4i) {r, g, b, a};
 }
 
-static inline TrueColor opaque(RGB3i color)
-{ return (TrueColor) {.r = color.r, .g = color.g, .b = color.b, .a = 255}; }
+static inline RGBA4i opaque(RGB3i color)
+{ return (RGBA4i) {.r = color.r, .g = color.g, .b = color.b, .a = 255}; }
 
-void writeRGBA(uint32_t *, TrueColor);
-void writeBGR(uint32_t *, TrueColor);
+void writeRGBA(uint32_t *, RGBA4i);
+void writeBGR(uint32_t *, RGBA4i);
 
-TrueColor readBGR(uint32_t *);
-TrueColor readBGRA(uint32_t *);
+RGBA4i readBGR(uint32_t *);
+RGBA4i readBGRA(uint32_t *);
 
 void strnzcpy(char * dest, const char * src, size_t);
 size_t strsize(const char *, size_t maxsize);

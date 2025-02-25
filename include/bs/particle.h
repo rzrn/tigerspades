@@ -29,14 +29,14 @@ typedef struct {
     unsigned char type;
     float size;
     float fade;
-    TrueColor color;
+    RGBA4i color;
 } Particle;
 
 void particle_init(void);
 void particle_update(float dt);
 void particle_render(void);
 void particle_create_casing(Player *);
-void particle_create(TrueColor color, float x, float y, float z, float velocity, float velocity_y, int amount,
+void particle_create(RGBA4i color, float x, float y, float z, float velocity, float velocity_y, int amount,
                      float min_size, float max_size);
 
 typedef struct { Vector3f pos; float value; } Vertex;

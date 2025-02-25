@@ -119,7 +119,7 @@ static bool damaged_voxel_update(void * key, void * value, void * user) {
     if (window_time() - voxel->timer > 10.0F || map_isair(x, y, z))
         return true;
 
-    tesselator_set_color(tess, (TrueColor) {0, 0, 0, voxel->damage * 1.9125F});
+    tesselator_set_color(tess, (RGBA4i) {0, 0, 0, voxel->damage * 1.9125F});
 
     tesselator_addi_cube_face(tess, CUBE_FACE_Z_N, x, y, z);
     tesselator_addi_cube_face(tess, CUBE_FACE_Z_P, x, y, z);
@@ -180,7 +180,7 @@ EntitySystem map_collapsing_structures;
 
 static bool falling_blocks_meshing(void * key, void * value, void * user) {
     uint32_t pos = *(uint32_t *) key;
-    TrueColor color = *(TrueColor *) value;
+    RGBA4i color = *(RGBA4i *) value;
     MapCollapsing * collapsing = ((MapCollapsing **) user)[0];
     Tesselator * tess = ((Tesselator **) user)[1];
 
@@ -195,32 +195,32 @@ static bool falling_blocks_meshing(void * key, void * value, void * user) {
     uint8_t r = color.r, g = color.g, b = color.b;
 
     if (!ht_contains(&collapsing->voxels, (uint32_t[]) {pos_key(x2, y2 - 1, z2)})) {
-        tesselator_set_color(tess, (TrueColor) {r * 0.5F, g * 0.5F, b * 0.5F, 0xCC});
+        tesselator_set_color(tess, (RGBA4i) {r * 0.5F, g * 0.5F, b * 0.5F, 0xCC});
         tesselator_addf_cube_face(tess, CUBE_FACE_Y_N, x, y, z, 1.0F);
     }
 
     if (!ht_contains(&collapsing->voxels, (uint32_t[]) {pos_key(x2, y2 + 1, z2)})) {
-        tesselator_set_color(tess, (TrueColor) {r, g, b, 0xCC});
+        tesselator_set_color(tess, (RGBA4i) {r, g, b, 0xCC});
         tesselator_addf_cube_face(tess, CUBE_FACE_Y_P, x, y, z, 1.0F);
     }
 
     if (!ht_contains(&collapsing->voxels, (uint32_t[]) {pos_key(x2, y2, z2 - 1)})) {
-        tesselator_set_color(tess, (TrueColor) {r * 0.7F, g * 0.7F, b * 0.7F, 0xCC});
+        tesselator_set_color(tess, (RGBA4i) {r * 0.7F, g * 0.7F, b * 0.7F, 0xCC});
         tesselator_addf_cube_face(tess, CUBE_FACE_Z_N, x, y, z, 1.0F);
     }
 
     if (!ht_contains(&collapsing->voxels, (uint32_t[]) {pos_key(x2, y2, z2 + 1)})) {
-        tesselator_set_color(tess, (TrueColor) {r * 0.6F, g * 0.6F, b * 0.6F, 0xCC});
+        tesselator_set_color(tess, (RGBA4i) {r * 0.6F, g * 0.6F, b * 0.6F, 0xCC});
         tesselator_addf_cube_face(tess, CUBE_FACE_Z_P, x, y, z, 1.0F);
     }
 
     if (!ht_contains(&collapsing->voxels, (uint32_t[]) {pos_key(x2 - 1, y2, z2)})) {
-        tesselator_set_color(tess, (TrueColor) {r * 0.9F, g * 0.9F, b * 0.9F, 0xCC});
+        tesselator_set_color(tess, (RGBA4i) {r * 0.9F, g * 0.9F, b * 0.9F, 0xCC});
         tesselator_addf_cube_face(tess, CUBE_FACE_X_N, x, y, z, 1.0F);
     }
 
     if (!ht_contains(&collapsing->voxels, (uint32_t[]) {pos_key(x2 + 1, y2, z2)})) {
-        tesselator_set_color(tess, (TrueColor) {r * 0.8F, g * 0.8F, b * 0.8F, 0xCC});
+        tesselator_set_color(tess, (RGBA4i) {r * 0.8F, g * 0.8F, b * 0.8F, 0xCC});
         tesselator_addf_cube_face(tess, CUBE_FACE_X_P, x, y, z, 1.0F);
     }
 
@@ -243,7 +243,7 @@ static inline void visit(Minheap * o, HashTable * h, int x, int y, int z) {
     MinheapBlock block = {.pos = pos_key(x, y, z)};
 
     if (!ht_contains(h, &block.pos) && !map_isair(x, y, z)) {
-        TrueColor color = map_get(x, y, z);
+        RGBA4i color = map_get(x, y, z);
 
         minheap_put(o, &block);
         ht_insert(h, &block.pos, &color);
@@ -260,7 +260,7 @@ static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int
     minheap_create(&openlist);
 
     HashTable closedlist;
-    ht_setup(&closedlist, sizeof(uint32_t), sizeof(TrueColor), 256);
+    ht_setup(&closedlist, sizeof(uint32_t), sizeof(RGBA4i), 256);
     closedlist.compare = int_cmp;
     closedlist.hash = int_hash;
 
@@ -374,7 +374,7 @@ static bool falling_blocks_collision(void * key, void * value, void * user) {
 
 static bool falling_blocks_particles(void * key, void * value, void * user) {
     uint32_t pos = *(uint32_t *) key;
-    TrueColor color = *(TrueColor *) value;
+    RGBA4i color = *(RGBA4i *) value;
     MapCollapsing * collapsing = (MapCollapsing *) user;
 
     vec4 v = {pos_keyx(pos) - collapsing->p2.x + 0.5F, pos_keyy(pos) - collapsing->p2.y + 0.5F,
@@ -532,7 +532,7 @@ bool map_isair(int x, int y, int z) {
     return result;
 }
 
-TrueColor map_get(int x, int y, int z) {
+RGBA4i map_get(int x, int y, int z) {
     pthread_rwlock_rdlock(&map_lock);
     uint32_t result = libvxl_map_get(&map, x, z, map_size_y - 1 - y);
     pthread_rwlock_unlock(&map_lock);
@@ -540,7 +540,7 @@ TrueColor map_get(int x, int y, int z) {
     return readBGR(&result);
 }
 
-void map_set(int x, int y, int z, TrueColor * color) {
+void map_set(int x, int y, int z, RGBA4i * color) {
     if (x < 0 || y < 0 || z < 0 || x >= map_size_x || y >= map_size_y || z >= map_size_z)
         return;
 

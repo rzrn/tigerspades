@@ -247,7 +247,7 @@ void handlePacketBlockAction(PacketBlockAction * p) {
     switch (p->action_type) {
         case ACTION_DESTROY: {
             if (63 - z > 0) {
-                TrueColor col = map_get(x, 63 - z, y);
+                RGBA4i col = map_get(x, 63 - z, y);
 
                 map_set(x, 63 - z, y, NULL);
                 map_update_physics(x, 63 - z, y);
@@ -278,7 +278,7 @@ void handlePacketBlockAction(PacketBlockAction * p) {
             }
 
             if ((63 - z + 0) > 1) {
-                TrueColor col = map_get(x, 63 - z, y);
+                RGBA4i col = map_get(x, 63 - z, y);
 
                 map_set(x, 63 - z + 0, y, NULL);
                 map_update_physics(x, 63 - z + 0, y);
@@ -301,7 +301,7 @@ void handlePacketBlockAction(PacketBlockAction * p) {
                 if (map_isair(x, 63 - z, y))
                     sound_create(SOUND_WORLD, sound(SOUND_BUILD), xc, yc, zc);
 
-                TrueColor color = opaque(players[p->player_id].block);
+                RGBA4i color = opaque(players[p->player_id].block);
                 map_set(x, 63 - z, y, &color);
             }
 
@@ -316,7 +316,7 @@ void handlePacketBlockLine(PacketBlockLine * p) {
     int sx = p->start.x, sy = p->start.y, sz = p->start.z;
     int ex = p->end.x,   ey = p->end.y,   ez = p->end.z;
 
-    TrueColor color = {
+    RGBA4i color = {
         players[p->player_id].block.r,
         players[p->player_id].block.g,
         players[p->player_id].block.b,
@@ -424,7 +424,7 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
         convert(buff + offset, sizeof(buff) - offset, UTF8, msg, size, codepage);
     }
 
-    TrueColor color = {255, 255, 255, 255};
+    RGBA4i color = {255, 255, 255, 255};
     switch (p.chat_type) {
         case CHAT_SYSTEM: color = Red; break;
         case CHAT_TEAM: {

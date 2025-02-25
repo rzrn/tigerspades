@@ -23,7 +23,7 @@ typedef struct {
 
 typedef struct {
     uint8_t r, g, b, a;
-} TrueColor;
+} RGBA4i;
 
 typedef struct {
     uint8_t * data; size_t size;

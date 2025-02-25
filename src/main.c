@@ -70,10 +70,10 @@ ChatInputMode chat_input_mode = CHAT_NO_INPUT;
 
 char chat[2][10][256] = {{{0}}}; // chat[0] is current input
 
-TrueColor chat_color[2][10];
+RGBA4i chat_color[2][10];
 float chat_timer[2][10];
 
-void chat_add(int channel, TrueColor color, const char * msg, size_t size, Codepage codepage) {
+void chat_add(int channel, RGBA4i color, const char * msg, size_t size, Codepage codepage) {
     for (int k = 9; k > 1; k--) {
         strcpy(chat[channel][k], chat[channel][k - 1]);
         chat_color[channel][k] = chat_color[channel][k - 1];
@@ -89,11 +89,11 @@ void chat_add(int channel, TrueColor color, const char * msg, size_t size, Codep
 }
 
 char chat_popup[256] = {0};
-TrueColor chat_popup_color;
+RGBA4i chat_popup_color;
 float chat_popup_timer = 0.0F;
 float chat_popup_duration = 0.0F;
 
-void chat_showpopup(const char * msg, size_t size, Codepage codepage, float duration, TrueColor color) {
+void chat_showpopup(const char * msg, size_t size, Codepage codepage, float duration, RGBA4i color) {
     convert(chat_popup, sizeof(chat_popup), UTF8, msg, size, codepage);
     chat_popup_timer    = window_time();
     chat_popup_duration = duration;

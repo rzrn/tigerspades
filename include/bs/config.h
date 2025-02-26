@@ -52,8 +52,6 @@ typedef struct {
     int   min_lan_port;
     int   max_lan_port;
     int   opengl14;
-    int   color_correction;
-    int   shadow_entities;
     int   ambient_occlusion;
     float render_distance;
     int   window_width;

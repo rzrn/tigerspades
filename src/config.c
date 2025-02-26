@@ -526,8 +526,6 @@ Setting config_settings[] = {
 
 Options settings = {
     .opengl14               = 1,
-    .color_correction       = 0,
-    .shadow_entities        = 0,
     .render_distance        = RENDER_DISTANCE,
     .name                   = "Deuce",
     .window_width           = 800,

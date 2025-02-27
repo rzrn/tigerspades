@@ -51,48 +51,48 @@ typedef struct {
     char  name[16];
     int   min_lan_port;
     int   max_lan_port;
-    int   opengl14;
-    int   ambient_occlusion;
+    bool  opengl14;
+    bool  ambient_occlusion;
     float render_distance;
     int   window_width;
     int   window_height;
     int   multisamples;
-    int   player_arms;
-    int   windowed;
-    int   greedy_meshing;
+    bool  player_arms;
+    bool  windowed;
+    bool  greedy_meshing;
     int   vsync;
     float mouse_sensitivity;
-    int   show_news;
+    bool  show_news;
     int   volume;
-    int   voxlap_models;
-    int   force_displaylist;
-    int   invert_y;
-    int   smooth_fog;
+    bool  voxlap_models;
+    bool  force_displaylist;
+    bool  invert_y;
+    bool  smooth_fog;
     float camera_fov;
-    int   hold_down_sights;
-    int   chat_shadow;
+    bool  hold_down_sights;
+    bool  chat_shadow;
     int   scale;
-    int   tracing_enabled;
+    bool  tracing_enabled;
     int   trajectory_length;
     int   projectile_count;
-    int   show_minimap;
-    int   toggle_crouch;
-    int   toggle_sprint;
-    int   enable_shadows;
-    int   enable_particles;
-    int   smooth_orientation;
-    int   map_cache;
-    int   chat_beep;
-    int   connect_beep;
-    int   disconnect_beep;
-    int   team_change_beep;
-    int   show_crosshair;
-    int   show_health;
-    int   show_ammo;
-    int   report_client_version;
-    int   left_handed;
-    int   kill_indicator;
-    int   persistent_block_color;
+    bool  show_minimap;
+    bool  toggle_crouch;
+    bool  toggle_sprint;
+    bool  enable_shadows;
+    bool  enable_particles;
+    bool  smooth_orientation;
+    bool  map_cache;
+    bool  chat_beep;
+    bool  connect_beep;
+    bool  disconnect_beep;
+    bool  team_change_beep;
+    bool  show_crosshair;
+    bool  show_health;
+    bool  show_ammo;
+    bool  report_client_version;
+    bool  left_handed;
+    bool  kill_indicator;
+    bool  persistent_block_color;
 } Options;
 
 extern Options settings, settings_tmp;
@@ -112,25 +112,26 @@ typedef struct {
 } Keybind;
 
 enum {
+    CONFIG_TYPE_BOOLEAN,
     CONFIG_TYPE_STRING,
     CONFIG_TYPE_FLOAT,
     CONFIG_TYPE_INT
 };
 
-typedef void Label(char * buffer, size_t length, int value, size_t index);
+typedef void Label(char *, size_t, void *);
 
 typedef struct {
-    void *          value;
-    int             type;
-    int             min;
-    int             max;
-    const char *    name;
-    const char *    display;
-    const char *    help;
-    const char *    category;
-    int             defaults[8];
-    int             defaults_length;
-    Label *         label;
+    void *       value;
+    int          type;
+    int          min;
+    int          max;
+    const char * name;
+    const char * display;
+    const char * help;
+    const char * category;
+    int          defaults[8];
+    int          defaults_length;
+    Label *      label;
 } Setting;
 
 extern char * config_filepath;

@@ -2393,22 +2393,25 @@ static void hud_settings_init() {
     memcpy(&settings_tmp, &settings, sizeof(Options));
 }
 
-static int int_slider_defaults(mu_Context * ctx, Setting * setting) {
+static inline int defaults_round(Setting * setting, float value) {
     int k = setting->defaults_length - 1;
-    while (k > 0 && setting->defaults[k] > *(int*) setting->value)
-        k--;
+    for (; 0 < k && value < setting->defaults[k]; k--);
 
-    float tmp = k;
+    return k;
+}
+
+static int int_slider_defaults(mu_Context * ctx, Setting * setting) {
+    int * value = setting->value;
 
     mu_push_id(ctx, setting, sizeof(setting));
-    int res = mu_slider_ex(ctx, &tmp, 0, setting->defaults_length - 1, 0, "", MU_OPT_ALIGNCENTER);
 
-    if (res & MU_RES_CHANGE)
-        *((int *) setting->value) = setting->defaults[(int) round(tmp)];
+    float slider = defaults_round(setting, *value);
+    int res = mu_slider_ex(ctx, &slider, 0, setting->defaults_length - 1, 0, "", MU_OPT_ALIGNCENTER);
+
+    if (res & MU_RES_CHANGE) *value = setting->defaults[(int) round(slider)];
 
     if (setting->label != NULL) {
-        char buf[64];
-        setting->label(buf, sizeof(buf), setting->defaults[(int) round(tmp)], (int) round(tmp));
+        char buf[64]; setting->label(buf, sizeof(buf), value);
         mu_draw_control_text(ctx, buf, ctx->last_rect, MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
     }
 
@@ -2437,10 +2440,10 @@ static int int_number(mu_Context * ctx, int * value) {
 static void hud_bool(mu_Context * ctx, Setting * setting) {
     mu_push_id(ctx, setting, sizeof(setting));
 
-    int * value = setting->value; char buf[64];
+    bool * value = setting->value; char buf[64];
 
     if (setting->label != NULL)
-        setting->label(buf, sizeof(buf), *value, *value);
+        setting->label(buf, sizeof(buf), value);
     else
         snprintf(buf, sizeof(buf), *value ? "Yes" : "No");
 
@@ -2475,15 +2478,18 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
                 mu_text(ctx, a->display);
 
                 switch (a->type) {
+                    case CONFIG_TYPE_BOOLEAN: {
+                        hud_bool(ctx, a);
+                        break;
+                    }
+
                     case CONFIG_TYPE_STRING: {
                         mu_textbox(ctx, a->value, a->max + 1);
                         break;
                     }
 
                     case CONFIG_TYPE_INT: {
-                        if (a->max == 1 && a->min == 0) {
-                            hud_bool(ctx, a);
-                        } else if (a->defaults_length > 0) {
+                        if (a->defaults_length > 0) {
                             int_slider_defaults(ctx, a);
                         } else if (a->max == INT_MAX) {
                             int_number(ctx, a->value);

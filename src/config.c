@@ -36,38 +36,48 @@
 
 #include <ini.h>
 
-static void config_label_scale(char * buffer, size_t length, int value, size_t index) {
+static void config_label_scale(char * buffer, size_t length, void * voidptr) {
+    int value = *((int *) voidptr);
+
     if (value == 0)
         snprintf(buffer, length, "Auto");
     else
         snprintf(buffer, length, "%i", value);
 }
 
-static void config_label_pixels(char * buffer, size_t length, int value, size_t index) {
+static void config_label_pixels(char * buffer, size_t length, void * voidptr) {
+    int value = *((int *) voidptr);
+
     if (value == 800 || value == 600)
-        snprintf(buffer, length, "default: %i px", value);
+        snprintf(buffer, length, "(Default) %i px", value);
     else
         snprintf(buffer, length, "%i px", value);
 }
 
-static void config_label_vsync(char * buffer, size_t length, int value, size_t index) {
+static void config_label_vsync(char * buffer, size_t length, void * voidptr) {
+    int value = *((int *) voidptr);
+
     if (value == 0)
-        snprintf(buffer, length, "disabled");
+        snprintf(buffer, length, "Disabled");
     else if (value == 1)
-        snprintf(buffer, length, "enabled");
+        snprintf(buffer, length, "Enabled");
     else
-        snprintf(buffer, length, "max %i fps", value);
+        snprintf(buffer, length, "Max %i FPS", value);
 }
 
-static void config_label_msaa(char * buffer, size_t length, int value, size_t index) {
-    if (index == 0)
+static void config_label_msaa(char * buffer, size_t length, void * voidptr) {
+    int value = *((int *) voidptr);
+
+    if (value == 0)
         snprintf(buffer, length, "No MSAA");
     else
         snprintf(buffer, length, "%ix MSAA", value);
 }
 
-static void config_label_left_handed(char * buffer, size_t length, int value, size_t index) {
-    snprintf(buffer, length, index == 0 ? "Right" : "Left");
+static void config_label_left_handed(char * buffer, size_t length, void * voidptr) {
+    bool value = *((bool *) voidptr);
+
+    snprintf(buffer, length, value ? "Left" : "Right");
 }
 
 ConfigKey _config_key[] = {
@@ -141,33 +151,25 @@ Setting config_settings[] = {
     },
     {
         .value    = &settings_tmp.show_minimap,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "show_minimap",
         .display  = "Show minimap"
     },
     {
         .value    = &settings_tmp.show_crosshair,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "show_crosshair",
         .display  = "Enable crosshair"
     },
     {
         .value    = &settings_tmp.show_health,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "show_health",
         .display  = "Show health",
     },
     {
         .value    = &settings_tmp.show_ammo,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "show_ammo",
         .display  = "Show ammo",
     },
@@ -189,36 +191,28 @@ Setting config_settings[] = {
     },
     {
         .value    = &settings_tmp.map_cache,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .display  = "Use map cache",
         .name     = "map_cache",
         .help     = "Can use a lot of disk space"
     },
     {
         .value    = &settings_tmp.report_client_version,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .display  = "Report client version",
         .name     = "report_client_version",
         .help     = "Server can enable extensions based on this"
     },
     {
         .value    = &settings_tmp.persistent_block_color,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .display  = "Persistent block color",
         .name     = "persistent_block_color",
         .help     = "Restore block color after respawn"
     },
     {
         .value    = &settings_tmp.left_handed,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "left_handed",
         .display  = "Main hand",
         .help     = "Affects only your local character",
@@ -235,35 +229,27 @@ Setting config_settings[] = {
     },
     {
         .value    = &settings_tmp.invert_y,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .display  = "Invert Y",
         .name     = "inverty",
         .help     = "Invert vertical mouse movement"
     },
     {
         .value    = &settings_tmp.hold_down_sights,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Only aim while pressing RMB",
         .name     = "hold_down_sights",
         .display  = "Hold down sights"
     },
     {
         .value    = &settings_tmp.toggle_crouch,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "toggle_crouch",
         .display  = "Toggle crouch"
     },
     {
         .value    = &settings_tmp.toggle_sprint,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "toggle_sprint",
         .display  = "Toggle sprint"
     },
@@ -289,63 +275,49 @@ Setting config_settings[] = {
     },
     {
         .value    = &settings_tmp.chat_shadow,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "chat_shadow",
         .help     = "Dark chat background",
         .display  = "Chat shadow"
     },
     {
         .value    = &settings_tmp.show_news,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "show_news",
         .display  = "Show news",
         .help     = "Show news on server list"
     },
     {
         .value    = &settings_tmp.chat_beep,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "chat_beep",
         .display  = "Enable chat alert",
         .help     = "Beep sound on new messages"
     },
     {
         .value    = &settings_tmp.connect_beep,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "connect_beep",
         .display  = "Enable connection alert",
         .help     = "Beep sound when a player connects"
     },
     {
         .value    = &settings_tmp.disconnect_beep,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "disconnect_beep",
         .display  = "Enable disconnection alert",
         .help     = "Beep sound when a player disconnects"
     },
     {
         .value    = &settings_tmp.team_change_beep,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "team_change_beep",
         .display  = "Enable team change alert",
         .help     = "Beep sound when a player changes team"
     },
     {
         .value    = &settings_tmp.kill_indicator,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "kill_indicator",
         .help     = "Confirmation sound + crosshair blink",
         .display  = "Enable kill indicator"
@@ -398,9 +370,7 @@ Setting config_settings[] = {
     },
     {
         .value    = &settings_tmp.windowed,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "windowed",
         .display  = "Windowed"
     },
@@ -418,63 +388,49 @@ Setting config_settings[] = {
     },
     {
         .value    = &settings_tmp.voxlap_models,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Render models like in voxlap",
         .name     = "voxlap_models",
         .display  = "Voxlap models"
     },
     {
         .value    = &settings_tmp.greedy_meshing,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Join similar mesh faces",
         .name     = "greedy_meshing",
         .display  = "Greedy meshing"
     },
     {
         .value    = &settings_tmp.force_displaylist,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Enable this on buggy drivers",
         .name     = "force_displaylist",
         .display  = "Force Displaylist"
     },
     {
         .value    = &settings_tmp.smooth_fog,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Enable this on buggy drivers",
         .name     = "smooth_fog",
         .display  = "Smooth fog"
     },
     {
         .value    = &settings_tmp.ambient_occlusion,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "(won't work with greedy mesh)",
         .name     = "ambient_occlusion",
         .display  = "Ambient occlusion"
     },
     {
         .value    = &settings_tmp.enable_particles,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Disable this on weak hardware",
         .name     = "enable_particles",
         .display  = "Enable particles"
     },
     {
         .value    = &settings_tmp.tracing_enabled,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Requires server support",
         .name     = "tracing_enabled",
         .display  = "Bullet tracing",
@@ -498,78 +454,72 @@ Setting config_settings[] = {
     },
     {
         .value    = &settings_tmp.enable_shadows,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Useful for map development",
         .name     = "enable_shadows",
         .display  = "Map shadows"
     },
     {
         .value    = &settings_tmp.smooth_orientation,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Disable to spectate cheaters",
         .name     = "smooth_orientation",
         .display  = "Smooth orientation"
     },
     {
         .value    = &settings_tmp.player_arms,
-        .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 1,
+        .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "show_player_arms",
         .display  = NULL
     }
 };
 
 Options settings = {
-    .opengl14               = 1,
-    .render_distance        = RENDER_DISTANCE,
     .name                   = "Deuce",
-    .window_width           = 800,
-    .window_height          = 600,
     .min_lan_port           = 32882,
     .max_lan_port           = 32892,
-    .volume                 = 10,
-    .invert_y               = 0,
-    .windowed               = 1,
-    .mouse_sensitivity      = 5.0F,
-    .show_news              = 1,
+    .opengl14               = true,
+    .ambient_occlusion      = false,
+    .render_distance        = RENDER_DISTANCE,
+    .window_width           = 800,
+    .window_height          = 600,
     .multisamples           = 0,
-    .greedy_meshing         = 0,
+    .player_arms            = false,
+    .windowed               = true,
+    .greedy_meshing         = false,
     .vsync                  = 1,
-    .voxlap_models          = 0,
-    .force_displaylist      = 0,
-    .smooth_fog             = 0,
-    .ambient_occlusion      = 0,
+    .mouse_sensitivity      = 5.0F,
+    .show_news              = true,
+    .volume                 = 10,
+    .voxlap_models          = false,
+    .force_displaylist      = false,
+    .invert_y               = false,
+    .smooth_fog             = false,
     .camera_fov             = CAMERA_DEFAULT_FOV,
-    .hold_down_sights       = 0,
-    .chat_shadow            = 1,
-    .player_arms            = 0,
+    .hold_down_sights       = false,
+    .chat_shadow            = true,
     .scale                  = 0,
-    .tracing_enabled        = 0,
+    .tracing_enabled        = false,
     .trajectory_length      = 16,
     .projectile_count       = 8,
-    .show_minimap           = 1,
-    .toggle_crouch          = 0,
-    .toggle_sprint          = 0,
-    .enable_shadows         = 1,
-    .enable_particles       = 1,
-    .smooth_orientation     = 1,
-    .map_cache              = 0,
-    .chat_beep              = 0,
-    .connect_beep           = 0,
-    .disconnect_beep        = 0,
-    .team_change_beep       = 0,
-    .show_crosshair         = 1,
-    .show_health            = 1,
-    .show_ammo              = 1,
-    .report_client_version  = 1,
-    .left_handed            = 0,
-    .kill_indicator         = 0,
-    .persistent_block_color = 0
+    .show_minimap           = true,
+    .toggle_crouch          = false,
+    .toggle_sprint          = false,
+    .enable_shadows         = true,
+    .enable_particles       = true,
+    .smooth_orientation     = true,
+    .map_cache              = false,
+    .chat_beep              = false,
+    .connect_beep           = false,
+    .disconnect_beep        = false,
+    .team_change_beep       = false,
+    .show_crosshair         = true,
+    .show_health            = true,
+    .show_ammo              = true,
+    .report_client_version  = true,
+    .left_handed            = false,
+    .kill_indicator         = false,
+    .persistent_block_color = false
 };
 
 char * config_filepath = "config.ini";
@@ -626,6 +576,7 @@ void config_save() {
         case CONFIG_TYPE_INT: config_seti("client", e->name, *((int *) e->value)); break;
         case CONFIG_TYPE_FLOAT: config_setf("client", e->name, *((float *) e->value)); break;
         case CONFIG_TYPE_STRING: config_sets("client", e->name, (const char *) e->value); break;
+        case CONFIG_TYPE_BOOLEAN: config_seti("client", e->name, *((bool *) e->value)); break;
     }
 
     for (WindowKey key = WINDOW_KEY_FIRST; key <= WINDOW_KEY_LAST; key++) {
@@ -685,6 +636,7 @@ static int config_read_key(void * user, const char * section, const char * name,
                     case CONFIG_TYPE_INT: *((int *) e->value) = atoi(value); break;
                     case CONFIG_TYPE_FLOAT: *((float *) e->value) = atof(value); break;
                     case CONFIG_TYPE_STRING: strcpy((char *) e->value, (const char *) value); break;
+                    case CONFIG_TYPE_BOOLEAN: *((bool *) e->value) = atoi(value); break;
                 }
 
                 break;

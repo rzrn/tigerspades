@@ -24,15 +24,16 @@
 
 #include <bs/common.h>
 
-typedef enum {
-    FONT_FIXEDSYS,
-    FONT_SMALLFNT,
-} FontType;
+typedef struct _Font Font;
+
+extern Font * const font_primary;
+extern Font * const font_secondary;
 
 void font_init(void);
 float font_length(int scale, const char *, int, Codepage);
 void font_render(float x, float y, int scale, const char *, Codepage);
 void font_centered(float x, float y, int scale, const char *, Codepage);
-FontType font_select(FontType type);
+
+Font * font_select(Font *);
 
 #endif

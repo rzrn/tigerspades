@@ -694,7 +694,7 @@ void player_render(Player * p, int id) {
             case TEAM2: glColorRGB3i(gamestate.team2.color); break;
         }
 
-        font_select(FONT_FIXEDSYS);
+        font_select(font_primary);
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.5F);
         glDisable(GL_DEPTH_TEST);

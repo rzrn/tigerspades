@@ -87,13 +87,13 @@ typedef struct {
     GLuint   textures[64];
 } Subfont;
 
-typedef struct {
+struct _Font {
     uint32_t   replacement;
     size_t     length;
     uint8_t    height;
     Subfont *  special;
     Subfont ** subfonts;
-} Font;
+};
 
 static GLuint upload_page(size_t texsize, const uint8_t * buff) {
     GLuint texid;
@@ -185,22 +185,17 @@ static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t he
     free(buff); free(pagebuff); fclose(file); return font;
 }
 
-static FontType font_current_type = FONT_FIXEDSYS;
-
 Subfont unifont, uvga;
 
 Subfont * primarySubfonts[] = {&uvga, &unifont}, * secondarySubfonts[] = {&unifont};
 
-Font primary   = {.replacement = 0xFFFD, .length = 2, .height = 16, .special = &uvga,    .subfonts = primarySubfonts};
-Font secondary = {.replacement = 0xFFFD, .length = 1, .height = 16, .special = &unifont, .subfonts = secondarySubfonts};
+Font _font_primary   = {.replacement = 0xFFFD, .length = 2, .height = 16, .special = &uvga,    .subfonts = primarySubfonts};
+Font _font_secondary = {.replacement = 0xFFFD, .length = 1, .height = 16, .special = &unifont, .subfonts = secondarySubfonts};
 
-static Font * choose_font(FontType type) {
-    switch (type) {
-        case FONT_FIXEDSYS: return &primary;
-        case FONT_SMALLFNT: return &secondary;
-        default:            return NULL;
-    }
-}
+Font * const font_primary   = &_font_primary;
+Font * const font_secondary = &_font_secondary;
+
+static Font * font_selected = font_primary;
 
 void font_init() {
     GLint max_size = 0; glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
@@ -214,16 +209,16 @@ void font_init() {
     uvga    = upload_subfont("fonts/uvga.bitmap", max_size, 16);
 }
 
-FontType font_select(FontType type) {
-    FontType old = font_current_type;
-    font_current_type = type;
-    return old;
+Font * font_select(Font * font) {
+    Font * font_old = font_selected;
+    font_selected = font;
+    return font_old;
 }
 
 Subfont * get_glyph(Font * font, uint32_t codepoint, Glyph * outglyph) {
     uint16_t high16 = codepoint >> 16;
 
-    for (size_t k = 0; k < font->length; k++) {
+    for (size_t k = 0; k < font_selected->length; k++) {
         Subfont * subfont = font->subfonts[k];
 
         if (subfont->high16 == high16) {
@@ -249,8 +244,6 @@ static inline bool ignore(uint32_t codepoint) {
 }
 
 float font_length(int scale, const char * text, int len, Codepage codepage) {
-    Font * font = choose_font(font_current_type);
-
     float x = 0, length = 0;
 
     const char * end = len <= 0 ? (char *) UINTPTR_MAX : text + len;
@@ -266,7 +259,8 @@ float font_length(int scale, const char * text, int len, Codepage codepage) {
 
             if (ignore(codepoint)) continue;
 
-            Glyph glyph; get_glyph(font, codepoint, &glyph); x += scale * glyph.stride * 8;
+            Glyph glyph; get_glyph(font_selected, codepoint, &glyph);
+            x += scale * glyph.stride * 8;
         }
     }
 
@@ -292,10 +286,9 @@ static inline void emitVertex(vertex_t * buff, size_t offset, vertex_t x, vertex
 }
 
 void font_render(float x, float y, int scale, const char * text, Codepage codepage) {
-    Font * font = choose_font(font_current_type);
-    clear_buffers(font);
+    clear_buffers(font_selected);
 
-    float x0 = x, y0 = y, h = font->height * scale;
+    float x0 = x, y0 = y, h = font_selected->height * scale;
 
     while (*text) {
         if (*text == '\n') {
@@ -309,12 +302,12 @@ void font_render(float x, float y, int scale, const char * text, Codepage codepa
 
             if (ignore(codepoint)) continue;
 
-            Glyph glyph; Subfont * subfont = get_glyph(font, codepoint, &glyph);
+            Glyph glyph; Subfont * subfont = get_glyph(font_selected, codepoint, &glyph);
             Buffer * buffer = &subfont->buffers[glyph.page];
 
             uint16_t width = glyph.stride * 8;
 
-            emitTexcoords(buffer->texcoords, buffer->len, glyph.x, glyph.y, width, font->height);
+            emitTexcoords(buffer->texcoords, buffer->len, glyph.x, glyph.y, width, font_selected->height);
             emitVertex(buffer->vertex, buffer->len, x0, y0, scale * width, h);
 
             buffer->len++; x0 += scale * width;
@@ -330,8 +323,8 @@ void font_render(float x, float y, int scale, const char * text, Codepage codepa
 
     glMatrixMode(GL_TEXTURE);
 
-    for (size_t k = 0; k < font->length; k++) {
-        Subfont * subfont = font->subfonts[k];
+    for (size_t k = 0; k < font_selected->length; k++) {
+        Subfont * subfont = font_selected->subfonts[k];
 
         glLoadIdentity(); glScalef(subfont->texscale, subfont->texscale, 1.0F);
 

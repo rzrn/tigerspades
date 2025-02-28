@@ -2419,12 +2419,26 @@ static int int_slider_defaults(mu_Context * ctx, Setting * setting) {
     return res;
 }
 
-static int int_slider(mu_Context * ctx, int * value, int low, int high) {
-    float tmp = *value;
-    mu_push_id(ctx, &value, sizeof(value));
-    int res = mu_slider_ex(ctx, &tmp, low, high, 0, "%.0f", MU_OPT_ALIGNCENTER);
+static int int_slider(mu_Context * ctx, Setting * setting) {
+    int * value = setting->value;
+
+    mu_push_id(ctx, setting, sizeof(setting));
+
+    float slider = *value;
+    int res = mu_slider_ex(ctx, &slider, setting->min, setting->max, 0, "", MU_OPT_ALIGNCENTER);
+
+    if (res & MU_RES_CHANGE) *value = round(slider);
+
+    char buf[64];
+
+    if (setting->label != NULL)
+        setting->label(buf, sizeof(buf), value);
+    else
+        snprintf(buf, sizeof(buf), "%d", *value);
+
+    mu_draw_control_text(ctx, buf, ctx->last_rect, MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
+
     mu_pop_id(ctx);
-    *value = round(tmp);
     return res;
 }
 
@@ -2494,7 +2508,7 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
                         } else if (a->max == INT_MAX) {
                             int_number(ctx, a->value);
                         } else {
-                            int_slider(ctx, a->value, a->min, a->max);
+                            int_slider(ctx, a);
                         }
 
                         break;

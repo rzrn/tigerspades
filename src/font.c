@@ -285,7 +285,7 @@ static inline void emitVertex(vertex_t * buff, size_t offset, vertex_t x, vertex
     *(dest++) = x;     *(dest++) = y;
 }
 
-void font_render(float x, float y, int scale, const char * text, Codepage codepage) {
+Vector2f font_render(float x, float y, int scale, const char * text, Codepage codepage) {
     clear_buffers(font_selected);
 
     float x0 = x, y0 = y, h = font_selected->height * scale;
@@ -350,8 +350,9 @@ void font_render(float x, float y, int scale, const char * text, Codepage codepa
     glLoadIdentity();
 
     glMatrixMode(GL_MODELVIEW);
+
+    return (Vector2f) {x0, y0};
 }
 
-void font_centered(float x, float y, int h, const char * text, Codepage codepage) {
-    font_render(x - font_length(h, text, 0, codepage) / 2.0F, y, h, text, codepage);
-}
+Vector2f font_centered(float x, float y, int h, const char * text, Codepage codepage)
+{ return font_render(x - font_length(h, text, 0, codepage) / 2.0F, y, h, text, codepage); }

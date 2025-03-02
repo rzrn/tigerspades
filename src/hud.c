@@ -841,12 +841,9 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
                 default: break;
             }
-            int l = strlen(chat[0][0]);
-            chat[0][0][l] = '_';
-            chat[0][0][l + 1] = 0;
 
-            font_render(11.0F * scale, chat_y + 18.0F * scale, 1.0F * scale, chat[0][0], UTF8);
-            chat[0][0][l] = 0;
+            Vector2f caret = font_render(11.0F * scale, chat_y + 18.0F * scale, 1.0F * scale, chat[0][0], UTF8);
+            static char bufcaret[] = "_"; font_render(caret.x, caret.y, 1.0F * scale, bufcaret, UTF8);
         }
 
         float top = settings.window_height - 11.0F * scale;

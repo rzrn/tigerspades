@@ -6,6 +6,14 @@
 #include <stddef.h>
 
 typedef struct {
+    int x, y;
+} Vector2i;
+
+typedef struct {
+    float x, y;
+} Vector2f;
+
+typedef struct {
     float x, y, z;
 } Vector3f;
 

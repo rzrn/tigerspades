@@ -31,8 +31,8 @@ extern Font * const font_secondary;
 
 void font_init(void);
 float font_length(int scale, const char *, int, Codepage);
-void font_render(float x, float y, int scale, const char *, Codepage);
-void font_centered(float x, float y, int scale, const char *, Codepage);
+Vector2f font_render(float x, float y, int scale, const char *, Codepage);
+Vector2f font_centered(float x, float y, int scale, const char *, Codepage);
 
 Font * font_select(Font *);
 

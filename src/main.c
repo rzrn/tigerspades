@@ -573,7 +573,8 @@ void text_input(const uint8_t * text) {
 
         if (chat_input_mode != CHAT_NO_INPUT) {
             size_t len = strlen(chat[0][0]);
-            if (len + size < 128) strcpy(&chat[0][0][len], buff);
+            if (len + size < sizeof(chat[0][0]))
+                strcpy(&chat[0][0][len], buff);
         }
 
         skip: text += size;

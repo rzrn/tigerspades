@@ -220,3 +220,23 @@ void decodeMagic(char * dest, size_t outsize, const char * src, size_t insize) {
         dest[size - 1] = 0;
     } else convert(dest, outsize, UTF8, src, insize, CP437);
 }
+
+void strcatprint(char * dest, size_t destsize, const char * src) {
+    const char * curr = src, * end = curr + strlen(src);
+    size_t destlen = strlen(dest);
+
+    while (curr <= end) {
+        size_t size = decodeSize(UTF8, curr[0]);
+
+        if (isprintuni(curr[0])) {
+            if (destlen + size < destsize) {
+                memcpy(dest + destlen, curr, size);
+                destlen += size;
+            } else break;
+        }
+
+        curr += size;
+    }
+
+    dest[destlen] = '\0';
+}

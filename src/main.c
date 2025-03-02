@@ -553,13 +553,13 @@ static int mu_key_translate(int key) {
 void text_input(const uint8_t * text) {
     const uint8_t * end = text + strlen((const char *) text);
 
+    size_t destlen = strlen(chat[0][0]);
+
     while (text != end) {
         char buff[5] = {0};
 
         size_t size = decodeSize(UTF8, text[0]);
-
-        if (text[0] <= 0x7F && !isprint(text[0])) goto skip; // non-printable ASCII
-        if (text[0] > 0xF7) goto skip; // invalid UTF-8
+        if (!isprintuni(text[0])) goto skip; // non-printable ASCII or invalid UTF-8
 
         // everything else assumed to be printable
         switch (size) {
@@ -571,10 +571,10 @@ void text_input(const uint8_t * text) {
 
         if (hud_active->ctx) mu_input_text(hud_active->ctx, buff);
 
-        if (chat_input_mode != CHAT_NO_INPUT) {
-            size_t len = strlen(chat[0][0]);
-            if (len + size < sizeof(chat[0][0]))
-                strcpy(&chat[0][0][len], buff);
+        if (chat_input_mode != CHAT_NO_INPUT)
+        if (destlen + size < sizeof(chat[0][0])) {
+            strcpy(&chat[0][0][destlen], buff);
+            destlen += size;
         }
 
         skip: text += size;

@@ -1,6 +1,8 @@
 #ifndef UNICODE_H
 #define UNICODE_H
 
+#include <ctype.h>
+
 #include <bs/common.h>
 
 #define OCT1(c) ((((uint8_t) c) & 0x80) == 0x00)
@@ -20,5 +22,10 @@ void convert(char * dest, size_t outsize, Codepage outpage,
 
 size_t encodeMagic(char * dest, size_t outsize, const char * src, size_t insize);
 void decodeMagic(char * dest, size_t outsize, const char * src, size_t insize);
+
+static inline bool isprintuni(uint8_t b1)
+{ return b1 <= 0x7F ? isprint(b1) : b1 <= 0xF7; }
+
+void strcatprint(char *, size_t, const char *);
 
 #endif

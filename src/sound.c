@@ -229,13 +229,12 @@ void sound_update() {
     if (!sound_enabled)
         return;
 
+    float sx = sin(camera.rot.x), cx = cos(camera.rot.x);
+    float sy = sin(camera.rot.y), cy = cos(camera.rot.y);
+
     float orientation[] = {
-        sin(camera.rot.x) * sin(camera.rot.y),
-        cos(camera.rot.y),
-        cos(camera.rot.x) * sin(camera.rot.y),
-        0.0F,
-        1.0F,
-        0.0F,
+        +sx * sy, +cy, +cx * sy,
+        -sx * cy, +sy, -cx * cy,
     };
 
     alListener3f(AL_POSITION, camera.pos.x * SOUND_SCALE, camera.pos.y * SOUND_SCALE, camera.pos.z * SOUND_SCALE);

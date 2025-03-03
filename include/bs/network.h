@@ -35,7 +35,9 @@ const char * network_reason_disconnect(ErrorCode code);
 
 unsigned int network_ping(void);
 
-void network_updateColor(void);
+void updateBlockColor(void);
+void updateInputData(void);
+
 void network_disconnect(void);
 int network_identifier_split(const char * addr, Address *);
 int network_connect(Address *);

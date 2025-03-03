@@ -135,8 +135,10 @@ void cameracontroller_fps(float dt) {
         SETBIT(players[local_player.id].input.keys, INPUT_JUMP,   window_key_down(WINDOW_KEY_SPACE));
         SETBIT(players[local_player.id].input.keys, INPUT_SNEAK,  window_key_down(WINDOW_KEY_SNEAK));
 
-        if (window_key_down(WINDOW_KEY_SPACE) && !players[local_player.id].physics.airborne)
+        if (window_key_down(WINDOW_KEY_SPACE) && !players[local_player.id].physics.airborne) {
             players[local_player.id].physics.jump = 1;
+            updateInputData();
+        }
     }
 
     camera.pos.x = players[local_player.id].physics.eye.x;

@@ -628,7 +628,7 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
 
             if (settings.persistent_block_color) {
                 players[local_player.id].block = rgb;
-                network_updateColor();
+                updateBlockColor();
             } else local_player.color[X] = local_player.color[Y] = -1;
 
             network_logged_in = true;
@@ -1202,11 +1202,22 @@ static void getPacketHitEffect(uint8_t * data, size_t len) {
         particle_create(Red, r.x, r.y, r.z, 3.5F, 1.0F, 8, 0.1F, 0.4F);
 }
 
-void network_updateColor() {
+void updateBlockColor() {
     PacketSetColor contained;
     contained.player_id = local_player.id;
     contained.color     = players[local_player.id].block;
+
     sendPacketSetColor(&contained, 0);
+}
+
+void updateInputData() {
+    PacketInputData contained;
+    contained.player_id = local_player.id;
+    contained.keys      = players[local_player.id].input.keys;
+
+    sendPacketInputData(&contained, 0);
+
+    network_keys_last = players[local_player.id].input.keys;
 }
 
 unsigned int network_ping() {
@@ -1414,15 +1425,8 @@ int network_update() {
         }
 
         if (network_logged_in && players[local_player.id].team != TEAM_SPECTATOR && players[local_player.id].alive) {
-            if (players[local_player.id].input.keys != network_keys_last) {
-                PacketInputData contained;
-                contained.player_id = local_player.id;
-                contained.keys      = players[local_player.id].input.keys;
-
-                sendPacketInputData(&contained, 0);
-
-                network_keys_last = players[local_player.id].input.keys;
-            }
+            if (players[local_player.id].input.keys != network_keys_last)
+                updateInputData();
 
             if ((players[local_player.id].input.buttons != network_buttons_last) &&
                !HASBIT(players[local_player.id].input.keys, INPUT_SPRINT)) {

@@ -1616,7 +1616,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 }
 
                 players[local_player.id].block = texture_block_color(local_player.color[X], local_player.color[Y]);
-                network_updateColor();
+                updateBlockColor();
             }
 
             if (key == WINDOW_KEY_RELOAD && camera.mode == CAMERAMODE_FPS
@@ -1778,7 +1778,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                         break;
                 }
 
-                network_updateColor();
+                updateBlockColor();
             }
         }
     } else {

@@ -67,17 +67,17 @@ static int mu_text_height(mu_Font font) {
     return scale * 16.0F;
 }
 
-static int mu_text_width(mu_Font font, const char * text, int len) {
-    return ceil(font_length(mu_text_height(font) / 16.0F, text, len, UTF8));
-}
+static inline int mu_text_width(mu_Font font, const char * text, int len)
+{ return ceil(font_length(mu_text_height(font) / 16.0F, text, len, UTF8)); }
 
-static void mu_text_color(mu_Context * ctx, int red, int green, int blue) {
-    ctx->style->colors[MU_COLOR_TEXT] = mu_color(red, green, blue, 255);
-}
+static inline void mu_text_color(mu_Context * ctx, int red, int green, int blue)
+{ ctx->style->colors[MU_COLOR_TEXT] = mu_color(red, green, blue, 255); }
 
-static void mu_text_color_default(mu_Context * ctx) {
-    ctx->style->colors[MU_COLOR_TEXT] = mu_color(230, 230, 230, 255);
-}
+static inline void mu_text_color_default(mu_Context * ctx)
+{ ctx->style->colors[MU_COLOR_TEXT] = mu_color(230, 230, 230, 255); }
+
+static inline mu_Layout * mu_get_layout(mu_Context * ctx)
+{ return &ctx->layout_stack.items[ctx->layout_stack.idx - 1]; }
 
 void hud_init() {
     mu_Context * ctx = malloc(sizeof(mu_Context)); mu_init(ctx);
@@ -146,6 +146,8 @@ static inline void kv6_center(mat4 matrix, kv6 * model) {
 }
 
 static void hud_ingame_render3D() {
+    font_select(font_primary);
+
     glDepthRange(0.0F, 0.05F);
 
     const float aspect = window_aspect();
@@ -785,9 +787,9 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     }
 
     if (camera.mode != CAMERAMODE_SELECTION) {
-        int chat_y = 8 * 18.0F * scale;
-
         font_select(font_secondary);
+
+        int chat_y = 8 * 18.0F * scale;
 
         if (settings.chat_shadow) {
             float chat_width = 0;

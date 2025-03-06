@@ -667,7 +667,7 @@ int cube_line_length(int x1, int y1, int z1, int x2, int y2, int z2) {
     LineRasterizer i = cube_line(x1, y1, z1, x2, y2, z2);
     for (; !i.exhausted; rasterizer_next(&i));
 
-    return i.index;
+    return i.index + 1;
 }
 
 void map_vxl_load(void * v, size_t size) {

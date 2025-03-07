@@ -872,12 +872,23 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             sprintf(buff, "Facing: %.04f / %.04f / %.04f", o.x, o.y, o.z);
             font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
 
+            RGB3i rgb = players[local_player.id].block;
+
             sprintf(
-                buff, "RGB: #%02X%02X%02X",
-                players[local_player.id].block.r,
-                players[local_player.id].block.g,
-                players[local_player.id].block.b
+                buff, "RGB: #%02X%02X%02X (%d, %d, %d)",
+                rgb.r, rgb.g, rgb.b,
+                rgb.r, rgb.g, rgb.b
             );
+            font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+            int * pick = camera_terrain_pick(1);
+
+            if (pick == NULL) sprintf(buff, "Targeted Block: N/A");
+            else {
+                Vector3i v = hton3i(pick[X], pick[Y], pick[Z]);
+                sprintf(buff, "Targeted Block: (%d, %d, %d)", v.x, v.y, v.z);
+            }
+
             font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
 
             font_select(font_old);

@@ -86,6 +86,9 @@ static inline Vector3i ntohv3i(const Vector3i v)
 static inline Vector3i htonv3i(const Vector3i v)
 { return (Vector3i) {.x = v.x, .y = v.z, .z = 63 - v.y}; }
 
+static inline Vector3i hton3i(int x, int y, int z)
+{ return (Vector3i) {.x = x, .y = z, .z = 63 - y}; }
+
 static inline Vector3f ntohov3f(const Vector3f v)
 { return (Vector3f) {.x = v.x, .y = -v.z, .z = v.y}; }
 

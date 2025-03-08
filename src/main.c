@@ -242,10 +242,23 @@ void display() {
         if (camera.mode == CAMERAMODE_FPS) {
             weapon_update();
 
+            if (!network_connected && button_map.mmb &&
+                players[local_player.id].held_item == TOOL_BLOCK &&
+                window_time() - players[local_player.id].item_showup >= 0.5F) {
+                int * pick = camera_terrain_pick(1);
+
+                if (pick != NULL) {
+                    players[local_player.id].item_showup = window_time();
+
+                    RGBA4i color = opaque(players[local_player.id].block);
+                    map_set(pick[X], pick[Y], pick[Z], &color);
+                }
+            }
+
             if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
-               (players[local_player.id].held_item == TOOL_BLOCK) &&
-               (window_time() - players[local_player.id].item_showup >= 0.5F) &&
-               (local_player.blocks > 0)) {
+                players[local_player.id].held_item == TOOL_BLOCK &&
+                window_time() - players[local_player.id].item_showup >= 0.5F &&
+                local_player.blocks > 0) {
                 int * pos = camera_terrain_pick(0);
                 if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z])
                    && norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[X], pos[Y], pos[Z]) < 25.0F
@@ -265,8 +278,8 @@ void display() {
             }
 
             if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
-               (players[local_player.id].held_item == TOOL_GRENADE) &&
-               (window_time() - players[local_player.id].start.lmb > 3.0F)) {
+                players[local_player.id].held_item == TOOL_GRENADE &&
+                window_time() - players[local_player.id].start.lmb > 3.0F) {
                 local_player.grenades = max(local_player.grenades - 1, 0);
                 PacketGrenade contained;
                 contained.player_id   = local_player.id;

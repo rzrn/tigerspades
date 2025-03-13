@@ -1856,7 +1856,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             if (key == WINDOW_KEY_PICKCOLOR && players[local_player.id].held_item == TOOL_BLOCK) {
                 players[local_player.id].item_disabled    = window_time();
                 players[local_player.id].items_show_start = window_time();
-                players[local_player.id].items_show       = 1;
+                players[local_player.id].items_show       = true;
 
                 CameraHit hit; camera_hit_fromplayer(&hit, local_player.id, 128.0F);
 

@@ -237,7 +237,7 @@ void display() {
         int local_id = (camera.mode == CAMERAMODE_FPS) ? local_player.id : cameracontroller_bodyview_player;
 
         if (players[local_player.id].items_show && window_time() - players[local_player.id].items_show_start >= 0.5F)
-            players[local_player.id].items_show = 0;
+            players[local_player.id].items_show = false;
 
         if (camera.mode == CAMERAMODE_FPS) {
             weapon_update();

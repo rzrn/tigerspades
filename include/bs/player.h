@@ -110,7 +110,7 @@ typedef struct {
     unsigned char team, weapon, held_item;
     unsigned char alive, connected;
     float item_showup, item_disabled, items_show_start;
-    unsigned char items_show;
+    bool items_show;
     RGB3i block;
 
     struct {
@@ -138,7 +138,7 @@ extern Player players[PLAYERS_MAX];
 // pyspades/pysnip/piqueserver sometimes uses ids that are out of range
 
 void player_on_held_item_change(Player *);
-int player_can_spectate(Player *);
+bool player_can_spectate(Player *);
 float player_section_height(int section);
 void player_init(void);
 float player_height(const Player *);

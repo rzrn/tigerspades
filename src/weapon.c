@@ -65,7 +65,7 @@ void weapon_update() {
         if (players[local_player.id].held_item == TOOL_GUN) {
             players[local_player.id].item_disabled    = weapon_reload_inprogress ? window_time() : 0;
             players[local_player.id].items_show_start = window_time();
-            players[local_player.id].items_show       = 1;
+            players[local_player.id].items_show       = true;
         } else weapon_reload_inprogress = false;
     } else {
         if (screen_current == SCREEN_NONE && window_time() - players[local_player.id].item_disabled >= 0.5F) {
@@ -233,7 +233,7 @@ void weapon_reload() {
 void weapon_reload_abort() {
     if (weapon_reload_inprogress && players[local_player.id].weapon == WEAPON_SHOTGUN) {
         weapon_reload_inprogress               = false;
-        players[local_player.id].items_show    = 0;
+        players[local_player.id].items_show    = false;
         players[local_player.id].item_showup   = 0;
         players[local_player.id].item_disabled = 0;
     }

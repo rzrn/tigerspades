@@ -105,13 +105,15 @@ void player_on_held_item_change(Player * p) {
     p->item_disabled    = window_time();
     p->items_show_start = window_time();
     p->item_showup      = window_time() + 0.3F;
-    p->items_show       = 1;
+    p->items_show       = true;
 }
 
-int player_can_spectate(Player * p) {
-    return p->connected
-        && ((players[local_player.id].team != TEAM_SPECTATOR && p->team == players[local_player.id].team)
-            || (players[local_player.id].team == TEAM_SPECTATOR && p->team != TEAM_SPECTATOR));
+bool player_can_spectate(Player * p) {
+    if (!p->connected) return false;
+
+    return players[local_player.id].team == TEAM_SPECTATOR
+         ? p->team != TEAM_SPECTATOR
+         : p->team == players[local_player.id].team;
 }
 
 float player_swing_func(float x) {

@@ -30,9 +30,9 @@
 #include <log.h>
 
 #ifdef USE_SOUND
-    int sound_enabled = 1;
+    bool sound_enabled = true;
 #else
-    int sound_enabled = 0;
+    bool sound_enabled = false;
 #endif
 
 #ifdef USE_SOUND
@@ -286,15 +286,17 @@ void sound_init() {
     device = alcOpenDevice(NULL);
 
     if (!device) {
-        sound_enabled = 0;
+        sound_enabled = false;
         log_warn("Could not open sound device!");
+
         return;
     }
 
     ALCcontext * context = alcCreateContext(device, NULL);
     if (!alcMakeContextCurrent(context)) {
-        sound_enabled = 0;
+        sound_enabled = false;
         log_warn("Could not enter sound device context!");
+
         return;
     }
 

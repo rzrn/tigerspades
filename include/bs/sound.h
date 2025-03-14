@@ -29,7 +29,7 @@ typedef enum {
     SOUND_LOCAL,
 } SoundSpace;
 
-extern int sound_enabled;
+extern bool sound_enabled;
 
 typedef struct _WAV WAV;
 

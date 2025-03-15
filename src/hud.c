@@ -1456,7 +1456,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         players[local_player.id].start.rmb = window_time();
         if (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) {
             if (camera.mode == CAMERAMODE_SPECTATOR)
-                cameracontroller_bodyview_mode = 1;
+                cameracontroller_bodyview_mode = true;
             for (int k = 0; k < PLAYERS_MAX * 2; k++) {
                 cameracontroller_bodyview_player = (cameracontroller_bodyview_player + 1) % PLAYERS_MAX;
                 if (player_can_spectate(&players[cameracontroller_bodyview_player])) break;
@@ -1520,7 +1520,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
 
         if (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) {
             if (camera.mode == CAMERAMODE_SPECTATOR)
-                cameracontroller_bodyview_mode = 1;
+                cameracontroller_bodyview_mode = true;
 
             for (int k = 0; k < PLAYERS_MAX * 2; k++) {
                 cameracontroller_bodyview_player = (cameracontroller_bodyview_player - 1) % PLAYERS_MAX;

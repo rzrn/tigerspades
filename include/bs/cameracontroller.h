@@ -20,7 +20,7 @@
 #ifndef CAMERACONTROLLER_H
 #define CAMERACONTROLLER_H
 
-extern int cameracontroller_bodyview_mode;
+extern bool cameracontroller_bodyview_mode;
 extern int cameracontroller_bodyview_player;
 extern float cameracontroller_bodyview_zoom;
 

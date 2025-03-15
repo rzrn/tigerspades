@@ -28,7 +28,7 @@
 #include <bs/config.h>
 #include <bs/hud.h>
 
-int cameracontroller_bodyview_mode = 0;
+bool cameracontroller_bodyview_mode = false;
 int cameracontroller_bodyview_player = 0;
 float cameracontroller_bodyview_zoom = 0.0F;
 

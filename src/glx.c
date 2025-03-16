@@ -33,7 +33,7 @@
 
 int glx_version = 0;
 
-int glx_fog = 0;
+bool glx_fog = false;
 
 static int glx_major_ver() {
 #ifdef OPENGL_ES
@@ -296,7 +296,7 @@ void glx_enable_sphericalfog() {
     glFogfv(GL_FOG_COLOR, fog_color);
 #endif
 #endif
-    glx_fog = 1;
+    glx_fog = true;
 }
 
 void glx_disable_sphericalfog() {
@@ -324,5 +324,5 @@ void glx_disable_sphericalfog() {
     float a[4] = {0.2F, 0.2F, 0.2F, 1.0F};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, a);
 #endif
-    glx_fog = 0;
+    glx_fog = false;
 }

@@ -26,7 +26,7 @@
 #include <stdbool.h>
 
 extern int glx_version;
-extern int glx_fog;
+extern bool glx_fog;
 
 typedef struct {
     uint32_t legacy;

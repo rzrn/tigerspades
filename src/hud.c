@@ -2254,7 +2254,7 @@ static void hud_sort_button_render(mu_Context * ctx, float scale, const char * n
         mu_text_color(ctx, 255, 255, 0);
 
     if (mu_button_ex(ctx, name, 0, MU_OPT_ALIGNCENTER)) {
-        pthread_mutex_lock(&serverlist_lock);
+        serverlist_lock();
 
         if (cmp != serverlist_comparator) {
             serverlist_comparator = cmp;
@@ -2263,7 +2263,7 @@ static void hud_sort_button_render(mu_Context * ctx, float scale, const char * n
 
         serverlist_sort();
 
-        pthread_mutex_unlock(&serverlist_lock);
+        serverlist_unlock();
     }
 
     mu_text_color_default(ctx);
@@ -2341,7 +2341,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
                                0.22F * width, 0.12F * width, -1},
                       0);
 
-        pthread_mutex_lock(&serverlist_lock);
+        serverlist_lock();
 
         if (server_count > 0) {
             for (size_t k = 0; k < server_count; k++) {
@@ -2418,7 +2418,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
                 mu_button_ex(ctx, status, 0, MU_OPT_NOFRAME | MU_OPT_ALIGNCENTER);
         }
 
-        pthread_mutex_unlock(&serverlist_lock);
+        serverlist_unlock();
 
         mu_text_color_default(ctx);
         mu_end_panel(ctx);

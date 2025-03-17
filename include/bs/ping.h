@@ -20,11 +20,6 @@
 #ifndef PING_H
 #define PING_H
 
-#include <pthread.h> // !!!
-
-#include <enet/enet.h>
-#include <parson.h>
-
 #include <bs/hud.h>
 
 typedef struct {
@@ -48,7 +43,10 @@ typedef struct News {
 } News;
 
 extern size_t server_count, player_count;
-extern pthread_mutex_t serverlist_lock;
+
+void serverlist_lock(void);
+void serverlist_unlock(void);
+
 extern ServerEntry ** serverlist;
 extern News * newslist;
 

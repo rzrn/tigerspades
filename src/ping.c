@@ -28,6 +28,7 @@
 
 #include <http.h>
 #include <parson.h>
+#include <enet/enet.h>
 #include <lodepng/lodepng.h>
 
 #include <hashtable.h>
@@ -54,7 +55,10 @@ ServerEntry ** serverlist = NULL;
 
 News * newslist = NULL;
 
-pthread_t ping_thread; pthread_mutex_t serverlist_lock;
+pthread_t ping_thread; pthread_mutex_t serverlist_mutex;
+
+void serverlist_lock(void)   { pthread_mutex_lock(&serverlist_mutex);   }
+void serverlist_unlock(void) { pthread_mutex_unlock(&serverlist_mutex); }
 
 static void newslist_clear() {
     while (newslist != NULL) {
@@ -64,14 +68,14 @@ static void newslist_clear() {
 }
 
 static void serverlist_clear() {
-    pthread_mutex_lock(&serverlist_lock);
+    pthread_mutex_lock(&serverlist_mutex);
 
     for (size_t i = 0; i < server_count; i++)
         free(serverlist[i]);
 
     player_count = server_count = 0;
 
-    pthread_mutex_unlock(&serverlist_lock);
+    pthread_mutex_unlock(&serverlist_mutex);
 }
 
 GameVersion json_get_game_version(const JSON_Object * obj) {
@@ -218,7 +222,7 @@ void * ping_update(void * data) {
                 JSON_Value * js = json_parse_string(request_serverlist->response_data);
                 JSON_Array * servers = json_value_get_array(js);
 
-                pthread_mutex_lock(&serverlist_lock);
+                pthread_mutex_lock(&serverlist_mutex);
 
                 size_t begin = server_count; server_count += json_array_get_count(servers);
                 serverlist = realloc(serverlist, server_count * sizeof(ServerEntry));
@@ -262,7 +266,7 @@ void * ping_update(void * data) {
                 }
 
                 serverlist_sort();
-                pthread_mutex_unlock(&serverlist_lock);
+                pthread_mutex_unlock(&serverlist_mutex);
 
                 http_release(request_serverlist);
                 json_value_free(js);
@@ -356,10 +360,10 @@ void * ping_update(void * data) {
 
                             float dt = window_time() - task->timestamp;
 
-                            pthread_mutex_lock(&serverlist_lock);
+                            pthread_mutex_lock(&serverlist_mutex);
                             task->entry->ping = ceil(dt * 1000.0F);
                             serverlist_sort();
-                            pthread_mutex_unlock(&serverlist_lock);
+                            pthread_mutex_unlock(&serverlist_mutex);
 
                             ht_erase(&pings, &ID);
                         } else if (task->trycount >= 3) {
@@ -397,14 +401,14 @@ void * ping_update(void * data) {
                 e->version = json_get_game_version(root);
                 e->ping    = ceil(ping * 1000.0F);
 
-                pthread_mutex_lock(&serverlist_lock);
+                pthread_mutex_lock(&serverlist_mutex);
                 serverlist = realloc(serverlist, (server_count + 1) * sizeof(ServerEntry *));
                 serverlist[server_count] = e;
 
                 player_count += e->current; server_count++;
 
                 serverlist_sort();
-                pthread_mutex_unlock(&serverlist_lock);
+                pthread_mutex_unlock(&serverlist_mutex);
 
                 json_value_free(js);
             }
@@ -426,7 +430,7 @@ void * ping_update(void * data) {
 }
 
 void ping_init() {
-    pthread_mutex_init(&serverlist_lock, NULL);
+    pthread_mutex_init(&serverlist_mutex, NULL);
 
     pthread_create(&ping_thread, NULL, ping_update, NULL);
 }

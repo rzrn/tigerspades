@@ -308,9 +308,19 @@ void player_render_all() {
     ray.origin[Y] = camera.pos.y;
     ray.origin[Z] = camera.pos.z;
 
-    ray.direction[X] = sin(camera.rot.x) * sin(camera.rot.y);
-    ray.direction[Y] = cos(camera.rot.y);
-    ray.direction[Z] = cos(camera.rot.x) * sin(camera.rot.y);
+    if (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode &&
+        players[cameracontroller_bodyview_player].alive) {
+        Player * p = &players[cameracontroller_bodyview_player];
+        Vector3f * o = settings.smooth_orientation ? &p->orientation_smooth : &p->orientation;
+
+        ray.direction[X] = o->x;
+        ray.direction[Y] = o->y;
+        ray.direction[Z] = o->z;
+    } else {
+        ray.direction[X] = sin(camera.rot.x) * sin(camera.rot.y);
+        ray.direction[Y] = cos(camera.rot.y);
+        ray.direction[Z] = cos(camera.rot.x) * sin(camera.rot.y);
+    }
 
     for (int k = 0; k < PLAYERS_MAX; k++) {
         if (players[k].team == TEAM_SPECTATOR)
@@ -336,6 +346,7 @@ void player_render_all() {
            && window_time() - players[k].item_showup >= 0.5F) {
             // now run a hitscan and see if any block or player is in the way
             CameraHit hit;
+
             if (HASBIT(players[k].input.buttons, BUTTON_PRIMARY) &&
                (window_time() - players[k].spade_use_timer > 0.2F)) {
                 camera_hit_fromplayer(&hit, k, 4.0F);

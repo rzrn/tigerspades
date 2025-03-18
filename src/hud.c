@@ -1183,8 +1183,10 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                 case TEAM2: glColorRGB3i(gamestate.team2.color); break;
             }
 
-            font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F, 1.0F * scale,
-                          players[cameracontroller_bodyview_player].name, UTF8);
+            font_centered(
+                settings.window_width / 2.0F, 13 * 18.0F * scale, 1.0F * scale,
+                players[cameracontroller_bodyview_player].name, UTF8
+            );
         }
 
         font_select(font_primary);
@@ -1271,7 +1273,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         }
 
         sprintf(str, "%s (%s)", players[player_intersection_player].name, th[player_intersection_type]);
-        font_centered(settings.window_width / 2.0F, settings.window_height * 0.2F, 1.0F * scale, str, UTF8);
+        font_centered(settings.window_width / 2.0F, 11 * 18.0F * scale, 1.0F * scale, str, UTF8);
         font_select(font_primary);
     }
 

@@ -1143,10 +1143,8 @@ int player_move(Player * p, float fsynctics, int id) {
 
     // move player and perform simple physics (gravity, momentum, friction)
     if (p->physics.jump) {
-        sound_create(
-            local ? SOUND_LOCAL : SOUND_WORLD, sound(p->physics.wade ? SOUND_JUMP_WATER : SOUND_JUMP),
-            p->pos.x, 63.0F - p->pos.z, p->pos.y
-        );
+        WAV * sound_jump = sound(p->physics.wade && !p->physics.airborne ? SOUND_JUMP_WATER : SOUND_JUMP);
+        sound_create(local ? SOUND_LOCAL : SOUND_WORLD, sound_jump, p->pos.x, 63.0F - p->pos.z, p->pos.y);
 
         p->physics.jump       = 0;
         p->physics.velocity.z = -0.36f;

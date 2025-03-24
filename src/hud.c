@@ -746,7 +746,7 @@ static void hud_draw_map(float scale) {
         if (visible_on_minimap(&players[k]))
     #endif
         {
-            bool in_bodyview_mode = camera.mode == CAMERAMODE_SPECTATOR
+            bool in_bodyview_mode = (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
                                  && cameracontroller_bodyview_mode
                                  && players[cameracontroller_bodyview_player].alive;
             int local_id = in_bodyview_mode ? cameracontroller_bodyview_player : local_player.id;
@@ -876,7 +876,7 @@ static void hud_draw_minimap(float scale) {
         if (visible_on_minimap(&players[k]))
     #endif
         {
-            bool in_bodyview_mode = camera.mode == CAMERAMODE_SPECTATOR
+            bool in_bodyview_mode = (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
                                  && cameracontroller_bodyview_mode
                                  && players[cameracontroller_bodyview_player].alive;
             int local_id = in_bodyview_mode ? cameracontroller_bodyview_player : local_player.id;

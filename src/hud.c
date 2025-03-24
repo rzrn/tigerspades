@@ -1031,7 +1031,7 @@ static void hud_draw_game_ui(float scale) {
 }
 
 static void hud_draw_scoreboard(float scale) {
-    if (network_logged_in) {
+    if (network_connected && camera.mode != CAMERAMODE_SELECTION) {
         char ping_str[16];
         sprintf(ping_str, "Ping: %i ms", network_ping());
         font_select(font_secondary);
@@ -1815,6 +1815,15 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
 
                 if (camera.mode != CAMERAMODE_SELECTION && (key == WINDOW_KEY_CHANGETEAM || key == WINDOW_KEY_ESCAPE)) {
                     screen_current = SCREEN_NONE;
+                    return;
+                }
+
+                if (camera.mode == CAMERAMODE_SELECTION && key == WINDOW_KEY_SELECT4) {
+                    players[local_player.id].team = TEAM_SPECTATOR;
+
+                    screen_current = SCREEN_NONE;
+                    camera.mode = CAMERAMODE_SPECTATOR;
+
                     return;
                 }
             }

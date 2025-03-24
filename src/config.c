@@ -136,6 +136,7 @@ ConfigKey _config_key[] = {
     [WINDOW_KEY_SELECT1]       = {.keycode = TOOLKIT_KEY_1,            .display = NULL},
     [WINDOW_KEY_SELECT2]       = {.keycode = TOOLKIT_KEY_2,            .display = NULL},
     [WINDOW_KEY_SELECT3]       = {.keycode = TOOLKIT_KEY_3,            .display = NULL},
+    [WINDOW_KEY_SELECT4]       = {.keycode = TOOLKIT_KEY_4,            .display = NULL},
     [WINDOW_KEY_UNKNOWN]       = {.keycode = 0,                        .display = NULL},
 };
 

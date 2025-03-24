@@ -1100,7 +1100,7 @@ static void hud_draw_scoreboard(float scale) {
 
         if (pt[k].id == local_player.id)
             glColor3f(1.0F, 1.0F, 0.0F);
-        else if (!players[pt[k].id].alive)
+        else if (!players[pt[k].id].alive && players[pt[k].id].team != TEAM_SPECTATOR)
             glColor3f(0.6F, 0.6F, 0.6F);
         else
             glColor3f(1.0F, 1.0F, 1.0F);

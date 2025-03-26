@@ -1220,9 +1220,9 @@ void updateInputData() {
     network_keys_last = players[local_player.id].input.keys;
 }
 
-unsigned int network_ping() {
-    return peer != NULL ? peer->roundTripTime : 0;
-}
+unsigned int network_ping() { return peer != NULL ? peer->roundTripTime : 0; }
+
+float network_packet_loss() { return peer != NULL ? peer->packetLoss / (float) ENET_PEER_PACKET_LOSS_SCALE : 0.0F; }
 
 static inline int network_destroy() {
     network_connected    = false;

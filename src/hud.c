@@ -528,73 +528,80 @@ static float hud_draw_debug_screen(float top, float scale) {
     return top;
 }
 
-static void hud_draw_network_stats(float scale) {
+static float hud_draw_network_stats(float top, float scale) {
     glColor3f(0.0F, 0.0F, 0.0F);
 
+    float w = 160.0F * scale, h = 160.0F * scale;
+    float x = 11.0F * scale, y = top - 8.0F * scale;
+
+    float bw = 1.0F * scale;
+
     glEnable(GL_DEPTH_TEST);
+
     glColorMask(0, 0, 0, 0);
-    texture_draw_empty(8.0F * scale, 380.0F * scale, 160.0F * scale, 160.0F * scale);
+    texture_draw_empty(x, y, w, h);
+
     glColorMask(1, 1, 1, 1);
     glDepthFunc(GL_NOTEQUAL);
-    texture_draw_empty(7.0F * scale, 381.0F * scale, 162.0F * scale, 162.0F * scale);
+    texture_draw_empty(x - bw, y + bw, w + 2.0F * bw, h + 2.0F * bw);
+
     glDepthFunc(GL_LEQUAL);
     glDisable(GL_DEPTH_TEST);
     font_select(font_secondary);
-    char dbg_str[32];
 
     int max = 0;
     for (int k = 0; k < 40; k++)
         max = max(max, network_stats[k].ingoing + network_stats[k].outgoing);
 
+    y -= h;
+
     for (int k = 0; k < 40; k++) {
-        float in_h = (float) (network_stats[39 - k].ingoing) / max * 160.0F;
-        float out_h = (float) (network_stats[39 - k].ingoing + network_stats[39 - k].outgoing) / max * 160.0F;
-        float ping_h = min(network_stats[39 - k].avg_ping / 25.0F, 160.0F);
+        float dh = h / max;
+
+        float in_h   = network_stats[39 - k].ingoing * dh;
+        float out_h  = in_h + network_stats[39 - k].outgoing * dh;
+        float ping_h = min(network_stats[39 - k].avg_ping * h / (25.0F * 160.0F), h);
 
         glColor3f(0.0F, 0.0F, 1.0F);
-        texture_draw_empty(8.0F * scale + 4 * k * scale, (220.0F + out_h) * scale, 4.0F * scale,
-                           out_h * scale);
-
-        if (!k) {
-            sprintf(dbg_str, "out: %i b/s", network_stats[1].outgoing);
-            font_render(8.0F * scale, 200.0F * scale, 1.0F * scale, dbg_str, ASCII);
-        }
+        texture_draw_empty(x + 4 * k * scale, y + out_h, 4.0F * scale, out_h);
 
         glColor3f(0.0F, 1.0F, 0.0F);
-        texture_draw_empty(8.0F * scale + 4 * k * scale, (220.0F + in_h) * scale, 4.0F * scale, in_h * scale);
-
-        if (!k) {
-            sprintf(dbg_str, "in: %i b/s", network_stats[1].ingoing);
-            font_render(8.0F * scale, 216.0F * scale, 1.0F * scale, dbg_str, ASCII);
-        }
+        texture_draw_empty(x + 4 * k * scale, y + in_h, 4.0F * scale, in_h);
 
         glColor3f(1.0F, 0.0F, 0.0F);
-        texture_draw_empty(8.0F * scale + 4 * k * scale, (220.0F + ping_h) * scale, 4.0F * scale,
-                           ping_h * scale);
-
-        if (!k) {
-            sprintf(dbg_str, "ping: %i ms", network_stats[1].avg_ping);
-            font_render(8.0F * scale, 184.0F * scale, 1.0F * scale, dbg_str, ASCII);
-        }
+        texture_draw_empty(x + 4 * k * scale, y + ping_h, 4.0F * scale, ping_h);
     }
+
+    char dbg_str[32]; y -= 4.0F * scale;
+
+    glColor3f(0.0F, 1.0F, 0.0F); sprintf(dbg_str, "in: %i B/s", network_stats[1].ingoing);
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    glColor3f(0.0F, 0.0F, 1.0F); sprintf(dbg_str, "out: %i B/s", network_stats[1].outgoing);
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    glColor3f(1.0F, 0.0F, 0.0F); sprintf(dbg_str, "ping: %i ms", network_stats[1].avg_ping);
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    glColor3f(1.0F, 1.0F, 1.0F); sprintf(dbg_str, "packet loss: %.2f %%", network_packet_loss() * 100.0F);
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    return y;
 }
 
-static void hud_draw_killfeed(float scale) {
+static float hud_draw_killfeed(float top, float scale) {
     font_select(font_secondary);
     glColor3f(1.0F, 1.0F, 1.0F);
 
-    float top = settings.window_height - 11.0F * scale;
-
-    if (window_key_down(WINDOW_KEY_DEBUG))
-        top = hud_draw_debug_screen(top, scale);
-
     for (int k = 0; k < 6; k++) {
-        if (window_time() - chat_timer[1][k + 1] < 10.0F) {
+        if (window_time() - chat_timer[1][k + 1] < 10.0F && strlen(chat[1][k + 1]) > 0) {
             glColor3ub(chat_color[1][k + 1].r, chat_color[1][k + 1].g, chat_color[1][k + 1].b);
 
-            font_render(11.0F * scale, top - 18.0F * scale * k, 1.0F * scale, chat[1][k + 1], UTF8);
+            font_render(11.0F * scale, top, 1.0F * scale, chat[1][k + 1], UTF8); top -= 18.0F * scale;
         }
     }
+
+    return top;
 }
 
 static void hud_draw_chat(float scale) {
@@ -1134,9 +1141,6 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     hud_active->render_localplayer = players[local_player.id].team != TEAM_SPECTATOR
         && (screen_current == SCREEN_NONE || camera.mode != CAMERAMODE_FPS);
 
-    if (window_key_down(WINDOW_KEY_NETWORKSTATS))
-        hud_draw_network_stats(scale);
-
     font_select(font_primary);
     glColor3f(1.0F, 1.0F, 1.0F);
 
@@ -1217,7 +1221,16 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
     if (camera.mode != CAMERAMODE_SELECTION) {
         hud_draw_chat(scale);
-        hud_draw_killfeed(scale);
+
+        float top = settings.window_height - 11.0F * scale;
+
+        if (window_key_down(WINDOW_KEY_DEBUG))
+            top = hud_draw_debug_screen(top, scale);
+
+        top = hud_draw_killfeed(top, scale);
+
+        if (window_key_down(WINDOW_KEY_NETWORKSTATS))
+            top = hud_draw_network_stats(top, scale);
     } else hud_draw_welcome_screen(scale);
 
     font_select(font_primary);

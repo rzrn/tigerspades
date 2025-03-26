@@ -34,6 +34,7 @@ typedef struct { char ip[32]; int port; GameVersion version; } Address;
 const char * network_reason_disconnect(ErrorCode code);
 
 unsigned int network_ping(void);
+float network_packet_loss(void);
 
 void updateBlockColor(void);
 void updateInputData(void);

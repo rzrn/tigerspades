@@ -73,7 +73,7 @@ Player players[PLAYERS_MAX];
 #define FALL_SLOW_DOWN       0.24F
 #define FALL_DAMAGE_SCALAR   4096
 
-void player_init() {
+void player_init(void) {
     for (int k = 0; k < PLAYERS_MAX; k++) {
         player_reset(&players[k]);
         players[k].score = 0;
@@ -299,7 +299,7 @@ void player_update_orientation(float dt) {
     }
 }
 
-void player_render_all() {
+void player_render_all(void) {
     player_intersection_type = -1;
     player_intersection_dist = FLT_MAX;
 

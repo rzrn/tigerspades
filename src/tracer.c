@@ -118,7 +118,7 @@ static bool tracer_render_single(void * obj, void * user) {
     return false;
 }
 
-void tracer_render() {
+void tracer_render(void) {
     entitysys_iterate(&tracers, NULL, tracer_render_single);
 }
 
@@ -147,6 +147,6 @@ void tracer_update(float dt) {
     entitysys_iterate(&tracers, &dt, tracer_update_single);
 }
 
-void tracer_init() {
+void tracer_init(void) {
     entitysys_create(&tracers, sizeof(Tracer), PLAYERS_MAX);
 }

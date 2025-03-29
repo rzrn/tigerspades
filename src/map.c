@@ -131,7 +131,7 @@ static bool damaged_voxel_update(void * key, void * value, void * user) {
     return false;
 }
 
-void map_damaged_voxels_render() {
+void map_damaged_voxels_render(void) {
     matrix_identity(matrix_model);
     matrix_upload();
 
@@ -345,7 +345,7 @@ static bool falling_blocks_render(void * obj, void * user) {
     return false;
 }
 
-void map_collapsing_render() {
+void map_collapsing_render(void) {
     // qsort(map_collapsing_structures, 32, sizeof(MapCollapsing), map_collapsing_cmp);
 
     glEnable(GL_BLEND);
@@ -495,7 +495,7 @@ void * falling_blocks_worker(void * user) {
     return NULL;
 }
 
-void map_init() {
+void map_init(void) {
     tesselator_create(&map_damaged_tesselator, VERTEX_INT, 0);
     pthread_rwlock_init(&map_lock, NULL);
 
@@ -512,7 +512,7 @@ void map_init() {
     pthread_create(&worker, NULL, falling_blocks_worker, NULL);
 }
 
-bool map_empty() {
+bool map_empty(void) {
     return map.chunks == NULL;
 }
 

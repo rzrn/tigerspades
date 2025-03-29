@@ -29,7 +29,7 @@
 float weapon_reload_start, weapon_last_shot = -INFINITY;
 bool weapon_reload_inprogress = false;
 
-void weapon_update() {
+void weapon_update(void) {
     float t, delay = weapon_delay(players[local_player.id].weapon);
     int bullets = weapon_can_reload();
     switch (players[local_player.id].weapon) {
@@ -209,7 +209,7 @@ void weapon_set(bool restock) {
     weapon_reload_inprogress = false;
 }
 
-void weapon_reload() {
+void weapon_reload(void) {
     if (local_player.ammo_reserved == 0 || weapon_reload_inprogress || !weapon_can_reload())
         return;
 
@@ -230,7 +230,7 @@ void weapon_reload() {
     sendPacketWeaponReload(&contained, 0);
 }
 
-void weapon_reload_abort() {
+void weapon_reload_abort(void) {
     if (weapon_reload_inprogress && players[local_player.id].weapon == WEAPON_SHOTGUN) {
         weapon_reload_inprogress               = false;
         players[local_player.id].items_show    = false;
@@ -239,18 +239,18 @@ void weapon_reload_abort() {
     }
 }
 
-bool weapon_reloading() {
+bool weapon_reloading(void) {
     return weapon_reload_inprogress;
 }
 
-int weapon_can_reload() {
+int weapon_can_reload(void) {
     int mag_size = weapon_ammo(players[local_player.id].weapon);
     return clamp(0, min(local_player.ammo_reserved, mag_size), mag_size - local_player.ammo);
 }
 
 #define WEAPON_ROUNDS(w) ((w) == WEAPON_SHOTGUN ? 8 : 1)
 
-void weapon_shoot() {
+void weapon_shoot(void) {
     // see this for reference:
     // https://pastebin.com/raw/TMjKSTXG
     // http://paste.quacknet.org/view/a3ea2743

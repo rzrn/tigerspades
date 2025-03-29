@@ -87,7 +87,7 @@ static void kv6_check_dimensions(kv6 * model, const char * name, float max) {
     }
 }
 
-void kv6_init() {
+void kv6_init(void) {
     for (enum kv6 i = MODEL_FIRST; i <= MODEL_LAST; i++) {
         Resource res = kv6_model(i);
         kv6_load_file(&model[i], res.filename, res.scale);
@@ -97,7 +97,7 @@ void kv6_init() {
     model[MODEL_BLOCK].colorize = true;
 }
 
-void kv6_rebuild_complete() {
+void kv6_rebuild_complete(void) {
     for (enum kv6 i = MODEL_FIRST; i <= MODEL_LAST; i++)
         kv6_rebuild(&model[i]);
 }

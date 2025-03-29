@@ -63,7 +63,7 @@ typedef struct {
     int mirror_y;
 } ChunkRenderCall;
 
-void chunk_init() {
+void chunk_init(void) {
     for (size_t x = 0; x < CHUNKS_PER_DIM; x++) {
         for (size_t y = 0; y < CHUNKS_PER_DIM; y++) {
             Chunk * c = chunks + x + y * CHUNKS_PER_DIM;
@@ -110,7 +110,7 @@ void chunk_render(ChunkRenderCall * c) {
     }
 }
 
-void chunk_draw_visible() {
+void chunk_draw_visible(void) {
     ChunkRenderCall chunks_draw[CHUNKS_PER_DIM * CHUNKS_PER_DIM * 2];
     int index = 0;
 
@@ -755,7 +755,7 @@ void chunk_generate_naive(struct libvxl_chunk_copy * blocks, Tesselator * tess, 
     (*max_height)++;
 }
 
-void chunk_update_all() {
+void chunk_update_all(void) {
     size_t drain = channel_size(&chunk_result_queue);
 
     if (drain > 0) {
@@ -793,7 +793,7 @@ void chunk_update_all() {
     }
 }
 
-void chunk_rebuild_all() {
+void chunk_rebuild_all(void) {
     channel_clear(&chunk_work_queue);
 
     for (int k = CHUNKS_PER_DIM / 2; k >= 0; k--) {
@@ -843,7 +843,7 @@ static bool iterate_chunk_updates(void * key, void * value, void * user) {
     return true;
 }
 
-void chunk_queue_blocks() {
+void chunk_queue_blocks(void) {
     pthread_mutex_lock(&chunk_block_queue_lock);
     ht_iterate(&chunk_block_queue, NULL, iterate_chunk_updates);
     ht_clear(&chunk_block_queue);

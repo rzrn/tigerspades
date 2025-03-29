@@ -224,7 +224,7 @@ static bool sound_update_single(void * obj, void * user) {
 }
 #endif
 
-void sound_update() {
+void sound_update(void) {
 #ifdef USE_SOUND
     if (!sound_enabled)
         return;
@@ -279,7 +279,7 @@ void sound_load(WAV * wav, const char * name, float min, float max) {
 static ALCdevice * device = NULL;
 #endif
 
-void sound_init() {
+void sound_init(void) {
 #ifdef USE_SOUND
     entitysys_create(&sound_sources, sizeof(SoundSource), 256);
 
@@ -311,7 +311,7 @@ void sound_init() {
 #endif
 }
 
-void sound_deinit() {
+void sound_deinit(void) {
 #ifdef USE_SOUND
     //if (device != NULL)
     //    alcCloseDevice(device);

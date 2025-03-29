@@ -43,7 +43,7 @@ Camera camera = {
     .rot        = {2.04F, 1.79F}
 };
 
-float camera_fov_scaled() {
+float camera_fov_scaled(void) {
     int render_fpv = (camera.mode == CAMERAMODE_FPS)
         || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
             && cameracontroller_bodyview_mode);
@@ -56,7 +56,7 @@ float camera_fov_scaled() {
     return settings.camera_fov;
 }
 
-void camera_overflow_adjust() {
+void camera_overflow_adjust(void) {
     if (camera.rot.y < EPSILON)
         camera.rot.y = EPSILON;
 
@@ -70,7 +70,7 @@ void camera_overflow_adjust() {
         camera.rot.x += TAU;
 }
 
-void camera_apply() {
+void camera_apply(void) {
     switch (camera.mode) {
         case CAMERAMODE_FPS:       cameracontroller_fps_render();       break;
         case CAMERAMODE_BODYVIEW:  cameracontroller_bodyview_render();  break;
@@ -90,7 +90,7 @@ void camera_update(float dt) {
     }
 }
 
-Vector3f camera_orientation() {
+Vector3f camera_orientation(void) {
     return (Vector3f) {
         .x = sin(camera.rot.x) * sin(camera.rot.y),
         .y = cos(camera.rot.y),
@@ -276,7 +276,7 @@ int * camera_terrain_pickEx(unsigned char mode, float gx0, float gy0, float gz0,
     return NULL;
 }
 
-void camera_ExtractFrustum() {
+void camera_ExtractFrustum(void) {
     float clip[16];
     float t;
 

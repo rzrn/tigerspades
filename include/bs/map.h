@@ -32,12 +32,12 @@ extern int map_size_z;
 
 extern float fog_color[4];
 
-void map_init();
+void map_init(void);
 int map_object_visible(float x, float y, float z);
 int map_damage(int x, int y, int z, int damage);
 int map_damage_get(int x, int y, int z);
 bool map_damage_action(int x, int y, int z);
-void map_damaged_voxels_render();
+void map_damaged_voxels_render(void);
 void map_update_physics(int x, int y, int z);
 float map_sunblock(int x, int y, int z);
 bool map_isair(int x, int y, int z);
@@ -51,7 +51,7 @@ void map_collapsing_update(float dt);
 int map_height_at(int x, int z);
 void map_save_file(char * filename);
 void map_copy_blocks(struct libvxl_chunk_copy * copy, size_t x, size_t y);
-bool map_empty();
+bool map_empty(void);
 
 typedef struct {
     bool exhausted; int index; int x, y, z;

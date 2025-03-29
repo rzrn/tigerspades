@@ -47,7 +47,7 @@ static void rpc_joinrequest(const DiscordUser * request) {
 }
 #endif
 
-void rpc_init() {
+void rpc_init(void) {
 #ifdef USE_RPC
     DiscordEventHandlers handlers;
     memset(&handlers, 0, sizeof(handlers));
@@ -62,7 +62,7 @@ void rpc_init() {
     *rpc_state.server_name = 0;
 }
 
-void rpc_deinit() {
+void rpc_deinit(void) {
 #ifdef USE_RPC
     Discord_Shutdown();
 #endif
@@ -106,7 +106,7 @@ void rpc_seti(enum RPC_VALUE v, int x) {
     }
 }
 
-void rpc_update() {
+void rpc_update(void) {
 #ifdef USE_RPC
 
     int online = 0;

@@ -60,14 +60,14 @@ pthread_t ping_thread; pthread_mutex_t serverlist_mutex;
 void serverlist_lock(void)   { pthread_mutex_lock(&serverlist_mutex);   }
 void serverlist_unlock(void) { pthread_mutex_unlock(&serverlist_mutex); }
 
-static void newslist_clear() {
+static void newslist_clear(void) {
     while (newslist != NULL) {
         News * next = newslist->next;
         free(newslist); newslist = next;
     }
 }
 
-static void serverlist_clear() {
+static void serverlist_clear(void) {
     pthread_mutex_lock(&serverlist_mutex);
 
     for (size_t i = 0; i < server_count; i++)
@@ -148,7 +148,7 @@ static int serverlist_cmp(const void * a, const void * b) {
     return serverlist_descending ? serverlist_comparator(A, B) : -serverlist_comparator(A, B);
 }
 
-void serverlist_sort() {
+void serverlist_sort(void) {
     qsort(serverlist, server_count, sizeof(ServerEntry *), serverlist_cmp);
 }
 
@@ -166,7 +166,7 @@ static volatile bool working = true, quit = false;
 
 const char * _status = NULL;
 
-const char * ping_status() {
+const char * ping_status(void) {
     return _status;
 }
 
@@ -429,20 +429,20 @@ void * ping_update(void * data) {
     goto begin; // it hurts
 }
 
-void ping_init() {
+void ping_init(void) {
     pthread_mutex_init(&serverlist_mutex, NULL);
 
     pthread_create(&ping_thread, NULL, ping_update, NULL);
 }
 
-void ping_refresh() {
+void ping_refresh(void) {
     serverlist_comparator = serverlist_sort_default;
     serverlist_descending = true;
 
     working = false;
 }
 
-void ping_deinit() {
+void ping_deinit(void) {
     quit = true; working = false;
     void * ret; pthread_join(ping_thread, &ret);
 }

@@ -266,7 +266,7 @@ void texture_load(enum Texture index, Filtering filter) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-static inline bool has_npot_textures() {
+static inline bool has_npot_textures(void) {
     return strstr((const char *) glGetString(GL_EXTENSIONS), "ARB_texture_non_power_of_two") != NULL;
 }
 
@@ -367,7 +367,7 @@ void texture_gradient_fog(unsigned int * gradient) {
     }
 }
 
-void texture_minimap_clear() {
+void texture_minimap_clear(void) {
     uint32_t * buff = malloc(map_size_x * map_size_z * sizeof(uint32_t));
 
     for (int x = 0; x < map_size_x; x++) {
@@ -381,7 +381,7 @@ void texture_minimap_clear() {
     free(buff);
 }
 
-void texture_init() {
+void texture_init(void) {
     for (enum Texture i = TEXTURE_FIRST; i <= TEXTURE_LAST; i++)
         texture_load(i, TEXTURE_FILTER_NEAREST);
 
@@ -423,7 +423,7 @@ float texture_height(Texture * t) {
     return t->height;
 }
 
-Texture * texture_alloc() {
+Texture * texture_alloc(void) {
     return calloc(1, sizeof(Texture));
 }
 

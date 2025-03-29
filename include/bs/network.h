@@ -96,7 +96,7 @@ static inline Vector3f ntohov3f(const Vector3f v)
 static inline Vector3f htonov3f(const Vector3f v)
 { return (Vector3f) {.x = v.x, .y = v.z, .z = -v.y}; }
 
-void restock();
+void restock(void);
 
 void handlePacketBlockAction(PacketBlockAction *);
 void handlePacketBlockLine(PacketBlockLine *);

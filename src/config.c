@@ -536,7 +536,7 @@ ConfigKey * config_key(int key) {
     return &_config_key[key];
 }
 
-static void config_keys_update() {
+static void config_keys_update(void) {
     config_key(WINDOW_KEY_CROUCH)->toggle = settings.toggle_crouch;
     config_key(WINDOW_KEY_SPRINT)->toggle = settings.toggle_sprint;
 }
@@ -569,7 +569,7 @@ static void config_setf(const char * section, const char * name, float value) {
     config_sets(section, name, tmp);
 }
 
-void config_save() {
+void config_save(void) {
     config_keys_update();
     kv6_rebuild_complete();
 
@@ -660,7 +660,7 @@ static int config_read_key(void * user, const char * section, const char * name,
     return 1;
 }
 
-void config_reload() {
+void config_reload(void) {
     memcpy(&settings_tmp, &settings, sizeof(Options));
     {
         if (!list_created(&config_keybind))
@@ -690,7 +690,7 @@ void config_reload() {
     settings.camera_fov = clamp(CAMERA_DEFAULT_FOV, CAMERA_MAX_FOV, settings.camera_fov);
 }
 
-void config_init() {
+void config_init(void) {
     for (WindowKey key = WINDOW_KEY_FIRST; key <= WINDOW_KEY_LAST; key++)
         _config_key[key].original = _config_key[key].keycode;
 

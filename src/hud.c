@@ -57,7 +57,7 @@ static inline int is_inside_centered(double mx, double my, int x, int y, int w, 
 /*static inline int is_inside(double mx, double my, int x, int y, int w, int h)
 { return mx >= x && mx < x + w && my >= y && my < y + h; }*/
 
-static void serverlist_refresh();
+static void serverlist_refresh(void);
 
 static int mu_text_height(mu_Font font) {
     float scalex = fmax(1, round(settings.window_width / 800.0F));
@@ -76,10 +76,10 @@ static inline void mu_text_color(mu_Context * ctx, int red, int green, int blue)
 static inline void mu_text_color_default(mu_Context * ctx)
 { ctx->style->colors[MU_COLOR_TEXT] = mu_color(230, 230, 230, 255); }
 
-static inline mu_Layout * mu_get_layout(mu_Context * ctx)
-{ return &ctx->layout_stack.items[ctx->layout_stack.idx - 1]; }
+/*static inline mu_Layout * mu_get_layout(mu_Context * ctx)
+{ return &ctx->layout_stack.items[ctx->layout_stack.idx - 1]; }*/
 
-void hud_init() {
+void hud_init(void) {
     mu_Context * ctx = malloc(sizeof(mu_Context)); mu_init(ctx);
     hud_serverlist.ctx = hud_settings.ctx = hud_controls.ctx = ctx;
 
@@ -119,7 +119,7 @@ static float hud_ingame_touch_y = 0.0F;
 
 int screen_current = SCREEN_NONE;
 
-static void hud_ingame_init() {
+static void hud_ingame_init(void) {
     window_textinput(0);
     window_mousemode(WINDOW_CURSOR_DISABLED);
 
@@ -145,7 +145,7 @@ static inline void kv6_center(mat4 matrix, kv6 * model) {
     );
 }
 
-static void hud_ingame_render3D() {
+static void hud_ingame_render3D(void) {
     font_select(font_primary);
 
     glDepthRange(0.0F, 0.05F);
@@ -2072,11 +2072,11 @@ HUD hud_ingame = {
 
 /*       HUD_LOADING START             */
 
-static void hud_mapload_init() {
+static void hud_mapload_init(void) {
     window_mousemode(WINDOW_CURSOR_ENABLED);
 }
 
-static inline const char * ellipsis() {
+static inline const char * ellipsis(void) {
     static const char * suffix[] = {"   ", ".  ", ".. ", "..."};
     size_t index = ((size_t) (window_time() / 0.2F)) % lengthof(suffix);
 
@@ -2150,14 +2150,14 @@ bool offline = false;
 
 char serverlist_url[] = "http://services.buildandshoot.com/serverlist.json", newslist_url[] = "http://aos.party/bs/news/";
 
-static void serverlist_refresh() {
+static void serverlist_refresh(void) {
     rpc_seti(RPC_VALUE_SLOTS, 0);
 
     *serverlist_input = 0;
     ping_refresh();
 }
 
-static void hud_serverlist_init() {
+static void hud_serverlist_init(void) {
     window_textinput(1);
     window_mousemode(WINDOW_CURSOR_ENABLED);
 
@@ -2516,7 +2516,7 @@ HUD hud_serverlist = {
 
 /*         HUD_SETTINGS START        */
 
-static void hud_settings_init() {
+static void hud_settings_init(void) {
     window_textinput(1);
     window_mousemode(WINDOW_CURSOR_ENABLED);
 
@@ -2729,7 +2729,7 @@ HUD hud_settings = {
 
 static int * hud_controls_edit;
 
-static void hud_controls_init() {
+static void hud_controls_init(void) {
     window_textinput(1);
     window_mousemode(WINDOW_CURSOR_ENABLED);
 

@@ -63,7 +63,7 @@ int window_key_down(int key) {
     return window_pressed_keys[key] > 0;
 }
 
-void window_key_reset_togglestates() {
+void window_key_reset_togglestates(void) {
     for (WindowKey key = WINDOW_KEY_FIRST; key <= WINDOW_KEY_LAST; key++) {
         ConfigKey * e = config_key(key);
 
@@ -71,7 +71,7 @@ void window_key_reset_togglestates() {
     }
 }
 
-int window_cpucores() {
+int window_cpucores(void) {
     #ifdef OS_LINUX
         #ifdef USE_TOUCH
             return sysconf(_SC_NPROCESSORS_CONF);
@@ -115,7 +115,7 @@ void window_sendkey(int action, int keycode, int mod) {
     if (count == 0) sendkey(keycode, WINDOW_KEY_UNKNOWN, action, mod);
 }
 
-float window_aspect() {
+float window_aspect(void) {
     float w = settings.window_width;
     float h = settings.window_height;
 

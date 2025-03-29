@@ -28,8 +28,8 @@
 #include <bs/common.h>
 
 typedef struct {
-    void (*init)();
-    void (*render_3D)();
+    void (*init)(void);
+    void (*render_3D)(void);
     void (*render_2D)(mu_Context * ctx, float);
     void (*input_keyboard)(int key, int action, int mods, int internal);
     void (*input_mouselocation)(double x, double y);
@@ -60,7 +60,7 @@ extern char serverlist_url[2048], newslist_url[2048];
 #define HUD_FLAG_INDEX_START 64
 
 void hud_change(HUD *);
-void hud_init();
+void hud_init(void);
 void hud_mousemode(int mode);
 
 void load_map(const char *);

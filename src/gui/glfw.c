@@ -249,7 +249,7 @@ void window_mousemode(int mode) {
     }
 }
 
-int window_get_mousemode() {
+int window_get_mousemode(void) {
     int s = glfwGetInputMode(window, GLFW_CURSOR);
     return s == GLFW_CURSOR_DISABLED ? WINDOW_CURSOR_DISABLED : WINDOW_CURSOR_ENABLED;
 }
@@ -275,7 +275,7 @@ void window_videomode(bool windowed) {
                              settings.window_width, settings.window_height, mode->refreshRate);
 }
 
-void window_fromsettings() {
+void window_fromsettings(void) {
     glfwWindowHint(GLFW_SAMPLES, settings.multisamples);
     glfwSetWindowSize(window, settings.window_width, settings.window_height);
 
@@ -285,11 +285,11 @@ void window_fromsettings() {
     reshape(width, height);
 }
 
-float window_time() {
+float window_time(void) {
     return glfwGetTime();
 }
 
-const char * window_clipboard() {
+const char * window_clipboard(void) {
     return glfwGetClipboardString(window);
 }
 
@@ -300,7 +300,7 @@ void window_swapping(int value) {
     glfwSwapInterval(value);
 }
 
-void window_deinit() {
+void window_deinit(void) {
     glfwTerminate();
 }
 
@@ -397,7 +397,7 @@ static void gamepad_translate_button(GLFWgamepadstate * state, GLFWgamepadstate 
     }
 }
 
-void window_update() {
+void window_update(void) {
     glfwSwapBuffers(window);
     glfwPollEvents();
 

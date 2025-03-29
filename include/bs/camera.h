@@ -60,7 +60,7 @@ void camera_hit(CameraHit *, int exclude_player, float x, float y, float z, floa
 void camera_hit_mask(CameraHit *, int exclude_player, float x, float y, float z, float ray_x,
                      float ray_y, float ray_z, float range);
 
-float camera_fov_scaled();
+float camera_fov_scaled(void);
 void camera_ExtractFrustum(void);
 unsigned char camera_PointInFrustum(float x, float y, float z);
 int camera_CubeInFrustum(float x, float y, float z, float size, float size_y);

@@ -52,10 +52,10 @@ extern News * newslist;
 
 typedef int (*ServerlistComparator)(const ServerEntry *, const ServerEntry *);
 
-void ping_init();
-void ping_deinit();
-void ping_refresh();
-const char * ping_status();
+void ping_init(void);
+void ping_deinit(void);
+void ping_refresh(void);
+const char * ping_status(void);
 
 int serverlist_sort_players(const ServerEntry *, const ServerEntry *);
 int serverlist_sort_name(const ServerEntry *, const ServerEntry *);
@@ -66,6 +66,6 @@ int serverlist_sort_ping(const ServerEntry *, const ServerEntry *);
 extern ServerlistComparator serverlist_comparator;
 extern bool serverlist_descending;
 
-void serverlist_sort();
+void serverlist_sort(void);
 
 #endif

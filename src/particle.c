@@ -63,7 +63,7 @@ RGB3f value2Color(float value) {
     return Redf;
 }
 
-void trajectories_render_all() {
+void trajectories_render_all(void) {
     if (projectiles.head == NULL || projectiles.size == 0 || projectiles.length == 0) return;
 
     for (size_t i = 0; i < projectiles.size; i++) {
@@ -86,7 +86,7 @@ void trajectories_render_all() {
     }
 }
 
-void trajectories_reset() {
+void trajectories_reset(void) {
     if (projectiles.head) free(projectiles.head);
 
     projectiles.length = settings.tracing_enabled ? max(0, settings.trajectory_length) : 0;
@@ -98,7 +98,7 @@ void trajectories_reset() {
     }
 }
 
-void particle_init() {
+void particle_init(void) {
     entitysys_create(&particles, sizeof(Particle), 256);
     tesselator_create(&particle_tesselator, VERTEX_FLOAT, 0);
 }
@@ -206,7 +206,7 @@ static bool particle_render_single(void * obj, void * user) {
     return false;
 }
 
-void particle_render() {
+void particle_render(void) {
     tesselator_clear(&particle_tesselator);
 
     entitysys_iterate(&particles, &particle_tesselator, particle_render_single);

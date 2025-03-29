@@ -53,7 +53,7 @@
 
 int fps = 0;
 
-int ms_rand() {
+int ms_rand(void) {
     static int seed = 1;
 
     seed = seed * 0x343FD + 0x269EC3;
@@ -62,7 +62,7 @@ int ms_rand() {
 
 static mu_Rect window_clip = {.x = 0, .y = 0, .w = 0x1000000, .h = 0x1000000};
 
-void window_scissor() {
+void window_scissor(void) {
     glScissor(window_clip.x, settings.window_height - window_clip.y - window_clip.h, window_clip.w, window_clip.h);
 }
 
@@ -113,7 +113,7 @@ void drawEntity(kv6 * model, Vector3f * r, unsigned char team) {
     matrix_pop(matrix_model);
 }
 
-void drawScene() {
+void drawScene(void) {
     glShadeModel(settings.ambient_occlusion ? GL_SMOOTH : GL_FLAT);
 
     matrix_upload();
@@ -194,7 +194,7 @@ static inline void drawCubeEdges(int x, int y, int z) {
     glDrawArrays(GL_LINES, 0, lengthof(vertices) / 3);
 }
 
-void display() {
+void display(void) {
     if (hud_active->render_world)
         glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
     else
@@ -494,7 +494,7 @@ void display() {
         glEnable(GL_MULTISAMPLE);
 }
 
-void init() {
+void init(void) {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -705,7 +705,7 @@ void mouse_scroll(double xoffset, double yoffset) {
         mu_input_scroll(hud_active->ctx, -xoffset * 50, -yoffset * 50);
 }
 
-void deinit() {
+void deinit(void) {
     rpc_deinit();
     ping_deinit();
 

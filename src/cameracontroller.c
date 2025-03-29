@@ -72,7 +72,7 @@ void cameracontroller_death(float dt) {
     }
 }
 
-void cameracontroller_death_render() {
+void cameracontroller_death_render(void) {
     matrix_lookAt(matrix_view, camera.pos.x, camera.pos.y, camera.pos.z, camera.pos.x + players[local_player.id].orientation.x,
                   camera.pos.y + players[local_player.id].orientation.y, camera.pos.z + players[local_player.id].orientation.z,
                   0.0F, 1.0F, 0.0F);
@@ -187,7 +187,7 @@ void cameracontroller_fps(float dt) {
     camera.v = players[local_player.id].physics.velocity;
 }
 
-void cameracontroller_fps_render() {
+void cameracontroller_fps_render(void) {
     matrix_lookAt(matrix_view, camera.pos.x, camera.pos.y, camera.pos.z, camera.pos.x + sin(camera.rot.x) * sin(camera.rot.y),
                   camera.pos.y + cos(camera.rot.y), camera.pos.z + cos(camera.rot.x) * sin(camera.rot.y), 0.0F, 1.0F, 0.0F);
 }
@@ -280,7 +280,7 @@ void cameracontroller_spectator(float dt) {
     }
 }
 
-void cameracontroller_spectator_render() {
+void cameracontroller_spectator_render(void) {
     if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
         Player * p = &players[cameracontroller_bodyview_player];
 
@@ -356,7 +356,7 @@ void cameracontroller_bodyview(float dt) {
     }
 }
 
-void cameracontroller_bodyview_render() {
+void cameracontroller_bodyview_render(void) {
     if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
         Player * p = &players[cameracontroller_bodyview_player];
         float l  = hypot3f(p->orientation_smooth.x, p->orientation_smooth.y, p->orientation_smooth.z);
@@ -392,7 +392,7 @@ void cameracontroller_selection(float dt) {
     matrix_translate(matrix_view, -camera.pos.x, -camera.pos.y, -camera.pos.z);
 }
 
-void cameracontroller_selection_render() {
+void cameracontroller_selection_render(void) {
     matrix_rotate(matrix_view, 90.0F, 1.0F, 0.0F, 0.0F);
     matrix_translate(matrix_view, -camera.pos.x, -camera.pos.y, -camera.pos.z);
 }

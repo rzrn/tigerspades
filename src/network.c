@@ -92,7 +92,7 @@ const char * network_reason_disconnect(ErrorCode code) {
     }
 }
 
-static inline void beep() { sound_create(SOUND_LOCAL, sound(SOUND_CHAT), 0.0F, 0.0F, 0.0F); }
+static inline void beep(void) { sound_create(SOUND_LOCAL, sound(SOUND_CHAT), 0.0F, 0.0F, 0.0F); }
 
 static void printJoinMsg(int team, char * name) {
     char * t;
@@ -779,7 +779,7 @@ static void getPacketStateData(uint8_t * data, size_t len) {
     }
 }
 
-void player_reset_toggleable_input() {
+void player_reset_toggleable_input(void) {
     if (config_key(WINDOW_KEY_CROUCH)->toggle)
         window_pressed_keys[WINDOW_KEY_CROUCH] = 0;
 
@@ -1072,7 +1072,7 @@ static void getPacketIntelDrop(uint8_t * data, size_t len) {
     }
 }
 
-void restock() {
+void restock(void) {
     local_player.health   = 100;
     local_player.blocks   = 50;
     local_player.grenades = 3;
@@ -1202,7 +1202,7 @@ static void getPacketHitEffect(uint8_t * data, size_t len) {
         particle_create(Red, r.x, r.y, r.z, 3.5F, 1.0F, 8, 0.1F, 0.4F);
 }
 
-void updateBlockColor() {
+void updateBlockColor(void) {
     PacketSetColor contained;
     contained.player_id = local_player.id;
     contained.color     = players[local_player.id].block;
@@ -1210,7 +1210,7 @@ void updateBlockColor() {
     sendPacketSetColor(&contained, 0);
 }
 
-void updateInputData() {
+void updateInputData(void) {
     PacketInputData contained;
     contained.player_id = local_player.id;
     contained.keys      = players[local_player.id].input.keys;
@@ -1220,11 +1220,11 @@ void updateInputData() {
     network_keys_last = players[local_player.id].input.keys;
 }
 
-unsigned int network_ping() { return peer != NULL ? peer->roundTripTime : 0; }
+unsigned int network_ping(void) { return peer != NULL ? peer->roundTripTime : 0; }
 
-float network_packet_loss() { return peer != NULL ? peer->packetLoss / (float) ENET_PEER_PACKET_LOSS_SCALE : 0.0F; }
+float network_packet_loss(void) { return peer != NULL ? peer->packetLoss / (float) ENET_PEER_PACKET_LOSS_SCALE : 0.0F; }
 
-static inline int network_destroy() {
+static inline int network_destroy(void) {
     network_connected    = false;
     network_map_transfer = false;
     network_logged_in    = false;
@@ -1244,7 +1244,7 @@ static inline int network_destroy() {
     return 0;
 }
 
-void network_disconnect() {
+void network_disconnect(void) {
     if (peer != NULL) {
         network_map_transfer = false;
         network_logged_in    = false;
@@ -1354,7 +1354,7 @@ int network_connect_string(const char * str, GameVersion version) {
 
 #define CONNECTION_TIMEOUT 2.5F
 
-int network_update() {
+int network_update(void) {
     if (peer != NULL) {
         if (!network_connected && CONNECTION_TIMEOUT <= window_time() - connection_timestamp) {
             network_destroy();
@@ -1481,7 +1481,7 @@ int network_update() {
     return 1;
 }
 
-void network_init() {
+void network_init(void) {
     enet_initialize();
 
     packets[idPacketPositionData]                  = getPacketPositionData;

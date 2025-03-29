@@ -35,7 +35,7 @@ int glx_version = 0;
 
 bool glx_fog = false;
 
-static int glx_major_ver() {
+static int glx_major_ver(void) {
 #ifdef OPENGL_ES
     return 2;
 #else
@@ -43,7 +43,7 @@ static int glx_major_ver() {
 #endif
 }
 
-void glx_init() {
+void glx_init(void) {
 #ifndef OPENGL_ES
     glx_version = glx_major_ver() >= 2;
 #else
@@ -222,7 +222,7 @@ void glx_displaylist_draw(GLXDisplayList * x, int type) {
 #endif
 }
 
-void glx_enable_sphericalfog() {
+void glx_enable_sphericalfog(void) {
 #if !(HACKS_ENABLED && HACK_NOFOG)
 #ifndef OPENGL_ES
     if (!settings.smooth_fog) {
@@ -299,7 +299,7 @@ void glx_enable_sphericalfog() {
     glx_fog = true;
 }
 
-void glx_disable_sphericalfog() {
+void glx_disable_sphericalfog(void) {
 #ifndef OPENGL_ES
     if (!settings.smooth_fog) {
         glActiveTexture(GL_TEXTURE1);

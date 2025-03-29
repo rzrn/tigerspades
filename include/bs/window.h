@@ -140,15 +140,15 @@ void window_swapping(int value);
 void window_videomode(bool fullscreen);
 void window_fromsettings(void);
 void window_deinit(void);
-int window_cpucores();
+int window_cpucores(void);
 
-float window_aspect();
+float window_aspect(void);
 
 void window_settitle(char *);
 void window_title(const char * suffix);
 void window_sendkey(int action, int keycode, int mod);
 
-int window_get_mousemode();
+int window_get_mousemode(void);
 
 typedef void (*Idle)(double);
 typedef void (*Render)(void);

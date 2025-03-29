@@ -31,7 +31,7 @@
 
 EntitySystem grenades;
 
-void grenade_init() {
+void grenade_init(void) {
     entitysys_create(&grenades, sizeof(Grenade), 32);
 }
 
@@ -149,7 +149,7 @@ bool grenade_render_single(void * obj, void * user) {
     return false;
 }
 
-void grenade_render() {
+void grenade_render(void) {
     entitysys_iterate(&grenades, NULL, grenade_render_single);
 }
 

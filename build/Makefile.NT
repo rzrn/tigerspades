@@ -1,2 +1,3 @@
 EXTRALIBS = -lopenal
+COMMONFLAGS = -std=gnu99
 LDFLAGS = $(GUILIBS) $(EXTRALIBS) -lopengl32 -lgdi32 -lwinmm -lws2_32 -pthread

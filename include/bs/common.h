@@ -38,6 +38,10 @@
     #define OS_LINUX
 #endif
 
+#ifdef __FreeBSD__
+    #define OS_FREEBSD
+#endif
+
 #ifdef __APPLE__
     #define OS_APPLE
 #endif
@@ -50,6 +54,8 @@
     #define OS "Windows"
 #elif defined(OS_LINUX)
     #define OS "Linux"
+#elif defined(OS_FREEBSD)
+    #define OS "FreeBSD"
 #elif defined(OS_APPLE)
     #define OS "Mac"
 #elif defined(OS_HAIKU)

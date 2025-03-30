@@ -1,2 +1,3 @@
 EXTRALIBS = -framework OpenAL
+COMMONFLAGS = -std=gnu99
 LDFLAGS = $(GUILIBS) $(EXTRALIBS) -liconv -framework Carbon -framework CoreAudio -framework AudioUnit -framework IOKit -framework Cocoa -framework OpenGL

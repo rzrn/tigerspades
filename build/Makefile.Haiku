@@ -1,3 +1,4 @@
 EXTRALIBS = -lopenal
+COMMONFLAGS = -std=gnu99
 LDFLAGS = $(GUILIBS) $(EXTRALIBS) -lm -lGL -lnetwork -pthread
 XFLAGS = -DHAS_SOCKLEN_T

@@ -26,7 +26,9 @@
 #include <pthread.h>
 #include <signal.h>
 
+#include <netinet/in.h>
 #include <http.h>
+
 #include <parson.h>
 #include <enet/enet.h>
 #include <lodepng/lodepng.h>

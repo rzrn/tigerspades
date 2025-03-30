@@ -137,7 +137,7 @@ void window_mousemode(int mode) {
     }
 }
 
-int window_get_mousemode() {
+int window_get_mousemode(void) {
     return captured ? WINDOW_CURSOR_DISABLED : WINDOW_CURSOR_ENABLED;
 }
 
@@ -178,17 +178,17 @@ void window_videomode(bool windowed) {
         glutFullScreen();
 }
 
-void window_fromsettings() {
+void window_fromsettings(void) {
     window_videomode(settings.windowed);
 
     reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 }
 
-float window_time() {
+float window_time(void) {
     return glutGet(GLUT_ELAPSED_TIME) / 1000.0F;
 }
 
-const char * window_clipboard() {
+const char * window_clipboard(void) {
     return NULL;
 }
 
@@ -198,7 +198,7 @@ void window_textinput(int allow) {
 void window_swapping(int value) {
 }
 
-void window_deinit() {
+void window_deinit(void) {
 }
 
 void window_keyname(int keycode, char * output, size_t length) {
@@ -257,12 +257,12 @@ void window_init(const char * title, int * argc, char ** argv) {
 static Idle idle     = NULL;
 static Render render = NULL;
 
-void window_display() {
+void window_display(void) {
     render();
     glutSwapBuffers();
 }
 
-void window_idle() {
+void window_idle(void) {
     static double last_frame_start = 0.0F;
 
     double dt = window_time() - last_frame_start;

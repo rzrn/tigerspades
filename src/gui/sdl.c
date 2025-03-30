@@ -77,7 +77,7 @@ void window_mousemode(int mode) {
         SDL_SetRelativeMouseMode(mode == WINDOW_CURSOR_ENABLED ? 0 : 1);
 }
 
-int window_get_mousemode() {
+int window_get_mousemode(void) {
     int s = SDL_GetRelativeMouseMode();
     return s ? WINDOW_CURSOR_DISABLED : WINDOW_CURSOR_ENABLED;
 }
@@ -100,7 +100,7 @@ void window_videomode(bool windowed) {
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 }
 
-void window_fromsettings() {
+void window_fromsettings(void) {
     SDL_SetWindowSize(window, settings.window_width, settings.window_height);
 
     if (settings.vsync < 2)
@@ -114,11 +114,11 @@ void window_fromsettings() {
     reshape(width, height);
 }
 
-float window_time() {
+float window_time(void) {
     return SDL_GetTicks() / 1000.0F;
 }
 
-const char * window_clipboard() {
+const char * window_clipboard(void) {
     return SDL_HasClipboardText() ? SDL_GetClipboardText() : NULL;
 }
 
@@ -133,7 +133,7 @@ void window_swapping(int value) {
     SDL_GL_SetSwapInterval(value);
 }
 
-void window_deinit() {
+void window_deinit(void) {
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
@@ -149,7 +149,7 @@ void window_keyname(int keycode, char * output, size_t length) {
         snprintf(output, length, "#%x", keycode);
 }
 
-void window_update() {
+void window_update(void) {
     SDL_GL_SwapWindow(window);
 
     SDL_Event event;
@@ -199,7 +199,7 @@ void window_update() {
 
             case SDL_FINGERDOWN:
                 if (hud_active->input_touch) {
-                    WindowFinger * f;
+                    WindowFinger * f = NULL;
                     for (int k = 0; k < 8; k++) {
                         if (!fingers[k].full) {
                             fingers[k].finger = event.tfinger.fingerId;
@@ -212,16 +212,20 @@ void window_update() {
                         }
                     }
 
-                    hud_active->input_touch(f, TOUCH_DOWN, event.tfinger.x * settings.window_width,
-                                            event.tfinger.y * settings.window_height,
-                                            event.tfinger.dx * settings.window_width,
-                                            event.tfinger.dy * settings.window_height);
+                    if (f != NULL)
+                        hud_active->input_touch(
+                            f, TOUCH_DOWN,
+                            event.tfinger.x * settings.window_width,
+                            event.tfinger.y * settings.window_height,
+                            event.tfinger.dx * settings.window_width,
+                            event.tfinger.dy * settings.window_height
+                        );
                 }
                 break;
 
             case SDL_FINGERUP:
                 if (hud_active->input_touch) {
-                    WindowFinger * f;
+                    WindowFinger * f = NULL;
                     for (int k = 0; k < 8; k++) {
                         if (fingers[k].full && fingers[k].finger == event.tfinger.fingerId) {
                             fingers[k].full = 0;
@@ -229,25 +233,36 @@ void window_update() {
                             break;
                         }
                     }
-                    hud_active->input_touch(
-                        f, TOUCH_UP, event.tfinger.x * settings.window_width, event.tfinger.y * settings.window_height,
-                        event.tfinger.dx * settings.window_width, event.tfinger.dy * settings.window_height);
+
+                    if (f != NULL)
+                        hud_active->input_touch(
+                            f, TOUCH_UP,
+                            event.tfinger.x * settings.window_width,
+                            event.tfinger.y * settings.window_height,
+                            event.tfinger.dx * settings.window_width,
+                            event.tfinger.dy * settings.window_height
+                        );
                 }
                 break;
 
             case SDL_FINGERMOTION:
                 if (hud_active->input_touch) {
-                    WindowFinger * f;
+                    WindowFinger * f = NULL;
                     for (int k = 0; k < 8; k++) {
                         if (fingers[k].full && fingers[k].finger == event.tfinger.fingerId) {
                             f = fingers + k;
                             break;
                         }
                     }
-                    hud_active->input_touch(f, TOUCH_MOVE, event.tfinger.x * settings.window_width,
-                                            event.tfinger.y * settings.window_height,
-                                            event.tfinger.dx * settings.window_width,
-                                            event.tfinger.dy * settings.window_height);
+
+                    if (f != NULL)
+                        hud_active->input_touch(
+                            f, TOUCH_MOVE,
+                            event.tfinger.x * settings.window_width,
+                            event.tfinger.y * settings.window_height,
+                            event.tfinger.dx * settings.window_width,
+                            event.tfinger.dy * settings.window_height
+                        );
                 }
                 break;
         }

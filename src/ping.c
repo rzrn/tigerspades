@@ -26,7 +26,10 @@
 #include <pthread.h>
 #include <signal.h>
 
+#ifdef __FreeBSD__
 #include <netinet/in.h>
+#endif
+
 #include <http.h>
 
 #include <parson.h>

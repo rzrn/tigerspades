@@ -195,7 +195,7 @@ Font _font_secondary = {.replacement = 0xFFFD, .length = 1, .height = 16, .speci
 Font * const font_primary   = &_font_primary;
 Font * const font_secondary = &_font_secondary;
 
-static Font * font_selected = font_primary;
+static Font * font_selected = &_font_primary;
 
 void font_init(void) {
     GLint max_size = 0; glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);

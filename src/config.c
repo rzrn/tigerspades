@@ -528,7 +528,7 @@ char * config_filepath = "config.ini";
 Setting * config_settings_begin = &config_settings[0];
 Setting * config_settings_end = &config_settings[lengthof(config_settings)];
 
-Options settings_tmp = {0};
+Options settings_tmp = {.name = {0}, 0};
 
 List config_file, config_keybind;
 

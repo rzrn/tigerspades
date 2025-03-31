@@ -169,11 +169,11 @@ void cameracontroller_fps(float dt) {
         players[local_player.id].input.buttons &= MASKOFF(BUTTON_PRIMARY);
     }
 
-    float k = pow(0.7F, dt * 60.0F);
+    float tau = 0.039F; // see “src/player.c”
 
-    float lx = k * players[local_player.id].orientation_smooth.x + (1.0F - k) * sin(camera.rot.x) * sin(camera.rot.y);
-    float ly = k * players[local_player.id].orientation_smooth.y + (1.0F - k) * cos(camera.rot.y);
-    float lz = k * players[local_player.id].orientation_smooth.z + (1.0F - k) * cos(camera.rot.x) * sin(camera.rot.y);
+    float lx = (tau * players[local_player.id].orientation_smooth.x + dt * sin(camera.rot.x) * sin(camera.rot.y)) / (tau + dt);
+    float ly = (tau * players[local_player.id].orientation_smooth.y + dt * cos(camera.rot.y)) / (tau + dt);
+    float lz = (tau * players[local_player.id].orientation_smooth.z + dt * cos(camera.rot.x) * sin(camera.rot.y)) / (tau + dt);
 
     players[local_player.id].orientation_smooth.x = lx;
     players[local_player.id].orientation_smooth.y = ly;

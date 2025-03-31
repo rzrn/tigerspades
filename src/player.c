@@ -289,12 +289,13 @@ void player_update_position(float dt) {
 void player_update_orientation(float dt) {
     for (int k = 0; k < PLAYERS_MAX; k++) {
         if (players[k].connected && k != local_player.id) {
-            float t1 = pow(0.9F, dt * 60.0F), t2 = pow(0.1F, dt * 60.0F);
+            const float tau = 0.15F;
 
-            // smooth out player orientation
-            players[k].orientation_smooth.x = players[k].orientation_smooth.x * t1 + players[k].orientation.x * t2;
-            players[k].orientation_smooth.y = players[k].orientation_smooth.y * t1 + players[k].orientation.y * t2;
-            players[k].orientation_smooth.z = players[k].orientation_smooth.z * t1 + players[k].orientation.z * t2;
+            // smooth out player orientation: d{orientation_smooth}/dt = −(orientation_smooth − orientation)/tau
+            // see also: https://en.wikipedia.org/wiki/Relaxation_oscillator
+            players[k].orientation_smooth.x = (players[k].orientation_smooth.x * tau + players[k].orientation.x * dt) / (tau + dt);
+            players[k].orientation_smooth.y = (players[k].orientation_smooth.y * tau + players[k].orientation.y * dt) / (tau + dt);
+            players[k].orientation_smooth.z = (players[k].orientation_smooth.z * tau + players[k].orientation.z * dt) / (tau + dt);
         }
     }
 }

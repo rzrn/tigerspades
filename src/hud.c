@@ -1338,7 +1338,9 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 }
 
 static void hud_ingame_scroll(double yoffset) {
-    if (camera.mode == CAMERAMODE_FPS && yoffset != 0.0F) {
+    if (yoffset == 0.0F) return;
+
+    if (camera.mode == CAMERAMODE_FPS) {
         int h = players[local_player.id].held_item;
 
         if (!players[local_player.id].items_show)
@@ -1359,6 +1361,15 @@ static void hud_ingame_scroll(double yoffset) {
         players[local_player.id].held_item = h;
         sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
         player_on_held_item_change(players + local_player.id);
+    } else if (camera.mode == CAMERAMODE_SPECTATOR) {
+        camera.speed = clamp(
+            CAMERA_MINIMUM_SPEED, CAMERA_MAXIMUM_SPEED,
+            camera.speed + yoffset * 1.0F
+        );
+
+        char buff[64];
+        sprintf(buff, "Camera speed: %.0f %%", camera.speed / CAMERA_DEFAULT_SPEED * 100.0F);
+        chat_add(0, Red, buff, sizeof(buff), ASCII);
     }
 }
 

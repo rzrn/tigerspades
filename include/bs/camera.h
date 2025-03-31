@@ -34,6 +34,10 @@ typedef struct {
     struct { float x, y; } rot;
 } Camera;
 
+#define CAMERA_MINIMUM_SPEED 0.0F
+#define CAMERA_DEFAULT_SPEED 32.0F
+#define CAMERA_MAXIMUM_SPEED 512.0F
+
 #define CAMERA_DEFAULT_FOV 70.0F
 #define CAMERA_MAX_FOV 100.0F
 

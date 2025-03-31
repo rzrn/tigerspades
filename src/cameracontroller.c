@@ -193,6 +193,15 @@ void cameracontroller_fps_render(void) {
 }
 
 void cameracontroller_spectator(float dt) {
+    if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
+        Player * p    = &players[cameracontroller_bodyview_player];
+        camera.pos    = p->physics.eye;
+        camera.pos.y += player_height(p);
+        camera.v      = p->physics.velocity;
+
+        return;
+    }
+
     AABB aabb = {.min = {0, 0, 0}, .max = {0, 0, 0}};
     aabb_set_size(&aabb, camera.size, camera.height, camera.size);
     aabb_set_center(&aabb, camera.pos.x, camera.pos.y - camera.eye_height, camera.pos.z);
@@ -224,38 +233,33 @@ void cameracontroller_spectator(float dt) {
 
     float len = hypot3f(x, y, z);
     if (len > 0.0F) {
-        camera.movement.x = (x / len) * camera.speed * dt;
-        camera.movement.y = (y / len) * camera.speed * dt;
-        camera.movement.z = (z / len) * camera.speed * dt;
-    }
-
-    if (fabsf(camera.movement.x) < 1.0F)
+        camera.movement.x = (x / len) * camera.speed;
+        camera.movement.y = (y / len) * camera.speed;
+        camera.movement.z = (z / len) * camera.speed;
+    } else {
         camera.movement.x *= pow(0.0025F, dt);
-
-    if (fabsf(camera.movement.y) < 1.0F)
         camera.movement.y *= pow(0.0025F, dt);
-
-    if (fabsf(camera.movement.z) < 1.0F)
         camera.movement.z *= pow(0.0025F, dt);
-
-    aabb_set_center(&aabb, camera.pos.x + camera.movement.x, camera.pos.y - camera.eye_height, camera.pos.z);
-
-    if (camera.pos.x + camera.movement.x < 0 || camera.pos.x + camera.movement.x > map_size_x
-       || aabb_intersection_terrain(&aabb, 0)) {
-        camera.movement.x = 0.0F;
     }
 
-    aabb_set_center(&aabb, camera.pos.x + camera.movement.x, camera.pos.y + camera.movement.y - camera.eye_height, camera.pos.z);
-    if (camera.pos.y + camera.movement.y < 0 || aabb_intersection_terrain(&aabb, 0)) {
-        camera.movement.y = 0.0F;
-    }
+    float vx = camera.movement.x, vy = camera.movement.y, vz = camera.movement.z;
 
-    aabb_set_center(&aabb, camera.pos.x + camera.movement.x, camera.pos.y + camera.movement.y - camera.eye_height,
-                    camera.pos.z + camera.movement.z);
-    if (camera.pos.z + camera.movement.z < 0 || camera.pos.z + camera.movement.z > map_size_z
-       || aabb_intersection_terrain(&aabb, 0)) {
-        camera.movement.z = 0.0F;
-    }
+    if (window_key_down(WINDOW_KEY_SPRINT))
+    { vx *= 2.0F; vy *= 2.0F; vz *= 2.0F; }
+
+    float dx = vx * dt, dy = vy * dt, dz = vz * dt;
+
+    aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y - camera.eye_height, camera.pos.z);
+    if (camera.pos.x + dx < 0 || camera.pos.x + dx > map_size_x || aabb_intersection_terrain(&aabb, 0))
+    { dx = vx = camera.movement.x = 0.0F; }
+
+    aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y + dy - camera.eye_height, camera.pos.z);
+    if (camera.pos.y + dy < 0 || aabb_intersection_terrain(&aabb, 0))
+    { dy = vy = camera.movement.y = 0.0F; }
+
+    aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y + dy - camera.eye_height, camera.pos.z + dz);
+    if (camera.pos.z + dz < 0 || camera.pos.z + dz > map_size_z || aabb_intersection_terrain(&aabb, 0))
+    { dz = vz = camera.movement.z = 0.0F; }
 
     if (cameracontroller_bodyview_mode) {
         // check if we cant spectate the player anymore
@@ -267,17 +271,13 @@ void cameracontroller_spectator(float dt) {
         }
     }
 
-    if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
-        Player * p    = &players[cameracontroller_bodyview_player];
-        camera.pos    = p->physics.eye;
-        camera.pos.y += player_height(p);
-        camera.v      = p->physics.velocity;
-    } else {
-        camera.pos.x += camera.movement.x;
-        camera.pos.y += camera.movement.y;
-        camera.pos.z += camera.movement.z;
-        camera.v      = camera.movement;
-    }
+    camera.pos.x += dx;
+    camera.pos.y += dy;
+    camera.pos.z += dz;
+
+    camera.v.x = dx;
+    camera.v.y = dy;
+    camera.v.z = dz;
 }
 
 void cameracontroller_spectator_render(void) {

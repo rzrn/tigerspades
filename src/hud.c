@@ -49,6 +49,9 @@
 #include <bs/particle.h>
 #include <bs/opengl.h>
 
+static char hud_popup[256];
+static float hud_popup_timer = 0;
+
 HUD * hud_active;
 
 static inline int is_inside_centered(double mx, double my, int x, int y, int w, int h)
@@ -585,6 +588,19 @@ static float hud_draw_network_stats(float top, float scale) {
 
     glColor3f(1.0F, 1.0F, 1.0F); sprintf(dbg_str, "packet loss: %.2f %%", network_packet_loss() * 100.0F);
     font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    return y;
+}
+
+static float hud_draw_popup(float top, float scale) {
+    float x = 11.0F * scale, y = top;
+
+    if (window_time() - hud_popup_timer < 5.0F) {
+        glColor3f(1.0F, 1.0F, 1.0F);
+        font_render(x, y, 1.0F * scale, hud_popup, ASCII);
+
+        y -= 16.0F * scale;
+    }
 
     return y;
 }
@@ -1229,6 +1245,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
 
         top = hud_draw_killfeed(top, scale);
 
+        top = hud_draw_popup(top, scale);
+
         if (window_key_down(WINDOW_KEY_NETWORKSTATS))
             top = hud_draw_network_stats(top, scale);
     } else hud_draw_welcome_screen(scale);
@@ -1367,9 +1385,8 @@ static void hud_ingame_scroll(double yoffset) {
             camera.speed + yoffset * 1.0F
         );
 
-        char buff[64];
-        sprintf(buff, "Camera speed: %.0f %%", camera.speed / CAMERA_DEFAULT_SPEED * 100.0F);
-        chat_add(0, Red, buff, sizeof(buff), ASCII);
+        sprintf(hud_popup, "Camera speed: %.0f %%", camera.speed / CAMERA_DEFAULT_SPEED * 100.0F);
+        hud_popup_timer = window_time();
     }
 }
 
@@ -1466,9 +1483,8 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
     if (camera.mode == CAMERAMODE_SPECTATOR && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS) {
         camera.noclip = !camera.noclip;
 
-        char buff[64];
-        sprintf(buff, "Noclip mode is now %s", camera.noclip ? "enabled" : "disabled");
-        chat_add(0, Red, buff, sizeof(buff), ASCII);
+        sprintf(hud_popup, "Noclip mode is now %s", camera.noclip ? "enabled" : "disabled");
+        hud_popup_timer = window_time();
     }
 
     if (camera.mode == CAMERAMODE_BODYVIEW && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS) {
@@ -1716,9 +1732,9 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
 
             if (key == WINDOW_KEY_VOLUME_UP || key == WINDOW_KEY_VOLUME_DOWN) {
                 sound_volume(settings.volume / 10.0F);
-                char volstr[64];
-                sprintf(volstr, "Volume: %i", settings.volume);
-                chat_add(0, Red, volstr, sizeof(volstr), ASCII);
+
+                sprintf(hud_popup, "Volume: %i", settings.volume);
+                hud_popup_timer = window_time();
             }
 
             if ((key == WINDOW_KEY_CURSOR_UP || key == WINDOW_KEY_CURSOR_DOWN || key == WINDOW_KEY_CURSOR_LEFT || key == WINDOW_KEY_CURSOR_RIGHT)

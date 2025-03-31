@@ -686,58 +686,29 @@ void player_collision(const Player * p, Ray * ray, Hit * intersects) {
     matrix_pop(matrix_model);
 }
 
-void player_render(Player * p, int id) {
-    kv6_calclight(p->pos.x, p->pos.y, p->pos.z);
+static void player_render_dead(Player * p, int id) {
+    float l  = hypot3f(p->orientation_smooth.x, p->orientation_smooth.y, p->orientation_smooth.z);
+    float ox = p->orientation_smooth.x / l;
+    float oz = p->orientation_smooth.z / l;
 
-#if HACKS_ENABLED && HACK_ESP
-    if (id != local_player.id)
-#else
-    if (camera.mode == CAMERAMODE_SPECTATOR && p->team != TEAM_SPECTATOR && !cameracontroller_bodyview_mode)
-#endif
-    {
+    if (id != local_player.id || camera.mode != CAMERAMODE_DEATH) {
         matrix_push(matrix_model);
-        matrix_translate(matrix_model, p->pos.x, p->physics.eye.y + player_height(p) + 1.25F, p->pos.z);
-        matrix_rotate(matrix_model, camera.rot.x / PI * 180.0F + 180.0F, 0.0F, 1.0F, 0.0F);
-        matrix_rotate(matrix_model, -camera.rot.y / PI * 180.0F + 90.0F, 1.0F, 0.0F, 0.0F);
-        matrix_scale(matrix_model, 1.0F / 92.0F, 1.0F / 92.0F, 1.0F / 92.0F);
+        matrix_translate(matrix_model, p->pos.x, p->pos.y + 0.25F, p->pos.z);
+        matrix_pointAt(matrix_model, ox, 0.0F, oz);
+        matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+        if (p->physics.velocity.y < 0.05F && p->pos.y < 1.5F)
+            matrix_translate(matrix_model, 0.0F, (sin(window_time() * 1.5F) - 1.0F) * 0.1F, 0.0F);
         matrix_upload();
-
-        switch (p->team) {
-            case TEAM1: glColorRGB3i(gamestate.team1.color); break;
-            case TEAM2: glColorRGB3i(gamestate.team2.color); break;
-        }
-
-        font_select(font_primary);
-        glEnable(GL_ALPHA_TEST);
-        glAlphaFunc(GL_GREATER, 0.5F);
-        glDisable(GL_DEPTH_TEST);
-        font_centered(0, 0, 4, p->name, UTF8);
-        glEnable(GL_DEPTH_TEST);
-        glDisable(GL_ALPHA_TEST);
+        kv6_render(&model[MODEL_PLAYERDEAD], p->team);
         matrix_pop(matrix_model);
-        matrix_upload();
     }
+}
 
+static void player_render_alive(Player * p, int id) {
     float l  = hypot3f(p->orientation_smooth.x, p->orientation_smooth.y, p->orientation_smooth.z);
     float ox = p->orientation_smooth.x / l;
     float oy = p->orientation_smooth.y / l;
     float oz = p->orientation_smooth.z / l;
-
-    if (!p->alive) {
-        if (id != local_player.id || camera.mode != CAMERAMODE_DEATH) {
-            matrix_push(matrix_model);
-            matrix_translate(matrix_model, p->pos.x, p->pos.y + 0.25F, p->pos.z);
-            matrix_pointAt(matrix_model, ox, 0.0F, oz);
-            matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
-            if (p->physics.velocity.y < 0.05F && p->pos.y < 1.5F)
-                matrix_translate(matrix_model, 0.0F, (sin(window_time() * 1.5F) - 1.0F) * 0.1F, 0.0F);
-            matrix_upload();
-            kv6_render(&model[MODEL_PLAYERDEAD], p->team);
-            matrix_pop(matrix_model);
-        }
-
-        return;
-    }
 
     float time = window_time() * 1000.0F;
 
@@ -935,6 +906,42 @@ void player_render(Player * p, int id) {
     p->casing_dir.z = v[Z] - v2[Z];
 
     matrix_pop(matrix_model);
+}
+
+void player_render(Player * p, int id) {
+    kv6_calclight(p->pos.x, p->pos.y, p->pos.z);
+
+    if (p->alive)
+        player_render_alive(p, id);
+    else
+        player_render_dead(p, id);
+
+#if HACKS_ENABLED && HACK_ESP
+    if (id != local_player.id)
+#else
+    if (camera.mode == CAMERAMODE_SPECTATOR && p->team != TEAM_SPECTATOR && !cameracontroller_bodyview_mode)
+#endif
+    {
+        matrix_push(matrix_model);
+        matrix_translate(matrix_model, p->pos.x, p->physics.eye.y + player_height(p) + 1.25F, p->pos.z);
+        matrix_rotate(matrix_model, camera.rot.x / PI * 180.0F + 180.0F, 0.0F, 1.0F, 0.0F);
+        matrix_rotate(matrix_model, -camera.rot.y / PI * 180.0F + 90.0F, 1.0F, 0.0F, 0.0F);
+        matrix_scale(matrix_model, 1.0F / 92.0F, 1.0F / 92.0F, 1.0F / 92.0F);
+        matrix_upload();
+
+        switch (p->team) {
+            case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+            case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+        }
+
+        font_select(font_primary);
+        glEnable(GL_ALPHA_TEST);
+        glAlphaFunc(GL_GREATER, 0.5F);
+        font_centered(0, 0, 4, p->name, UTF8);
+        glDisable(GL_ALPHA_TEST);
+        matrix_pop(matrix_model);
+        matrix_upload();
+    }
 
     glCullFace(GL_BACK);
 }

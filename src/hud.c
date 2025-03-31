@@ -1463,6 +1463,14 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
 
     if (button == WINDOW_MOUSE_MMB) button_map.mmb = (action == WINDOW_PRESS);
 
+    if (camera.mode == CAMERAMODE_SPECTATOR && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS) {
+        camera.noclip = !camera.noclip;
+
+        char buff[64];
+        sprintf(buff, "Noclip mode is now %s", camera.noclip ? "enabled" : "disabled");
+        chat_add(0, Red, buff, sizeof(buff), ASCII);
+    }
+
     if (camera.mode == CAMERAMODE_BODYVIEW && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS) {
         float nearest_dist = FLT_MAX;
         int nearest_player = -1;

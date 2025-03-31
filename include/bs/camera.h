@@ -32,6 +32,7 @@ typedef struct {
     CameraMode mode; Vector3f pos, v, movement;
     float size, height, eye_height, speed;
     struct { float x, y; } rot;
+    bool noclip;
 } Camera;
 
 #define CAMERA_MINIMUM_SPEED 0.0F

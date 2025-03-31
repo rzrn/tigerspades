@@ -259,17 +259,25 @@ void cameracontroller_spectator(float dt) {
 
     float dx = vx * dt, dy = vy * dt, dz = vz * dt;
 
+    bool noclip = camera.noclip && camera.mode == CAMERAMODE_SPECTATOR;
+
     aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y - camera.eye_height, camera.pos.z);
-    if (camera.pos.x + dx < 0 || camera.pos.x + dx > map_size_x || aabb_intersection_terrain(&aabb, 0))
-    { dx = vx = camera.movement.x = 0.0F; }
+    bool P1 = camera.pos.x + dx < 0 || camera.pos.x + dx > map_size_x;
+    bool Q1 = noclip ? false : aabb_intersection_terrain(&aabb, 0);
+
+    if (P1 || Q1) { dx = vx = camera.movement.x = 0.0F; }
 
     aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y + dy - camera.eye_height, camera.pos.z);
-    if (camera.pos.y + dy < 0 || aabb_intersection_terrain(&aabb, 0))
-    { dy = vy = camera.movement.y = 0.0F; }
+    bool P2 = camera.pos.y + dy < 0;
+    bool Q2 = noclip ? false : aabb_intersection_terrain(&aabb, 0);
+
+    if (P2 || Q2) { dy = vy = camera.movement.y = 0.0F; }
 
     aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y + dy - camera.eye_height, camera.pos.z + dz);
-    if (camera.pos.z + dz < 0 || camera.pos.z + dz > map_size_z || aabb_intersection_terrain(&aabb, 0))
-    { dz = vz = camera.movement.z = 0.0F; }
+    bool P3 = camera.pos.z + dz < 0 || camera.pos.z + dz > map_size_z;
+    bool Q3 = noclip ? false : aabb_intersection_terrain(&aabb, 0);
+
+    if (P3 || Q3) { dz = vz = camera.movement.z = 0.0F; }
 
     if (cameracontroller_bodyview_mode) {
         // check if we cant spectate the player anymore

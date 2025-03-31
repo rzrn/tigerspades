@@ -391,7 +391,8 @@ void display(void) {
         matrix_upload();
 
 #if !(HACKS_ENABLED && HACK_NOCLIP)
-        if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z)) {
+        if (camera.noclip && camera.mode == CAMERAMODE_SPECTATOR) {}
+        else if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z)) {
             const float brightness = 0.15F;
 
             RGBA4i color = map_get(camera.pos.x, camera.pos.y, camera.pos.z);

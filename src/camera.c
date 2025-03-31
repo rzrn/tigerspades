@@ -40,7 +40,8 @@ Camera camera = {
     .height     = 0.8F,
     .eye_height = 0.0F,
     .speed      = CAMERA_DEFAULT_SPEED,
-    .rot        = {2.04F, 1.79F}
+    .rot        = {2.04F, 1.79F},
+    .noclip     = false
 };
 
 float camera_fov_scaled(void) {

@@ -237,9 +237,19 @@ void cameracontroller_spectator(float dt) {
         camera.movement.y = (y / len) * camera.speed;
         camera.movement.z = (z / len) * camera.speed;
     } else {
-        camera.movement.x *= pow(0.0025F, dt);
-        camera.movement.y *= pow(0.0025F, dt);
-        camera.movement.z *= pow(0.0025F, dt);
+        float v = hypot3f(camera.movement.x, camera.movement.y, camera.movement.z);
+
+        if (v > 0.0F) {
+            const float k = 4.5F, d = 0.8F;
+
+            // dv/dt = −k (v / |v|) |v|^d = −kv / |v|^(1 − d)
+            // We’ll get the finite stopping time when d < 1:
+            // https://physics.stackexchange.com/questions/801500/would-an-object-stop-if-the-only-force-acting-against-it-is-air-friction
+            float dv = -k * dt / pow(v, 1.0F - d);
+            camera.movement.x += camera.movement.x * dv;
+            camera.movement.y += camera.movement.y * dv;
+            camera.movement.z += camera.movement.z * dv;
+        }
     }
 
     float vx = camera.movement.x, vy = camera.movement.y, vz = camera.movement.z;

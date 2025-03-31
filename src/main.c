@@ -391,8 +391,15 @@ void display(void) {
         matrix_upload();
 
 #if !(HACKS_ENABLED && HACK_NOCLIP)
-        if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z))
+        if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z)) {
+            const float brightness = 0.15F;
+
+            RGBA4i color = map_get(camera.pos.x, camera.pos.y, camera.pos.z);
+            float r = color.r / 255.0F, g = color.g / 255.0F, b = color.b / 255.0F;
+
+            glClearColor(brightness * r, brightness * g, brightness * b, 1.0F);
             glClear(GL_COLOR_BUFFER_BIT);
+        }
 #endif
 
         glx_disable_sphericalfog();

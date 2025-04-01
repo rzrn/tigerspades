@@ -20,6 +20,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <assert.h>
 #include <stdint.h>
 #include <math.h>
 
@@ -141,6 +142,12 @@ static inline float angle3f(float x1, float y1, float z1, float x2, float y2, fl
 
 static inline float hypot2f(float x, float y) { return sqrtf(x * x + y * y); }
 static inline float hypot3f(float x, float y, float z) { return sqrtf(x * x + y * y + z * z); }
+
+static inline int modnonnegi(int a, int b)
+{ assert(b > 0); float c = a % b; return c < 0 ? c + b : c; }
+
+static inline float modnonnegf(float a, float b)
+{ assert(b > 0); float c = fmod(a, b); return c < 0 ? c + b : c; }
 
 #define PI      3.14159265F
 #define TAU     (PI * 2.0F)

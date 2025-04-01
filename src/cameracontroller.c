@@ -206,36 +206,30 @@ void cameracontroller_spectator(float dt) {
     aabb_set_size(&aabb, camera.size, camera.height, camera.size);
     aabb_set_center(&aabb, camera.pos.x, camera.pos.y - camera.eye_height, camera.pos.z);
 
-    float x = 0.0F, y = 0.0F, z = 0.0F;
+    float xd = 0.0F, yd = 0.0F, zd = 0.0F;
 
     if (chat_input_mode == CHAT_NO_INPUT) {
-        if (window_key_down(WINDOW_KEY_UP)) {
-            x += sin(camera.rot.x) * sin(camera.rot.y);
-            y += cos(camera.rot.y);
-            z += cos(camera.rot.x) * sin(camera.rot.y);
-        } else if (window_key_down(WINDOW_KEY_DOWN)) {
-            x -= sin(camera.rot.x) * sin(camera.rot.y);
-            y -= cos(camera.rot.y);
-            z -= cos(camera.rot.x) * sin(camera.rot.y);
-        }
+        float sx = sin(camera.rot.x), cx = cos(camera.rot.x);
+        float sy = sin(camera.rot.y), cy = cos(camera.rot.y);
 
-        if (window_key_down(WINDOW_KEY_LEFT)) {
-            x += sin(camera.rot.x + 1.57F);
-            z += cos(camera.rot.x + 1.57F);
-        } else if (window_key_down(WINDOW_KEY_RIGHT)) {
-            x += sin(camera.rot.x - 1.57F);
-            z += cos(camera.rot.x - 1.57F);
-        }
+        float nx = sx * sy, ny = cy, nz = cx * sy;
+        float rx = -cx,     ry = 0,  rz = sx;
 
-        if (window_key_down(WINDOW_KEY_SPACE)) y++;
-        else if (window_key_down(WINDOW_KEY_CROUCH)) y--;
+        if (window_key_down(WINDOW_KEY_UP))    { xd += nx; yd += ny; zd += nz; }
+        if (window_key_down(WINDOW_KEY_DOWN))  { xd -= nx; yd -= ny; zd -= nz; }
+        if (window_key_down(WINDOW_KEY_RIGHT)) { xd += rx; yd += ry; zd += rz; }
+        if (window_key_down(WINDOW_KEY_LEFT))  { xd -= rx; yd -= ry; zd -= rz; }
+
+        if (window_key_down(WINDOW_KEY_SPACE))  yd += 1.0F;
+        if (window_key_down(WINDOW_KEY_CROUCH)) yd -= 1.0F;
     }
 
-    float len = hypot3f(x, y, z);
-    if (len > 0.0F) {
-        camera.movement.x = (x / len) * camera.speed;
-        camera.movement.y = (y / len) * camera.speed;
-        camera.movement.z = (z / len) * camera.speed;
+    float absd = hypot3f(xd, yd, zd);
+
+    if (absd > 0.0F) {
+        camera.movement.x = (xd / absd) * camera.speed;
+        camera.movement.y = (yd / absd) * camera.speed;
+        camera.movement.z = (zd / absd) * camera.speed;
     } else {
         float v = hypot3f(camera.movement.x, camera.movement.y, camera.movement.z);
 
@@ -259,39 +253,37 @@ void cameracontroller_spectator(float dt) {
 
     float dx = vx * dt, dy = vy * dt, dz = vz * dt;
 
+    float x = modnonnegf(camera.pos.x + dx, map_size_x);
+    float y = camera.pos.y + dy;
+    float z = modnonnegf(camera.pos.z + dz, map_size_z);
+
     bool noclip = camera.noclip && camera.mode == CAMERAMODE_SPECTATOR;
 
-    aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y - camera.eye_height, camera.pos.z);
-    bool P1 = camera.pos.x + dx < 0 || camera.pos.x + dx > map_size_x;
-    bool Q1 = noclip ? false : aabb_intersection_terrain(&aabb, 0);
+    aabb_set_center(&aabb, x, camera.pos.y - camera.eye_height, camera.pos.z);
+    if (!noclip && aabb_intersection_terrain(&aabb, 0))
+    { x = camera.pos.x; dx = camera.movement.x = 0.0F; }
 
-    if (P1 || Q1) { dx = vx = camera.movement.x = 0.0F; }
+    aabb_set_center(&aabb, x, y - camera.eye_height, camera.pos.z);
+    if (camera.pos.y + dy < 0 || (!noclip && aabb_intersection_terrain(&aabb, 0)))
+    { y = camera.pos.y; dy = camera.movement.y = 0.0F; }
 
-    aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y + dy - camera.eye_height, camera.pos.z);
-    bool P2 = camera.pos.y + dy < 0;
-    bool Q2 = noclip ? false : aabb_intersection_terrain(&aabb, 0);
-
-    if (P2 || Q2) { dy = vy = camera.movement.y = 0.0F; }
-
-    aabb_set_center(&aabb, camera.pos.x + dx, camera.pos.y + dy - camera.eye_height, camera.pos.z + dz);
-    bool P3 = camera.pos.z + dz < 0 || camera.pos.z + dz > map_size_z;
-    bool Q3 = noclip ? false : aabb_intersection_terrain(&aabb, 0);
-
-    if (P3 || Q3) { dz = vz = camera.movement.z = 0.0F; }
+    aabb_set_center(&aabb, x, y - camera.eye_height, z);
+    if (!noclip && aabb_intersection_terrain(&aabb, 0))
+    { z = camera.pos.z; dz = camera.movement.z = 0.0F; }
 
     if (cameracontroller_bodyview_mode) {
         // check if we cant spectate the player anymore
-        for (int k = 0; k < PLAYERS_MAX * 2;
-            k++) { // a while (1) loop caused it to get stuck on map change when playing on babel
+        for (int k = 0; k < PLAYERS_MAX * 2; k++) { // a while (1) loop caused it to get stuck on map change when playing on babel
             if (player_can_spectate(&players[cameracontroller_bodyview_player]))
                 break;
+
             cameracontroller_bodyview_player = (cameracontroller_bodyview_player + 1) % PLAYERS_MAX;
         }
     }
 
-    camera.pos.x += dx;
-    camera.pos.y += dy;
-    camera.pos.z += dz;
+    camera.pos.x = x;
+    camera.pos.y = y;
+    camera.pos.z = z;
 
     camera.v.x = dx;
     camera.v.y = dy;

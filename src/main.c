@@ -314,7 +314,7 @@ void display(void) {
             default: pos = NULL;
         }
 
-        if (players[local_id].held_item == TOOL_BLOCK)
+        if (players[local_id].alive && players[local_id].held_item == TOOL_BLOCK)
         if (pos != NULL && norm3i(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
             matrix_upload();
             glLineWidth(1.0F);

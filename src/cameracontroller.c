@@ -55,7 +55,7 @@ void cameracontroller_death(float dt) {
         camera.pos.z + cameracontroller_death_velocity.z * dt
     );
 
-    if (!aabb_intersection_terrain(&box, 0)) {
+    if (!aabb_intersection_terrain(&box)) {
         cameracontroller_death_velocity.y -= dt * 32.0F;
         camera.pos.x += cameracontroller_death_velocity.x * dt;
         camera.pos.y += cameracontroller_death_velocity.y * dt;
@@ -260,15 +260,15 @@ void cameracontroller_spectator(float dt) {
     bool noclip = camera.noclip && camera.mode == CAMERAMODE_SPECTATOR;
 
     aabb_set_center(&aabb, x, camera.pos.y - camera.eye_height, camera.pos.z);
-    if (!noclip && aabb_intersection_terrain(&aabb, 0))
+    if (!noclip && aabb_intersection_terrain(&aabb))
     { x = camera.pos.x; dx = camera.movement.x = 0.0F; }
 
     aabb_set_center(&aabb, x, y - camera.eye_height, camera.pos.z);
-    if (camera.pos.y + dy < 0 || (!noclip && aabb_intersection_terrain(&aabb, 0)))
+    if (camera.pos.y + dy < 0 || (!noclip && aabb_intersection_terrain(&aabb)))
     { y = camera.pos.y; dy = camera.movement.y = 0.0F; }
 
     aabb_set_center(&aabb, x, y - camera.eye_height, z);
-    if (!noclip && aabb_intersection_terrain(&aabb, 0))
+    if (!noclip && aabb_intersection_terrain(&aabb))
     { z = camera.pos.z; dz = camera.movement.z = 0.0F; }
 
     if (cameracontroller_bodyview_mode) {
@@ -327,7 +327,7 @@ void cameracontroller_bodyview(float dt) {
                             + player_height2(&players[cameracontroller_bodyview_player]),
                         players[cameracontroller_bodyview_player].pos.z - cos(camera.rot.x) * sin(camera.rot.y) * k);
 
-        if (aabb_intersection_terrain(&aabb, 0) && traverse_lengths[0] < 0)
+        if (aabb_intersection_terrain(&aabb) && traverse_lengths[0] < 0)
             traverse_lengths[0] = fmax(k - 0.1F, 0);
 
         aabb_set_center(&aabb,
@@ -336,7 +336,7 @@ void cameracontroller_bodyview(float dt) {
                             + player_height2(&players[cameracontroller_bodyview_player]),
                         players[cameracontroller_bodyview_player].pos.z + cos(camera.rot.x) * sin(camera.rot.y) * k);
 
-        if (!aabb_intersection_terrain(&aabb, 0) && traverse_lengths[1] < 0)
+        if (!aabb_intersection_terrain(&aabb) && traverse_lengths[1] < 0)
             traverse_lengths[1] = fmax(k - 0.1F, 0);
     }
 

@@ -78,10 +78,8 @@ bool aabb_intersection(AABB * a, AABB * b) {
         && (a->min[Z] <= b->max[Z] && b->min[Z] <= a->max[Z]);
 }
 
-bool aabb_intersection_terrain(AABB * a, int miny) {
-    AABB terrain_cube;
-
-    int ymin = clamp(miny, map_size_y, floor(a->min[Y]) - 1);
+bool aabb_intersection_terrain(AABB * a) {
+    int ymin = clamp(0, map_size_y, floor(a->min[Y]) - 1);
     int ymax = clamp(0, map_size_y, ceil(a->max[Y]) + 1);
 
     int xmin = floor(a->min[X]) - 1;
@@ -94,15 +92,8 @@ bool aabb_intersection_terrain(AABB * a, int miny) {
     for (int z = zmin; z < zmax; z++)
     for (int y = ymin; y < ymax; y++) {
         if (!map_isair(modnonnegi(x, map_size_x), y, modnonnegi(z, map_size_z))) {
-            terrain_cube.min[X] = x;
-            terrain_cube.min[Y] = y;
-            terrain_cube.min[Z] = z;
-            terrain_cube.max[X] = x + 1;
-            terrain_cube.max[Y] = y + 1;
-            terrain_cube.max[Z] = z + 1;
-
-            if (aabb_intersection(a, &terrain_cube))
-                return true;
+            AABB aabb = {.min = {x, y, z}, .max = {x + 1, y + 1, z + 1}};
+            if (aabb_intersection(a, &aabb)) return true;
         }
     }
 

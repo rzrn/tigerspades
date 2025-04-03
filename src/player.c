@@ -1131,7 +1131,7 @@ int player_move(Player * p, float fsynctics, int id) {
                         p->pos.y + p->physics.velocity.y * fsynctics * 32.0F,
                         p->pos.z + p->physics.velocity.z * fsynctics * 32.0F);
 
-        if (!aabb_intersection_terrain(&dead_bb, 0)) {
+        if (!aabb_intersection_terrain(&dead_bb)) {
             p->pos.x += p->physics.velocity.x * fsynctics * 32.0F;
             p->pos.y += p->physics.velocity.y * fsynctics * 32.0F;
             p->pos.z += p->physics.velocity.z * fsynctics * 32.0F;

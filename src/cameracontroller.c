@@ -192,7 +192,32 @@ void cameracontroller_fps_render(void) {
                   camera.pos.y + cos(camera.rot.y), camera.pos.z + cos(camera.rot.x) * sin(camera.rot.y), 0.0F, 1.0F, 0.0F);
 }
 
+void cameracontroller_bodyview_next(void) {
+    for (int k = 0; k < PLAYERS_MAX; k++) {
+        if (player_can_spectate(&players[cameracontroller_bodyview_player]))
+            return;
+
+        cameracontroller_bodyview_inc();
+    }
+
+    cameracontroller_bodyview_mode = false;
+}
+
+void cameracontroller_bodyview_prev(void) {
+    for (int k = 0; k < PLAYERS_MAX; k++) {
+        if (player_can_spectate(&players[cameracontroller_bodyview_player]))
+            return;
+
+        cameracontroller_bodyview_dec();
+    }
+
+    cameracontroller_bodyview_mode = false;
+}
+
 void cameracontroller_spectator(float dt) {
+    if (cameracontroller_bodyview_mode)
+        cameracontroller_bodyview_next();
+
     if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
         Player * p    = &players[cameracontroller_bodyview_player];
         camera.pos    = p->physics.eye;
@@ -271,16 +296,6 @@ void cameracontroller_spectator(float dt) {
     if (!noclip && aabb_intersection_terrain(&aabb))
     { z = camera.pos.z; dz = camera.movement.z = 0.0F; }
 
-    if (cameracontroller_bodyview_mode) {
-        // check if we cant spectate the player anymore
-        for (int k = 0; k < PLAYERS_MAX * 2; k++) { // a while (1) loop caused it to get stuck on map change when playing on babel
-            if (player_can_spectate(&players[cameracontroller_bodyview_player]))
-                break;
-
-            cameracontroller_bodyview_player = (cameracontroller_bodyview_player + 1) % PLAYERS_MAX;
-        }
-    }
-
     camera.pos.x = x;
     camera.pos.y = y;
     camera.pos.z = z;
@@ -307,13 +322,7 @@ void cameracontroller_spectator_render(void) {
 }
 
 void cameracontroller_bodyview(float dt) {
-    // check if we cant spectate the player anymore
-    for (int k = 0; k < PLAYERS_MAX * 2;
-        k++) { // a while (1) loop caused it to get stuck on map change when playing on babel
-        if (player_can_spectate(&players[cameracontroller_bodyview_player]))
-            break;
-        cameracontroller_bodyview_player = (cameracontroller_bodyview_player + 1) % PLAYERS_MAX;
-    }
+    cameracontroller_bodyview_next();
 
     AABB aabb = {.min = {0, 0, 0}, .max = {0, 0, 0}};
     aabb_set_size(&aabb, 0.4F, 0.4F, 0.4F);

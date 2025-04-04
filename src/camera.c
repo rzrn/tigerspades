@@ -116,7 +116,7 @@ void camera_hit(CameraHit * hit, int exclude_player, float x, float y, float z, 
 
 void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, float z, float ray_x,
                      float ray_y, float ray_z, float range) {
-    Ray dir = (Ray) {
+    Ray dir = {
         .origin = {x, y, z},
         .direction = {ray_x, ray_y, ray_z},
     };
@@ -129,7 +129,7 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
 #endif
     int * pos = camera_terrain_pickEx(1, x, y, z, ray_x, ray_y, ray_z);
     if (pos != NULL && norm3f(x, y, z, pos[0], pos[1], pos[2]) <= sqrf(range)) {
-        AABB block = (AABB) {
+        AABB block = {
             .min = {pos[0], pos[1], pos[2]},
             .max = {pos[0] + 1, pos[1] + 1, pos[2] + 1},
         };

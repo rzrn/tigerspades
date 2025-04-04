@@ -20,11 +20,30 @@
 #ifndef CAMERACONTROLLER_H
 #define CAMERACONTROLLER_H
 
+#include <ace/protocol.h>
+
 extern bool cameracontroller_bodyview_mode;
 extern int cameracontroller_bodyview_player;
 extern float cameracontroller_bodyview_zoom;
 
 void cameracontroller_death_init(int player, Vector3f);
+
+static inline void cameracontroller_bodyview_inc(void) {
+    cameracontroller_bodyview_player++;
+
+    if (PLAYERS_MAX <= cameracontroller_bodyview_player)
+        cameracontroller_bodyview_player = 0;
+}
+
+static inline void cameracontroller_bodyview_dec(void) {
+    cameracontroller_bodyview_player--;
+
+    if (cameracontroller_bodyview_player < 0)
+        cameracontroller_bodyview_player = PLAYERS_MAX - 1;
+}
+
+void cameracontroller_bodyview_prev(void);
+void cameracontroller_bodyview_next(void);
 
 void cameracontroller_fps(float dt);
 void cameracontroller_spectator(float dt);

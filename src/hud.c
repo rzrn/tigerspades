@@ -938,7 +938,7 @@ static void hud_draw_weapon(float scale) {
     bool is_local = camera.mode == CAMERAMODE_FPS || cameracontroller_bodyview_player == local_player.id;
     int local_id = camera.mode == CAMERAMODE_FPS ? local_player.id : cameracontroller_bodyview_player;
 
-    if (players[local_id].alive &&
+    if (settings.show_iron_sight && players[local_id].alive &&
         players[local_id].held_item == TOOL_GUN &&
         HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY)) {
         Texture * zoom = NULL;

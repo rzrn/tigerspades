@@ -324,6 +324,13 @@ Setting config_settings[] = {
         .display  = "Enable kill indicator"
     },
     {
+        .value    = &settings_tmp.show_iron_sight,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_iron_sight",
+        .help     = "Weapon-specific iron sights when using RMB",
+        .display  = "Show iron sight"
+    },
+    {
         .value    = &settings_tmp.camera_fov,
         .type     = CONFIG_TYPE_FLOAT,
         .min      = CAMERA_DEFAULT_FOV,
@@ -520,7 +527,8 @@ Options settings = {
     .report_client_version  = true,
     .left_handed            = false,
     .kill_indicator         = false,
-    .persistent_block_color = false
+    .persistent_block_color = false,
+    .show_iron_sight        = true
 };
 
 char * config_filepath = "config.ini";

@@ -93,6 +93,7 @@ typedef struct {
     bool  left_handed;
     bool  kill_indicator;
     bool  persistent_block_color;
+    bool  show_iron_sight;
 } Options;
 
 extern Options settings, settings_tmp;

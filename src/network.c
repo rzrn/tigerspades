@@ -95,6 +95,8 @@ const char * network_reason_disconnect(ErrorCode code) {
 static inline void beep(void) { sound_create(SOUND_LOCAL, sound(SOUND_CHAT), 0.0F, 0.0F, 0.0F); }
 
 static void printJoinMsg(int team, char * name) {
+    if (network_map_transfer) return;
+
     char * t;
     switch (team) {
         case TEAM1: t = gamestate.team1.name; break;

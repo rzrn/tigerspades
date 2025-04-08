@@ -292,71 +292,62 @@ static int http_internal_parse_url( char const* url, char* address, size_t addre
     }
 
 
-HTTP_SOCKET http_internal_connect( char const* address, char const* port )
-    {   
+HTTP_SOCKET http_internal_connect(char const * address, char const * port) {
     // set up hints for getaddrinfo
     struct addrinfo hints;
-    memset( &hints, 0, sizeof( hints ) );
-    hints.ai_family = AF_UNSPEC; // the Internet Protocol version 4 (IPv4) address family.
-    hints.ai_flags = AI_PASSIVE;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_UNSPEC;
+    hints.ai_flags    = AI_PASSIVE;
     hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;    // Use Transmission Control Protocol (TCP).
+    hints.ai_protocol = IPPROTO_TCP;
 
     // resolve the server address and port
-    struct addrinfo* addri = 0;
-    int error = getaddrinfo( address, port, &hints, &addri) ;
-    if( error != 0 ) return HTTP_INVALID_SOCKET;
+    struct addrinfo * addri = 0;
+    int error = getaddrinfo(address, port, &hints, &addri);
+    if (error != 0) return HTTP_INVALID_SOCKET;
 
-    // create the socket
-    HTTP_SOCKET sock = socket( addri->ai_family, addri->ai_socktype, addri->ai_protocol );
-    if( sock == -1) 
-        {
-        freeaddrinfo( addri );
-        return HTTP_INVALID_SOCKET;
-        }
+    for (struct addrinfo * addr = addri; addr != NULL; addr = addr->ai_next) {
+        // create the socket
+        HTTP_SOCKET sock = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+        if (sock == -1) continue;
 
-    // set socket to nonblocking mode
-    u_long nonblocking = 1;
-    #ifdef _WIN32
-        int res = ioctlsocket( sock, FIONBIO, &nonblocking );
-    #else
-        int flags = fcntl( sock, F_GETFL, 0 );
-        int res = fcntl( sock, F_SETFL, flags | O_NONBLOCK ); 
-    #endif
-    if( res == -1 )
-        {
-        freeaddrinfo( addri );
+        // set socket to nonblocking mode
+        u_long nonblocking = 1;
         #ifdef _WIN32
-            closesocket( sock );
+            int res = ioctlsocket(sock, FIONBIO, &nonblocking);
         #else
-            close( sock );
+            int flags = fcntl(sock, F_GETFL, 0);
+            int res = fcntl(sock, F_SETFL, flags | O_NONBLOCK);
         #endif
-        return HTTP_INVALID_SOCKET;
+
+        if (res == -1) goto fail;
+
+        // connect to server
+        if (connect(sock, addr->ai_addr, (int) addr->ai_addrlen) == -1) {
+            #ifdef _WIN32
+                if (WSAGetLastError() != WSAEWOULDBLOCK && WSAGetLastError() != WSAEINPROGRESS)
+                    goto fail;
+            #else
+                if (errno != EWOULDBLOCK && errno != EINPROGRESS && errno != EAGAIN)
+                    goto fail;
+            #endif
         }
 
-    // connect to server
-    if( connect( sock, addri->ai_addr, (int)addri->ai_addrlen ) == -1 )
-        {
+        success:
+        freeaddrinfo(addri);
+        return sock;
+
+        fail:
         #ifdef _WIN32
-            if( WSAGetLastError() != WSAEWOULDBLOCK && WSAGetLastError() != WSAEINPROGRESS )
-                {
-                freeaddrinfo( addri );
-                closesocket( sock );
-                return HTTP_INVALID_SOCKET;
-                }
+            closesocket(sock);
         #else
-            if( errno != EWOULDBLOCK && errno != EINPROGRESS && errno != EAGAIN )
-                {
-                freeaddrinfo( addri );
-                close( sock );
-                return HTTP_INVALID_SOCKET;
-                }
+            close(sock);
         #endif
-        }
-
-    freeaddrinfo( addri );
-    return sock;
     }
+
+    freeaddrinfo(addri);
+    return HTTP_INVALID_SOCKET;
+}
 
     
 static http_internal_t* http_internal_create( size_t request_data_size, void* memctx )

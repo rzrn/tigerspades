@@ -312,8 +312,8 @@ HTTP_SOCKET http_internal_connect(char const * address, char const * port) {
         if (sock == -1) continue;
 
         // set socket to nonblocking mode
-        u_long nonblocking = 1;
         #ifdef _WIN32
+            u_long nonblocking = 1;
             int res = ioctlsocket(sock, FIONBIO, &nonblocking);
         #else
             int flags = fcntl(sock, F_GETFL, 0);
@@ -333,7 +333,6 @@ HTTP_SOCKET http_internal_connect(char const * address, char const * port) {
             #endif
         }
 
-        success:
         freeaddrinfo(addri);
         return sock;
 

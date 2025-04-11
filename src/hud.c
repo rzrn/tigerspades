@@ -1153,6 +1153,43 @@ static void hud_draw_scoreboard(float scale) {
     }
 }
 
+static void hud_draw_progressbar(float scale) {
+    if (gamestate.tc.territory_count <= gamestate.tc.tent)
+        return;
+
+    Territory * territory = &gamestate.tc.territory[gamestate.tc.tent];
+
+    if (territory->team != gamestate.tc.team_capturing) {
+        float dt = window_time() - gamestate.tc.last_update;
+        float p  = clamp(0.0F, 1.0F, gamestate.tc.progress + 0.05F * gamestate.tc.rate * dt);
+        float l  = normv3f(territory->pos, players[local_player.id].pos);
+
+        if (p < 1.0F && l < 20.0F * 20.0F) {
+            switch (territory->team) {
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+                default: glColor3ub(0, 0, 0);
+            }
+
+            texture_draw(
+                texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F + 440.0F * scale * p,
+                settings.window_height * 0.25F, 440.0F * scale * (1.0F - p), 20.0F * scale
+            );
+
+            switch (gamestate.tc.team_capturing) {
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+                default: glColor3ub(0, 0, 0);
+            }
+
+            texture_draw(
+                texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F,
+                settings.window_height * 0.25F, 440.0F * scale * p, 20.0F * scale
+            );
+        }
+    }
+}
+
 static void hud_ingame_render(mu_Context * ctx, float scale) {
     hud_active->render_localplayer = players[local_player.id].team != TEAM_SPECTATOR
         && (screen_current == SCREEN_NONE || camera.mode != CAMERAMODE_FPS);
@@ -1254,32 +1291,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     font_select(font_primary);
     glColor3f(1.0F, 1.0F, 1.0F);
 
-    if (gamestate.mode == GAMEMODE_TC && gamestate.tc.tent < gamestate.tc.territory_count
-       && gamestate.tc.territory[gamestate.tc.tent].team != gamestate.tc.team_capturing) {
-        float dt = window_time() - gamestate.tc.last_update;
-        float p  = clamp(0.0F, 1.0F, gamestate.tc.progress + 0.05F * gamestate.tc.rate * dt);
-        float l  = normv3f(gamestate.tc.territory[gamestate.tc.tent].pos, players[local_player.id].pos);
-
-        if (p < 1.0F && l < 20.0F * 20.0F) {
-            switch (gamestate.tc.territory[gamestate.tc.tent].team) {
-                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
-                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
-                default: glColor3ub(0, 0, 0);
-            }
-
-            texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F + 440.0F * scale * p,
-                         settings.window_height * 0.25F, 440.0F * scale * (1.0F - p), 20.0F * scale);
-
-            switch (gamestate.tc.team_capturing) {
-                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
-                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
-                default: glColor3ub(0, 0, 0);
-            }
-
-            texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F,
-                         settings.window_height * 0.25F, 440.0F * scale * p, 20.0F * scale);
-        }
-    }
+    if (gamestate.mode == GAMEMODE_TC)
+        hud_draw_progressbar(scale);
 
     // draw the minimap
     if (camera.mode != CAMERAMODE_SELECTION) {

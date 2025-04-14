@@ -372,6 +372,8 @@ static void getPacketBlockAction(uint8_t * data, size_t len) {
 }
 
 static void getPacketChatMessage(uint8_t * data, size_t len) {
+    if (network_map_transfer) return;
+
     READPACKET(PacketChatMessage, p, data, len);
 
     size_t size = len - sizePacketChatMessage;

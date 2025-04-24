@@ -1713,7 +1713,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             if (!network_connected) switch (key) {
                 case WINDOW_KEY_CYCLE_CAMERA: camera.mode = cycle_camera_mode(camera.mode); break;
                 case WINDOW_KEY_TOGGLE_ALIVE: players[local_player.id].alive = !players[local_player.id].alive; break;
-                case WINDOW_KEY_RESPAWN:      players[local_player.id].pos = (Vector3f) {256.0F, 63.0F, 256.0F}; break;
+                case WINDOW_KEY_RESPAWN:      players[local_player.id].pos = (Vector3f) {256.0F, 65.0F, 256.0F}; break;
                 case WINDOW_KEY_RESTOCK:      restock(); break;
                 case WINDOW_KEY_TEAM_COLOR:   gamestate.team1.color = gamestate.team2.color = players[local_player.id].block; break;
             }

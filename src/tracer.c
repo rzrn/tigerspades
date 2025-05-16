@@ -81,15 +81,16 @@ void tracer_minimap(int large, float scalef, float minimap_x, float minimap_y) {
 }
 
 void tracer_add(int type, float x, float y, float z, float dx, float dy, float dz) {
-    Tracer t = (Tracer) {
-        .type = type,
-        .x = t.r.origin[X] = x + dx / 4.0F,
-        .y = t.r.origin[Y] = y + dy / 4.0F,
-        .z = t.r.origin[Z] = z + dz / 4.0F,
-        .r.direction[X] = dx,
-        .r.direction[Y] = dy,
-        .r.direction[Z] = dz,
-        .created = window_time(),
+    float x0 = x + dx / 4.0F, y0 = y + dy / 4.0F, z0 = z + dz / 4.0F;
+
+    Tracer t = {
+        .type        = type,
+        .x           = x0,
+        .y           = y0,
+        .z           = z0,
+        .r.origin    = {x0, y0, z0},
+        .r.direction = {dx, dy, dz},
+        .created     = window_time()
     };
 
     float len = hypot3f(dx, dy, dz);

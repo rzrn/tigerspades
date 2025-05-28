@@ -40,46 +40,82 @@ void tracer_pvelocity(float * o, Player * p) {
     o[Z] = o[Z] * 256.0F / 32.0F + p->physics.velocity.z;
 }
 
+typedef struct { float scalef, minimap_x, minimap_y; } TracerMapInfo;
+
+static bool tracer_map_single(void * obj, void * user) {
+    Tracer * t = obj;
+    TracerMapInfo * info = user;
+
+    float azimuth = -atan2(t->r.direction[Z], t->r.direction[X]) - HALFPI;
+    texture_draw_rotated(
+        texture(TEXTURE_TRACER),
+        info->minimap_x + t->r.origin[X] * info->scalef,
+        info->minimap_y - t->r.origin[Z] * info->scalef,
+        15 * info->scalef, 15 * info->scalef, azimuth
+    );
+
+    return false;
+}
+
+void tracer_map(float scalef, float minimap_x, float minimap_y) {
+    entitysys_iterate(
+        &tracers,
+        &(TracerMapInfo) {
+            .scalef    = scalef,
+            .minimap_x = minimap_x,
+            .minimap_y = minimap_y
+        },
+        tracer_map_single
+    );
+}
+
 typedef struct {
-    int   large;
     float scalef;
     float minimap_x;
     float minimap_y;
+    float azimuth;
+    float x0, z0;
 } TracerMinimapInfo;
 
 static bool tracer_minimap_single(void * obj, void * user) {
-    Tracer * t = (Tracer *) obj;
-    TracerMinimapInfo * info = (TracerMinimapInfo *) user;
+    Tracer * t = obj;
+    TracerMinimapInfo * info = user;
 
-    if (info->large) {
-        float ang = -atan2(t->r.direction[Z], t->r.direction[X]) - HALFPI;
-        texture_draw_rotated(texture(TEXTURE_TRACER), info->minimap_x + t->r.origin[X] * info->scalef,
-                             info->minimap_y - t->r.origin[Z] * info->scalef, 15 * info->scalef, 15 * info->scalef, ang);
-    } else {
-        float tracer_x = t->r.origin[X] - info->minimap_x;
-        float tracer_y = t->r.origin[Z] - info->minimap_y;
+    float dx = t->r.origin[X] - info->x0;
+    float dz = t->r.origin[Z] - info->z0;
 
-        if (tracer_x > 0.0F && tracer_x < 128.0F && tracer_y > 0.0F && tracer_y < 128.0F) {
-            float ang = -atan2(t->r.direction[Z], t->r.direction[X]) - HALFPI;
-            texture_draw_rotated(texture(TEXTURE_TRACER), settings.window_width - 143 * info->scalef + tracer_x * info->scalef,
-                                 settings.window_height - (15 + tracer_y) * info->scalef, 15 * info->scalef, 15 * info->scalef, ang);
-        }
+    float x = 64.0F + ROTDX(info->azimuth, dx, dz);
+    float y = 64.0F + ROTDZ(info->azimuth, dx, dz);
+
+    if (x > 0.0F && x < 128.0F && y > 0.0F && y < 128.0F) {
+        float azimuth = -atan2(t->r.direction[Z], t->r.direction[X]) - HALFPI;
+
+        texture_draw_rotated(
+            texture(TEXTURE_TRACER),
+            info->minimap_x + x * info->scalef,
+            info->minimap_y - y * info->scalef,
+            15 * info->scalef, 15 * info->scalef,
+            azimuth - info->azimuth
+        );
     }
 
     return false;
 }
 
-void tracer_minimap(int large, float scalef, float minimap_x, float minimap_y) {
-    entitysys_iterate(&tracers,
-                      &(TracerMinimapInfo) {
-                          .large     = large,
-                          .scalef    = scalef,
-                          .minimap_x = minimap_x,
-                          .minimap_y = minimap_y,
-                      },
-                      tracer_minimap_single);
+void tracer_minimap(float scalef, float minimap_x, float minimap_y, float azimuth, float x0, float z0) {
+    entitysys_iterate(
+        &tracers,
+        &(TracerMinimapInfo) {
+            .scalef    = scalef,
+            .minimap_x = minimap_x,
+            .minimap_y = minimap_y,
+            .azimuth   = azimuth,
+            .x0        = x0,
+            .z0        = z0
+        },
+        tracer_minimap_single
+    );
 }
-
 void tracer_add(int type, float x, float y, float z, float dx, float dy, float dz) {
     float x0 = x + dx / 4.0F, y0 = y + dy / 4.0F, z0 = z + dz / 4.0F;
 

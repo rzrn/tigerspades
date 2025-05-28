@@ -176,13 +176,14 @@ static inline void texture_draw_rectangle(float x, float y, float w, float h, fl
     draw_rectangle(vertices, texcoords);
 }
 
-#define texture_emit_rotated(tx, ty, x, y, a) cos(a) * (x) - sin(a) * (y) + (tx), sin(a) * (x) + cos(a) * (y) + (ty)
-
-static inline void texture_draw_rotated_rectangle(float x, float y, float w, float h, float phi, float u1, float u2, float v1, float v2) {
+static inline void texture_draw_rotated_rectangle(float x, float y, float w, float h, float t, float u1, float u2, float v1, float v2) {
     float vertices[12] = {
-        texture_emit_rotated(x, y, -w / 2, +h / 2, phi), texture_emit_rotated(x, y, -w / 2, -h / 2, phi),
-        texture_emit_rotated(x, y, +w / 2, -h / 2, phi), texture_emit_rotated(x, y, -w / 2, +h / 2, phi),
-        texture_emit_rotated(x, y, +w / 2, -h / 2, phi), texture_emit_rotated(x, y, +w / 2, +h / 2, phi)
+        ROTXZ(t, x, y, -w / 2, +h / 2),
+        ROTXZ(t, x, y, -w / 2, -h / 2),
+        ROTXZ(t, x, y, +w / 2, -h / 2),
+        ROTXZ(t, x, y, -w / 2, +h / 2),
+        ROTXZ(t, x, y, +w / 2, -h / 2),
+        ROTXZ(t, x, y, +w / 2, +h / 2)
     };
 
     float texcoords[12] = {u1, v1, u1, v2, u2, v2, u1, v1, u2, v2, u2, v1};
@@ -198,6 +199,31 @@ void texture_draw_sector(Texture * t, float x, float y, float w, float h, float 
 
     float du = 0.5f / t->width, dv = 0.5f / t->height;
     texture_draw_rectangle(x, y, w, h, u + du, u + us - du, v + dv, v + vs - dv);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void texture_draw_quad(Texture * t, float x, float y, float w, float h, float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4) {
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBindTexture(GL_TEXTURE_2D, t->texture_id);
+
+    float x1 = x, x2 = x + w, y1 = y, y2 = y - h;
+    float vertices[12] = {x1, y1, x1, y2, x2, y2, x1, y1, x2, y2, x2, y1};
+
+    float texcoords[12] = {
+        u1 / t->width, v1 / t->height,
+        u2 / t->width, v2 / t->height,
+        u4 / t->width, v4 / t->height,
+        u1 / t->width, v1 / t->height,
+        u4 / t->width, v4 / t->height,
+        u3 / t->width, v3 / t->height
+    };
+
+    draw_rectangle(vertices, texcoords);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_BLEND);

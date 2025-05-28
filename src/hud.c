@@ -711,7 +711,7 @@ static void hud_draw_map(float scale) {
 
     font_select(font_primary);
 
-    tracer_minimap(1, scale, minimap_x, minimap_y);
+    tracer_map(scale, minimap_x, minimap_y);
 
     if (gamestate.mode == GAMEMODE_CTF) {
         if (!gamestate.ctf.team2_has_intel) {
@@ -803,7 +803,8 @@ static void hud_draw_map(float scale) {
 }
 
 static void hud_draw_minimap(float scale) {
-    float x0 = floor(camera.pos.x - 64.0F), z0 = floor(camera.pos.z - 64.0F);
+    float x0 = floor(camera.pos.x) + 0.5F;
+    float z0 = floor(camera.pos.z) + 0.5F;
 
     switch (players[local_player.id].team) {
         case TEAM1: glColorRGB3i(gamestate.team1.color); break;
@@ -821,55 +822,94 @@ static void hud_draw_minimap(float scale) {
     texture_draw_empty(minimap_x - 1 * scale, minimap_y + 1 * scale, 130 * scale, 130 * scale);
     glColor3f(1.0F, 1.0F, 1.0F);
 
-    texture_draw_sector(
+    bool in_bodyview_mode = (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
+                         && cameracontroller_bodyview_mode
+                         && players[cameracontroller_bodyview_player].alive;
+    int local_id = in_bodyview_mode ? cameracontroller_bodyview_player : local_player.id;
+
+    float t = settings.fixed_minimap ? 0.0F :
+                    in_bodyview_mode ? -atan2(players[cameracontroller_bodyview_player].orientation.z,
+                                              players[cameracontroller_bodyview_player].orientation.x) - HALFPI :
+                                       camera.rot.x + PI;
+
+    float sx = 64.0F, sz = 64.0F;
+
+    texture_draw_quad(
         texture_minimap, minimap_x, minimap_y, 128 * scale, 128 * scale,
-        x0 / 512.0F, z0 / 512.0F, 128.0F / 512.0, 128.0F / 512.0
+        ROTXZ(-t, x0, z0, -sx, -sz),
+        ROTXZ(-t, x0, z0, -sx, +sz),
+        ROTXZ(-t, x0, z0, +sx, -sz),
+        ROTXZ(-t, x0, z0, +sx, +sz)
     );
 
-    tracer_minimap(0, scale, x0, z0);
+    tracer_minimap(scale, minimap_x, minimap_y, t, x0, z0);
 
     if (gamestate.mode == GAMEMODE_CTF) {
         if (map_object_visible(gamestate.ctf.team1_base.x, 0.0F, gamestate.ctf.team1_base.z)) {
-            float x = clamp(0.0F, 128.0F, gamestate.ctf.team1_base.x - x0);
-            float y = clamp(0.0F, 128.0F, gamestate.ctf.team1_base.z - z0);
+            float dx = gamestate.ctf.team1_base.x - x0;
+            float dz = gamestate.ctf.team1_base.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
 
             glColorRGB3ib(gamestate.team1.color, 0.94F);
             texture_draw_rotated(
-                texture(TEXTURE_MEDICAL), minimap_x + x * scale,
-                minimap_y - y * scale, 16 * scale, 16 * scale, 0.0F
+                texture(TEXTURE_MEDICAL),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale,
+                0.0F
             );
         }
 
         if (!gamestate.ctf.team2_has_intel) {
-            float x = clamp(0.0F, 128.0F, gamestate.ctf.team1_flag.x - x0);
-            float y = clamp(0.0F, 128.0F, gamestate.ctf.team1_flag.z - z0);
+            float dx = gamestate.ctf.team1_flag.x - x0;
+            float dz = gamestate.ctf.team1_flag.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
 
             glColorRGB3i(gamestate.team1.color);
             texture_draw_rotated(
-                texture(TEXTURE_INTEL), minimap_x + x * scale,
-                minimap_y - y * scale, 16 * scale, 16 * scale, 0.0F
+                texture(TEXTURE_INTEL),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale,
+                0.0F
             );
         }
 
         if (map_object_visible(gamestate.ctf.team2_base.x, 0.0F, gamestate.ctf.team2_base.z)) {
-            float x = clamp(0.0F, 128.0F, gamestate.ctf.team2_base.x - x0);
-            float y = clamp(0.0F, 128.0F, gamestate.ctf.team2_base.z - z0);
+            float dx = gamestate.ctf.team2_base.x - x0;
+            float dz = gamestate.ctf.team2_base.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
 
             glColorRGB3ib(gamestate.team2.color, 0.94F);
             texture_draw_rotated(
-                texture(TEXTURE_MEDICAL), minimap_x + x * scale,
-                minimap_y - y * scale, 16 * scale, 16 * scale, 0.0F
+                texture(TEXTURE_MEDICAL),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale,
+                0.0F
             );
         }
 
         if (!gamestate.ctf.team1_has_intel) {
-            float x = clamp(0.0F, 128.0F, gamestate.ctf.team2_flag.x - x0);
-            float y = clamp(0.0F, 128.0F, gamestate.ctf.team2_flag.z - z0);
+            float dx = gamestate.ctf.team2_flag.x - x0;
+            float dz = gamestate.ctf.team2_flag.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
 
             glColorRGB3i(gamestate.team2.color);
             texture_draw_rotated(
-                texture(TEXTURE_INTEL), minimap_x + x * scale,
-                minimap_y - y * scale, 16 * scale, 16 * scale, 0.0F
+                texture(TEXTURE_INTEL),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale,
+                0.0F
             );
         }
     }
@@ -882,12 +922,18 @@ static void hud_draw_minimap(float scale) {
                 default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
             }
 
-            float x = clamp(0.0F, 128.0F, gamestate.tc.territory[k].pos.x - x0);
-            float y = clamp(0.0F, 128.0F, gamestate.tc.territory[k].pos.z - z0);
+            float dx = gamestate.tc.territory[k].pos.x - x0;
+            float dz = gamestate.tc.territory[k].pos.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
 
             texture_draw_rotated(
-                texture(TEXTURE_COMMAND), minimap_x + x * scale,
-                minimap_y - y * scale, 12 * scale, 12 * scale, 0.0F
+                texture(TEXTURE_COMMAND),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                12 * scale, 12 * scale,
+                0.0F
             );
         }
     }
@@ -899,11 +945,6 @@ static void hud_draw_minimap(float scale) {
         if (visible_on_minimap(&players[k]))
     #endif
         {
-            bool in_bodyview_mode = (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
-                                 && cameracontroller_bodyview_mode
-                                 && players[cameracontroller_bodyview_player].alive;
-            int local_id = in_bodyview_mode ? cameracontroller_bodyview_player : local_player.id;
-
             if (in_bodyview_mode && k == local_player.id) continue;
 
             if (k == local_id)
@@ -913,8 +954,10 @@ static void hud_draw_minimap(float scale) {
                 case TEAM2: glColorRGB3i(gamestate.team2.color); break;
             }
 
-            float x = (k == local_player.id ? camera.pos.x : players[k].pos.x) - x0;
-            float y = (k == local_player.id ? camera.pos.z : players[k].pos.z) - z0;
+            float dx = (k == local_player.id ? camera.pos.x : players[k].pos.x) - x0;
+            float dz = (k == local_player.id ? camera.pos.z : players[k].pos.z) - z0;
+
+            float x = sx + ROTDX(t, dx, dz), y = sz + ROTDZ(t, dx, dz);
 
             if (x > 0.0F && x < 128.0F && y > 0.0F && y < 128.0F) {
                 float ang = k == local_player.id
@@ -925,7 +968,8 @@ static void hud_draw_minimap(float scale) {
                     texture(TEXTURE_PLAYER),
                     minimap_x + x * scale,
                     minimap_y - y * scale,
-                    16 * scale, 16 * scale, ang
+                    16 * scale, 16 * scale,
+                    ang - t
                 );
             }
         }

@@ -32,11 +32,13 @@ typedef struct {
     float created;
 } Tracer;
 
-void tracer_minimap(int large, float scalef, float minimap_x, float minimap_y);
 void tracer_pvelocity(float * o, Player * p);
 void tracer_add(int type, float x, float y, float z, float dx, float dy, float dz);
 void tracer_update(float dt);
 void tracer_render(void);
 void tracer_init(void);
+
+void tracer_minimap(float scalef, float minimap_x, float minimap_y, float azimuth, float x0, float z0);
+void tracer_map(float scalef, float minimap_x, float minimap_y);
 
 #endif

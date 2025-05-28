@@ -81,6 +81,7 @@ void texture_create_buffer(Texture *, const char *, unsigned int width, unsigned
 void texture_delete(Texture *);
 void texture_draw(Texture *, float x, float y, float w, float h);
 void texture_draw_sector(Texture *, float x, float y, float w, float h, float u, float v, float us, float vs);
+void texture_draw_quad(Texture *, float x, float y, float w, float h, float u1, float v1, float u2, float v2, float u3, float v3, float u4, float v4);
 void texture_draw_empty(float x, float y, float w, float h);
 void texture_draw_empty_rotated(float x, float y, float w, float h, float angle);
 void texture_draw_rotated(Texture *, float x, float y, float w, float h, float angle);
@@ -96,5 +97,11 @@ void texture_minimap_clear(void);
 
 // This grid is 1 pixel off on the right and bottom, but I doubt no one will notice.
 #define ISGRID(x, z) ((x) % 64 == 0 || (z) % 64 == 0 || (x) == 511 || (z) == 511)
+
+#define ROTDX(t, dx, dz) (cos(t) * (dx) - sin(t) * (dz))
+#define ROTDZ(t, dx, dz) (sin(t) * (dx) + cos(t) * (dz))
+
+#define ROTXZ(t, x0, z0, dx, dz) (x0) + ROTDX(t, dx, dz),\
+                                 (z0) + ROTDZ(t, dx, dz)
 
 #endif

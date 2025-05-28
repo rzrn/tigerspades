@@ -76,6 +76,7 @@ typedef struct {
     int   trajectory_length;
     int   projectile_count;
     bool  show_minimap;
+    bool  fixed_minimap;
     bool  toggle_crouch;
     bool  toggle_sprint;
     bool  enable_shadows;

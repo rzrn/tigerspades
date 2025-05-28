@@ -80,6 +80,12 @@ static void config_label_left_handed(char * buffer, size_t length, void * voidpt
     snprintf(buffer, length, value ? "Left" : "Right");
 }
 
+static void config_label_fixed_minimap(char * buffer, size_t length, void * voidptr) {
+    bool value = *((bool *) voidptr);
+
+    snprintf(buffer, length, value ? "Fixed" : "Rotating");
+}
+
 ConfigKey _config_key[] = {
     [WINDOW_KEY_UP]            = {.keycode = TOOLKIT_KEY_W,            .name = "move_forward",      .display = "Forward", .category = "Movement"},
     [WINDOW_KEY_LEFT]          = {.keycode = TOOLKIT_KEY_A,            .name = "move_left",         .display = "Left"},
@@ -154,7 +160,14 @@ Setting config_settings[] = {
         .value    = &settings_tmp.show_minimap,
         .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "show_minimap",
-        .display  = "Show minimap"
+        .display  = "Display minimap"
+    },
+    {
+        .value    = &settings_tmp.fixed_minimap,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_minimap",
+        .display  = "Minimap orientation",
+        .label    = config_label_fixed_minimap
     },
     {
         .value    = &settings_tmp.show_crosshair,
@@ -511,6 +524,7 @@ Options settings = {
     .trajectory_length      = 16,
     .projectile_count       = 8,
     .show_minimap           = true,
+    .fixed_minimap          = true,
     .toggle_crouch          = false,
     .toggle_sprint          = false,
     .enable_shadows         = true,

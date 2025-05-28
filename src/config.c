@@ -165,7 +165,7 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.fixed_minimap,
         .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_minimap",
+        .name     = "fixed_minimap",
         .display  = "Minimap orientation",
         .label    = config_label_fixed_minimap
     },

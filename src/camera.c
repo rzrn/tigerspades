@@ -59,10 +59,16 @@ float camera_fov_scaled(void) {
     return settings.camera_fov;
 }
 
+float camera_clamp_pitch(float y) {
+    float y1 = EPSILON, y2 = settings.render_player ? 15.0F / 180.0F * PI : EPSILON;
+
+    return clamp(y1, PI - y2, y);
+}
+
 void camera_overflow_adjust(void) {
-    camera.rot.y       = clamp(EPSILON, PI - EPSILON, camera.rot.y);
-    camera.muzzle.y    = clamp(EPSILON, PI - EPSILON, camera.muzzle.y);
-    camera.crosshair.y = clamp(EPSILON, PI - EPSILON, camera.crosshair.y);
+    camera.rot.y       = camera_clamp_pitch(camera.rot.y);
+    camera.muzzle.y    = camera_clamp_pitch(camera.muzzle.y);
+    camera.crosshair.y = camera_clamp_pitch(camera.crosshair.y);
 
     if (camera.rot.x > TAU) {
         camera.rot.x       -= TAU;

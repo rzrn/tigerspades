@@ -744,7 +744,7 @@ static void player_render_alive(Player * p, int id) {
         matrix_pop(matrix_model);
     }
 
-    if (render_body) {
+    if (render_body || settings.render_player) {
         matrix_push(matrix_model);
         matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
         matrix_pointAt(matrix_model, ox, 0.0F, oz);
@@ -830,7 +830,7 @@ static void player_render_alive(Player * p, int id) {
     if (render_fpv)
         matrix_translate(matrix_model, 0.0F, -2 * 0.1F, -2 * 0.1F);
 
-    if (render_fpv && p->alive) {
+    if (!(settings.render_player && p->held_item == TOOL_SPADE) && render_fpv && p->alive) {
         float speed = hypot2f(p->physics.velocity.x, p->physics.velocity.z) / 0.25F;
         float * f = player_tool_translate_func(p);
         matrix_translate(matrix_model, f[X], f[Y], 0.1F * player_swing_func(time / 1000.0F) * speed + f[Z]);
@@ -842,7 +842,7 @@ static void player_render_alive(Player * p, int id) {
     if (render_fpv && window_time() - p->item_showup < 0.5F)
         matrix_rotate(matrix_model, 45.0F - (window_time() - p->item_showup) * 90.0F, 1.0F, 0.0F, 0.0F);
 
-    if (!(p->held_item == TOOL_SPADE && render_fpv && camera.mode == CAMERAMODE_FPS)) {
+    if (!(p->held_item == TOOL_SPADE && render_fpv && camera.mode == CAMERAMODE_FPS) || settings.render_player) {
         float * angles = player_tool_func(p);
         matrix_rotate(matrix_model, angles[0], 1.0F, 0.0F, 0.0F);
         matrix_rotate(matrix_model, angles[1], 0.0F, 1.0F, 0.0F);
@@ -853,7 +853,7 @@ static void player_render_alive(Player * p, int id) {
         glCullFace(GL_FRONT);
     }
 
-    if (render_body || settings.player_arms) {
+    if (render_body || settings.render_player) {
         matrix_upload();
         kv6_render(&model[MODEL_PLAYERARMS], p->team);
     }
@@ -861,7 +861,7 @@ static void player_render_alive(Player * p, int id) {
     static kv6 * const model_spade = &model[MODEL_SPADE];
 
     matrix_translate(matrix_model, -3.5F * 0.1F + 0.01F, 0.0F, 10 * 0.1F);
-    if (p->held_item == TOOL_SPADE && render_fpv && window_time() - p->item_showup >= 0.5F) {
+    if (!settings.render_player && p->held_item == TOOL_SPADE && render_fpv && window_time() - p->item_showup >= 0.5F) {
         float * angles = player_tool_func(p);
         matrix_translate(matrix_model, 0.0F, (model_spade->zpiv - model_spade->zsiz) * 0.05F, 0.0F);
         matrix_rotate(matrix_model, angles[0], 1.0F, 0.0F, 0.0F);

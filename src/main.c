@@ -351,17 +351,21 @@ void display(void) {
             glDepthMask(GL_TRUE);
         }
 
-        if (window_time() - players[local_player.id].item_disabled < 0.3F) {
+        bool item_disabled = window_time() - players[local_player.id].item_disabled < 0.3F;
+
+        if (item_disabled) {
             players[local_player.id].item_showup = window_time();
             if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY))
                 players[local_player.id].start.lmb = window_time() + 0.5F;
             if (HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY))
                 players[local_player.id].start.rmb = window_time() + 0.5F;
-        } else {
+        }
+
+        if (!item_disabled || settings.render_player) {
             if (hud_active->render_localplayer) {
                 float tmp2 = players[local_player.id].physics.eye.y;
                 players[local_player.id].physics.eye.y = last_cy;
-                if (camera.mode == CAMERAMODE_FPS)
+                if (camera.mode == CAMERAMODE_FPS && !settings.render_player)
                     glDepthRange(0.0F, 0.05F);
                 matrix_push(matrix_projection);
                 matrix_translate(matrix_projection, 0.0F, -0.25F, 0.0F);

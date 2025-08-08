@@ -57,7 +57,6 @@ typedef struct {
     int   window_width;
     int   window_height;
     int   multisamples;
-    bool  player_arms;
     bool  windowed;
     bool  greedy_meshing;
     int   vsync;
@@ -98,6 +97,7 @@ typedef struct {
     float deadzone_horiz;
     float deadzone_vert;
     bool  free_crosshair;
+    bool  render_player;
 } Options;
 
 extern Options settings, settings_tmp;

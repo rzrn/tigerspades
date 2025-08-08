@@ -219,6 +219,12 @@ Setting config_settings[] = {
         .help     = "Display muzzle movement"
     },
     {
+        .value    = &settings_tmp.render_player,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_player_arms",
+        .display  = "Render player body"
+    },
+    {
         .value    = &settings_tmp.min_lan_port,
         .type     = CONFIG_TYPE_INT,
         .maxi     = INT_MAX,
@@ -517,12 +523,6 @@ Setting config_settings[] = {
         .help     = "Disable to spectate cheaters",
         .name     = "smooth_orientation",
         .display  = "Smooth orientation"
-    },
-    {
-        .value    = &settings_tmp.player_arms,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_player_arms",
-        .display  = NULL
     }
 };
 
@@ -536,7 +536,6 @@ Options settings = {
     .window_width           = 800,
     .window_height          = 600,
     .multisamples           = 0,
-    .player_arms            = false,
     .windowed               = true,
     .greedy_meshing         = false,
     .vsync                  = 1,
@@ -577,6 +576,7 @@ Options settings = {
     .deadzone_horiz         = 0.0F,
     .deadzone_vert          = 0.0F,
     .free_crosshair         = false,
+    .render_player          = false,
 };
 
 char * config_filepath = "config.ini";

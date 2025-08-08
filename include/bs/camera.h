@@ -82,4 +82,6 @@ void camera_crosshair_move(float, float);
 void camera_apply(void);
 void camera_update(float dt);
 
+float camera_clamp_pitch(float);
+
 #endif

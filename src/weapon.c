@@ -380,7 +380,7 @@ void weapon_shoot(void) {
     camera.muzzle.x += horiz_recoil;
     camera.muzzle.y -= vert_recoil;
 
-    camera.muzzle.y = clamp(EPSILON, PI - EPSILON, camera.muzzle.y);
+    camera.muzzle.y = camera_clamp_pitch(camera.muzzle.y);
 
     camera_crosshair_move(-horiz_recoil, -vert_recoil);
 #endif

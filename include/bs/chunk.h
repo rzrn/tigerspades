@@ -30,6 +30,9 @@
 
 #include <libvxl.h>
 
+float frustum_near(void);
+float frustum_far(void);
+
 #define CHUNK_SIZE 16
 #define CHUNKS_PER_DIM (512 / CHUNK_SIZE)
 

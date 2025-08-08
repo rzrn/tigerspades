@@ -374,14 +374,16 @@ void weapon_shoot(void) {
     }
 
     // converges to 0 for (+/-) 1.0 (only slowly, has no effect on usual orientation.y range)
-    horiz_recoil *= sqrtf(1.0F - fourthf(players[local_player.id].orientation.y));
+    horiz_recoil *= sqrtf(1.0F - fourthf(cos(camera.muzzle.y)));
 
 #if !(HACKS_ENABLED && HACK_NORECOIL)
-    camera.rot.x += horiz_recoil;
-    camera.rot.y -= vert_recoil;
-#endif
+    camera.muzzle.x += horiz_recoil;
+    camera.muzzle.y -= vert_recoil;
 
-    camera_overflow_adjust();
+    camera.muzzle.y = clamp(EPSILON, PI - EPSILON, camera.muzzle.y);
+
+    camera_crosshair_move(-horiz_recoil, -vert_recoil);
+#endif
 
     sound_create(
         SOUND_LOCAL, weapon_sound(players[local_player.id].weapon),

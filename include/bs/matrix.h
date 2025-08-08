@@ -44,4 +44,6 @@ void matrix_upload(void);
 void matrix_upload_p(void);
 void matrix_pointAt(mat4 m, float dx, float dy, float dz);
 
+void matrix_project(mat4 mvp, float ox, float oy, float oz, float w, float h, vec3);
+
 #endif

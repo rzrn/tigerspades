@@ -41,6 +41,8 @@ Camera camera = {
     .eye_height = 0.0F,
     .speed      = CAMERA_DEFAULT_SPEED,
     .rot        = {2.04F, 1.79F},
+    .crosshair  = {2.04F, 1.79F},
+    .muzzle     = {2.04F, 1.79F},
     .noclip     = false
 };
 
@@ -58,17 +60,46 @@ float camera_fov_scaled(void) {
 }
 
 void camera_overflow_adjust(void) {
-    if (camera.rot.y < EPSILON)
-        camera.rot.y = EPSILON;
+    camera.rot.y       = clamp(EPSILON, PI - EPSILON, camera.rot.y);
+    camera.muzzle.y    = clamp(EPSILON, PI - EPSILON, camera.muzzle.y);
+    camera.crosshair.y = clamp(EPSILON, PI - EPSILON, camera.crosshair.y);
 
-    if (camera.rot.y > 3.14F)
-        camera.rot.y = 3.14F;
+    if (camera.rot.x > TAU) {
+        camera.rot.x       -= TAU;
+        camera.muzzle.x    -= TAU;
+        camera.crosshair.x -= TAU;
+    }
 
-    if (camera.rot.x > TAU)
-        camera.rot.x -= TAU;
+    if (camera.rot.x < 0.0F) {
+        camera.rot.x       += TAU;
+        camera.muzzle.x    += TAU;
+        camera.crosshair.x += TAU;
+    }
+}
 
-    if (camera.rot.x < 0.0F)
-        camera.rot.x += TAU;
+void camera_crosshair_move(float dx, float dy) {
+    if (camera.mode == CAMERAMODE_FPS) {
+        camera.crosshair.x -= dx;
+        camera.crosshair.y += dy;
+
+        float h = settings.deadzone_horiz, v = settings.deadzone_vert;
+
+        if (h <= absf(camera.rot.x - camera.crosshair.x))
+            camera.rot.x -= dx;
+
+        if (v <= absf(camera.rot.y - camera.crosshair.y))
+            camera.rot.y += dy;
+
+        camera.crosshair.x = clamp(camera.rot.x - h, camera.rot.x + h, camera.crosshair.x);
+        camera.crosshair.y = clamp(camera.rot.y - v, camera.rot.y + v, camera.crosshair.y);
+    } else {
+        camera.rot.x -= dx;
+        camera.rot.y += dy;
+
+        camera.crosshair = camera.muzzle = camera.rot;
+    }
+
+    camera_overflow_adjust();
 }
 
 void camera_apply(void) {
@@ -91,16 +122,12 @@ void camera_update(float dt) {
     }
 }
 
-Vector3f camera_orientation(void) {
-    return (Vector3f) {
-        .x = sin(camera.rot.x) * sin(camera.rot.y),
-        .y = cos(camera.rot.y),
-        .z = cos(camera.rot.x) * sin(camera.rot.y)
-    };
-}
+Vector3f camera_orientation(void)  { return Rodrigues3f(camera.rot);       }
+Vector3f muzzle_direction(void)    { return Rodrigues3f(camera.muzzle);    }
+Vector3f crosshair_direction(void) { return Rodrigues3f(camera.crosshair); }
 
 void camera_hit_fromplayer(CameraHit * hit, int player_id, float range) {
-    Vector3f o = player_id != local_player.id ? players[player_id].orientation : camera_orientation();
+    Vector3f o = player_id != local_player.id ? players[player_id].orientation : muzzle_direction();
 
     camera_hit(
         hit, player_id, players[player_id].physics.eye.x,
@@ -172,8 +199,8 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
 }
 
 int * camera_terrain_pick(unsigned char mode) {
-    return camera_terrain_pickEx(mode, camera.pos.x, camera.pos.y, camera.pos.z, sin(camera.rot.x) * sin(camera.rot.y),
-                                 cos(camera.rot.y), cos(camera.rot.x) * sin(camera.rot.y));
+    Vector3f r = camera.pos, o = muzzle_direction();
+    return camera_terrain_pickEx(mode, r.x, r.y, r.z, o.x, o.y, o.z);
 }
 
 // kindly borrowed from
@@ -285,7 +312,7 @@ void camera_ExtractFrustum(void) {
     matrix_load(mvp, matrix_model);
     matrix_multiply(mvp, matrix_view);
     matrix_multiply(mvp, matrix_projection);
-    memcpy(clip, (float*) mvp, 16 * sizeof(float));
+    memcpy(clip, (float *) mvp, 16 * sizeof(float));
 
     /* Extract the numbers for the RIGHT plane */
     frustum[0][0] = clip[3]  - clip[0];

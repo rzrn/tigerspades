@@ -36,6 +36,12 @@
 
 #include <ini.h>
 
+static void config_label_degrees(char * buffer, size_t length, void * voidptr) {
+    float value = *((float *) voidptr);
+
+    snprintf(buffer, length, "%.2f deg", value * 180.0F / M_PI);
+}
+
 static void config_label_scale(char * buffer, size_t length, void * voidptr) {
     int value = *((int *) voidptr);
 
@@ -150,7 +156,7 @@ Setting config_settings[] = {
     {
         .value    = settings_tmp.name,
         .type     = CONFIG_TYPE_STRING,
-        .max      = sizeof(settings.name) - 1,
+        .size     = sizeof(settings.name),
         .name     = "name",
         .display  = "Name",
         .help     = "Ingame player name",
@@ -188,9 +194,34 @@ Setting config_settings[] = {
         .display  = "Show ammo",
     },
     {
+        .value    = &settings_tmp.deadzone_horiz,
+        .type     = CONFIG_TYPE_FLOAT,
+        .minf     = 0.0F,
+        .maxf     = 0.25F * M_PI,
+        .name     = "deadzone_horiz",
+        .display  = "Horizontal aiming deadzone",
+        .label    = config_label_degrees
+    },
+    {
+        .value    = &settings_tmp.deadzone_vert,
+        .type     = CONFIG_TYPE_FLOAT,
+        .minf     = 0.0F,
+        .maxf     = 0.25F * M_PI,
+        .name     = "deadzone_vert",
+        .display  = "Vertical aiming deadzone",
+        .label    = config_label_degrees
+    },
+    {
+        .value    = &settings_tmp.free_crosshair,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .display  = "Free crosshair",
+        .name     = "free_crosshair",
+        .help     = "Display muzzle movement"
+    },
+    {
         .value    = &settings_tmp.min_lan_port,
         .type     = CONFIG_TYPE_INT,
-        .max      = INT_MAX,
+        .maxi     = INT_MAX,
         .display  = "Minimum LAN port",
         .name     = "min_lan_port",
         .help     = "First port to scan for LAN games"
@@ -198,7 +229,7 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.max_lan_port,
         .type     = CONFIG_TYPE_INT,
-        .max      = INT_MAX,
+        .maxi     = INT_MAX,
         .display  = "Maximum LAN port",
         .name     = "max_lan_port",
         .help     = "Last port to scan for LAN games"
@@ -235,8 +266,8 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.mouse_sensitivity,
         .type     = CONFIG_TYPE_FLOAT,
-        .min      = 0,
-        .max      = INT_MAX,
+        .minf     = 0.0F,
+        .maxf     = FLT_MAX,
         .display  = "Mouse sensitivity",
         .name     = "mouse_sensitivity",
         .category = "Control"
@@ -270,8 +301,8 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.volume,
         .type     = CONFIG_TYPE_INT,
-        .min      = 0,
-        .max      = 10,
+        .mini     = 0,
+        .maxi     = 10,
         .name     = "vol",
         .display  = "Volume",
         .category = "Interface"
@@ -279,8 +310,8 @@ Setting config_settings[] = {
     {
         .value           = &settings_tmp.scale,
         .type            = CONFIG_TYPE_INT,
-        .min             = 0,
-        .max             = INT_MAX,
+        .mini            = 0,
+        .maxi            = INT_MAX,
         .name            = "scale",
         .display         = "GUI scale",
         .defaults        = {0, 1, 2, 4, 8, 16, 32, 64},
@@ -346,8 +377,8 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.camera_fov,
         .type     = CONFIG_TYPE_FLOAT,
-        .min      = CAMERA_DEFAULT_FOV,
-        .max      = CAMERA_MAX_FOV,
+        .minf     = CAMERA_DEFAULT_FOV,
+        .maxf     = CAMERA_MAX_FOV,
         .name     = "camera_fov",
         .display  = "Camera FOV",
         .help     = "Field of View in degrees",
@@ -356,8 +387,8 @@ Setting config_settings[] = {
     {
         .value           = &settings_tmp.window_width,
         .type            = CONFIG_TYPE_INT,
-        .min             = 0,
-        .max             = INT_MAX,
+        .mini            = 0,
+        .maxi            = INT_MAX,
         .name            = "xres",
         .display         = "Game width",
         .defaults        = {640, 800, 854, 1024, 1280, 1920, 3840},
@@ -368,8 +399,8 @@ Setting config_settings[] = {
     {
         .value           = &settings_tmp.window_height,
         .type            = CONFIG_TYPE_INT,
-        .min             = 0,
-        .max             = INT_MAX,
+        .mini            = 0,
+        .maxi            = INT_MAX,
         .name            = "yres",
         .display         = "Game height",
         .defaults        = {480, 600, 720, 768, 1024, 1080, 2160},
@@ -380,8 +411,8 @@ Setting config_settings[] = {
     {
         .value           = &settings_tmp.vsync,
         .type            = CONFIG_TYPE_INT,
-        .min             = 0,
-        .max             = INT_MAX,
+        .mini            = 0,
+        .maxi            = INT_MAX,
         .name            = "vsync",
         .display         = "V-Sync",
         .help            = "Limits your game's fps",
@@ -398,8 +429,8 @@ Setting config_settings[] = {
     {
         .value           = &settings_tmp.multisamples,
         .type            = CONFIG_TYPE_INT,
-        .min             = 0,
-        .max             = 16,
+        .mini            = 0,
+        .maxi            = 16,
         .name            = "multisamples",
         .display         = "Multisamples",
         .help            = "Smooth out block edges",
@@ -460,16 +491,16 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.trajectory_length,
         .type     = CONFIG_TYPE_INT,
-        .min      = 16,
-        .max      = 2048,
+        .mini     = 16,
+        .maxi     = 2048,
         .name     = "trajectory_length",
         .display  = "Trajectory length"
     },
     {
         .value    = &settings_tmp.projectile_count,
         .type     = CONFIG_TYPE_INT,
-        .min      = 8,
-        .max      = 256,
+        .mini     = 8,
+        .maxi     = 256,
         .name     = "projectile_count",
         .display  = "Projectile count"
     },
@@ -542,7 +573,10 @@ Options settings = {
     .left_handed            = false,
     .kill_indicator         = false,
     .persistent_block_color = false,
-    .show_iron_sight        = true
+    .show_iron_sight        = true,
+    .deadzone_horiz         = 0.0F,
+    .deadzone_vert          = 0.0F,
+    .free_crosshair         = false,
 };
 
 char * config_filepath = "config.ini";

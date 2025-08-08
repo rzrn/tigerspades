@@ -95,9 +95,15 @@ typedef struct {
     bool  kill_indicator;
     bool  persistent_block_color;
     bool  show_iron_sight;
+    float deadzone_horiz;
+    float deadzone_vert;
+    bool  free_crosshair;
 } Options;
 
 extern Options settings, settings_tmp;
+
+static inline bool deadzone_enabled(void)
+{ return settings.deadzone_horiz > 0 || settings.deadzone_vert > 0; }
 
 typedef struct {
     int          keycode;
@@ -125,8 +131,9 @@ typedef void Label(char *, size_t, void *);
 typedef struct {
     void *       value;
     int          type;
-    int          min;
-    int          max;
+    int          size;
+    int          mini, maxi;
+    float        minf, maxf;
     const char * name;
     const char * display;
     const char * help;

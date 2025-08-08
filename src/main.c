@@ -211,8 +211,7 @@ void display(void) {
         if (settings.opengl14) {
             matrix_identity(matrix_projection);
             matrix_perspective(
-                matrix_projection, camera_fov_scaled(), window_aspect(), 0.1F,
-                settings.render_distance + CHUNK_SIZE * 4.0F
+                matrix_projection, camera_fov_scaled(), window_aspect(), frustum_near(), frustum_far()
             );
             matrix_upload_p();
 

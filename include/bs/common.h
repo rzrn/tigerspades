@@ -149,6 +149,11 @@ static inline int modnonnegi(int a, int b)
 static inline float modnonnegf(float a, float b)
 { assert(b > 0); float c = fmod(a, b); return c < 0 ? c + b : c; }
 
+static inline Vector3f Rodrigues3f(const Euler R)
+{ return (Vector3f) {.x = sin(R.x) * sin(R.y),
+                     .y = cos(R.y),
+                     .z = cos(R.x) * sin(R.y)}; }
+
 #define PI      3.14159265F
 #define TAU     (PI * 2.0F)
 #define HALFPI  (PI * 0.5F)

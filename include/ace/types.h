@@ -6,6 +6,10 @@
 #include <stddef.h>
 
 typedef struct {
+    float x, y;
+} Euler;
+
+typedef struct {
     int x, y;
 } Vector2i;
 

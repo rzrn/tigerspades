@@ -20,6 +20,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <ace/types.h>
+
 typedef enum {
     CAMERAMODE_SELECTION,
     CAMERAMODE_FPS,
@@ -31,7 +33,7 @@ typedef enum {
 typedef struct {
     CameraMode mode; Vector3f pos, v, movement;
     float size, height, eye_height, speed;
-    struct { float x, y; } rot;
+    Euler rot, crosshair, muzzle;
     bool noclip;
 } Camera;
 
@@ -59,6 +61,9 @@ enum {
 };
 
 Vector3f camera_orientation(void);
+Vector3f muzzle_direction(void);
+Vector3f crosshair_direction(void);
+
 void camera_hit_fromplayer(CameraHit *, int player_id, float range);
 void camera_hit(CameraHit *, int exclude_player, float x, float y, float z, float ray_x, float ray_y,
                 float ray_z, float range);
@@ -66,12 +71,14 @@ void camera_hit_mask(CameraHit *, int exclude_player, float x, float y, float z,
                      float ray_y, float ray_z, float range);
 
 float camera_fov_scaled(void);
+
 void camera_ExtractFrustum(void);
 unsigned char camera_PointInFrustum(float x, float y, float z);
 int camera_CubeInFrustum(float x, float y, float z, float size, float size_y);
 int * camera_terrain_pick(unsigned char mode);
 int * camera_terrain_pickEx(unsigned char mode, float x, float y, float z, float ray_x, float ray_y, float ray_z);
 void camera_overflow_adjust(void);
+void camera_crosshair_move(float, float);
 void camera_apply(void);
 void camera_update(float dt);
 

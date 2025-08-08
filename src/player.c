@@ -318,9 +318,11 @@ void player_render_all(void) {
         ray.direction[Y] = o->y;
         ray.direction[Z] = o->z;
     } else {
-        ray.direction[X] = sin(camera.rot.x) * sin(camera.rot.y);
-        ray.direction[Y] = cos(camera.rot.y);
-        ray.direction[Z] = cos(camera.rot.x) * sin(camera.rot.y);
+        Vector3f o = muzzle_direction();
+
+        ray.direction[X] = o.x;
+        ray.direction[Y] = o.y;
+        ray.direction[Z] = o.z;
     }
 
     for (int k = 0; k < PLAYERS_MAX; k++) {

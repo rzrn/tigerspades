@@ -622,13 +622,16 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
             if (p.team == TEAM_SPECTATOR)
                 camera.pos = ntohv3f(p.pos);
 
-            camera.mode            = p.team == TEAM_SPECTATOR ? CAMERAMODE_SPECTATOR : CAMERAMODE_FPS;
-            camera.rot.x           = p.team == TEAM1 ? 0.5F * PI : 1.5F * PI;
-            camera.rot.y           = 0.5F * PI;
             local_player.health    = 100;
             local_player.blocks    = 50;
             local_player.grenades  = 3;
             local_player.last_tool = TOOL_GUN;
+
+            camera.mode  = p.team == TEAM_SPECTATOR ? CAMERAMODE_SPECTATOR : CAMERAMODE_FPS;
+            camera.rot.x = p.team == TEAM1 ? 0.5F * PI : 1.5F * PI;
+            camera.rot.y = 0.5F * PI;
+
+            camera.muzzle = camera.crosshair = camera.rot;
 
             if (settings.persistent_block_color) {
                 players[local_player.id].block = rgb;

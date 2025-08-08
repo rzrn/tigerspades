@@ -38,6 +38,9 @@
 
 #include <log.h>
 
+float frustum_near(void) { return 0.1F;                                         }
+float frustum_far(void)  { return settings.render_distance + CHUNK_SIZE * 4.0F; }
+
 Chunk chunks[CHUNKS_PER_DIM * CHUNKS_PER_DIM];
 
 HashTable chunk_block_queue;

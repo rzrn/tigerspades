@@ -113,6 +113,10 @@ void matrix_perspective(mat4 m, float fovy, float aspect, float zNear, float zFa
     glm_perspective(fovy / 180.0F * GLM_PI, aspect, zNear, zFar, m);
 }
 
+void matrix_project(mat4 mvp, float ox, float oy, float oz, float w, float h, vec3 retval) {
+    glm_project((vec3) {ox, oy, oz}, mvp, (vec4) {0, 0, w, h}, retval);
+}
+
 void matrix_lookAt(mat4 m, double eyex, double eyey, double eyez, double centerx, double centery, double centerz,
                    double upx, double upy, double upz) {
     glm_lookat((vec3) {eyex, eyey, eyez}, (vec3) {centerx, centery, centerz}, (vec3) {upx, upy, upz}, m);

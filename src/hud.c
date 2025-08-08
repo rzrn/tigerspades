@@ -54,6 +54,11 @@ static float hud_popup_timer = 0;
 
 HUD * hud_active;
 
+static inline bool in_bodyview_mode(void)
+{ return (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
+       && cameracontroller_bodyview_mode
+       && players[cameracontroller_bodyview_player].alive; }
+
 static inline int is_inside_centered(double mx, double my, int x, int y, int w, int h)
 { return mx >= x - w / 2 && mx < x + w / 2 && my >= y - h / 2 && my < y + h / 2; }
 
@@ -502,7 +507,7 @@ static float hud_draw_debug_screen(float top, float scale) {
     font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
 
     Vector3f o = camera.mode == CAMERAMODE_FPS ? players[local_player.id].orientation
-                                               : camera_orientation();
+                                               : crosshair_direction();
 
     sprintf(buff, "Facing: %.04f / %.04f / %.04f", o.x, o.y, o.z);
     font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
@@ -769,12 +774,8 @@ static void hud_draw_map(float scale) {
         if (visible_on_minimap(&players[k]))
     #endif
         {
-            bool in_bodyview_mode = (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
-                                 && cameracontroller_bodyview_mode
-                                 && players[cameracontroller_bodyview_player].alive;
-            int local_id = in_bodyview_mode ? cameracontroller_bodyview_player : local_player.id;
-
-            if (in_bodyview_mode && k == local_player.id) continue;
+            int local_id = in_bodyview_mode() ? cameracontroller_bodyview_player : local_player.id;
+            if (in_bodyview_mode() && k == local_player.id) continue;
 
             if (k == local_id)
                 glColor3ub(0, 255, 255);
@@ -822,13 +823,10 @@ static void hud_draw_minimap(float scale) {
     texture_draw_empty(minimap_x - 1 * scale, minimap_y + 1 * scale, 130 * scale, 130 * scale);
     glColor3f(1.0F, 1.0F, 1.0F);
 
-    bool in_bodyview_mode = (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
-                         && cameracontroller_bodyview_mode
-                         && players[cameracontroller_bodyview_player].alive;
-    int local_id = in_bodyview_mode ? cameracontroller_bodyview_player : local_player.id;
+    int local_id = in_bodyview_mode() ? cameracontroller_bodyview_player : local_player.id;
 
     float t = settings.fixed_minimap ? 0.0F :
-                    in_bodyview_mode ? -atan2(players[cameracontroller_bodyview_player].orientation.z,
+                  in_bodyview_mode() ? -atan2(players[cameracontroller_bodyview_player].orientation.z,
                                               players[cameracontroller_bodyview_player].orientation.x) - HALFPI :
                                        camera.rot.x + PI;
 
@@ -945,7 +943,7 @@ static void hud_draw_minimap(float scale) {
         if (visible_on_minimap(&players[k]))
     #endif
         {
-            if (in_bodyview_mode && k == local_player.id) continue;
+            if (in_bodyview_mode() && k == local_player.id) continue;
 
             if (k == local_id)
                 glColor3ub(0, 255, 255);
@@ -974,6 +972,53 @@ static void hud_draw_minimap(float scale) {
             }
         }
     }
+}
+
+static void matrix_orientation(mat4 retval) {
+    Vector3f o = camera_orientation();
+    matrix_lookAt(retval, 0.0F, 0.0F, 0.0F, o.x, o.y, o.z, 0.0F, 1.0F, 0.0F);
+    mat4 proj; matrix_perspective(
+        proj, camera_fov_scaled(), window_aspect(), frustum_near(), frustum_far()
+    );
+
+    matrix_multiply(retval, proj);
+}
+
+static void draw_crosshair(mat4 mvp) {
+    vec3 v;
+
+    if (!deadzone_enabled() || in_bodyview_mode()) {
+        v[X] = settings.window_width / 2.0F;
+        v[Y] = settings.window_height / 2.0F;
+    } else {
+        Vector3f o = crosshair_direction();
+        matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
+    }
+
+    bool firing = ISFIRING(&players[local_player.id]);
+    Texture * texture_crosshair = texture(
+        settings.free_crosshair ? TEXTURE_FREEAIM3 :
+                         firing ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1
+    );
+
+    texture_draw(texture_crosshair, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
+}
+
+static void draw_muzzle(mat4 mvp) {
+    vec3 v;
+
+    if (in_bodyview_mode()) {
+        v[X] = settings.window_width / 2.0F;
+        v[Y] = settings.window_height / 2.0F;
+    } else {
+        Vector3f o = muzzle_direction();
+        matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
+    }
+
+    bool firing = ISFIRING(&players[local_player.id]);
+    Texture * texture_muzzle = texture(firing ? TEXTURE_FREEAIM2 : TEXTURE_FREEAIM1);
+
+    texture_draw(texture_muzzle, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
 }
 
 static void hud_draw_weapon(float scale) {
@@ -1014,10 +1059,15 @@ static void hud_draw_weapon(float scale) {
         if (settings.kill_indicator && window_time() - local_player.last_kill_timer < 0.3F)
             glColor3f(1.0, 0.0, 0.0);
 
-        texture_draw(
-            texture(HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1),
-            (settings.window_width - 32) / 2.0F, (settings.window_height + 32) / 2.0F, 32, 32
-        );
+        mat4 mvp;
+
+        if (deadzone_enabled() || settings.free_crosshair)
+            matrix_orientation(mvp);
+
+        draw_crosshair(mvp);
+
+        if (settings.free_crosshair)
+            draw_muzzle(mvp);
     }
 }
 
@@ -1470,10 +1520,7 @@ static void hud_ingame_mouselocation(double dx, double dy) {
     if (camera.mode == CAMERAMODE_FPS && ISSCOPING(&players[local_player.id]))
         r *= 0.5F;
 
-    camera.rot.x -= dx * r;
-    camera.rot.y += dy * r;
-
-    camera_overflow_adjust();
+    camera_crosshair_move(dx * r, dy * r);
 }
 
 static void hud_ingame_mouseclick(double x, double y, int button, int action, int mods) {
@@ -2640,7 +2687,7 @@ static int int_slider(mu_Context * ctx, Setting * setting) {
     mu_push_id(ctx, setting, sizeof(setting));
 
     float slider = *value;
-    int res = mu_slider_ex(ctx, &slider, setting->min, setting->max, 0, "", MU_OPT_ALIGNCENTER);
+    int res = mu_slider_ex(ctx, &slider, setting->mini, setting->maxi, 0, "", MU_OPT_ALIGNCENTER);
 
     if (res & MU_RES_CHANGE) *value = round(slider);
 
@@ -2663,6 +2710,26 @@ static int int_number(mu_Context * ctx, int * value) {
     int res = mu_number_ex(ctx, &tmp, 1, "%.0f", MU_OPT_ALIGNCENTER);
     mu_pop_id(ctx);
     *value = max(round(tmp), 0);
+    return res;
+}
+
+static int float_slider(mu_Context * ctx, Setting * setting) {
+    float * value = setting->value;
+
+    mu_push_id(ctx, setting, sizeof(setting));
+
+    int res = mu_slider_ex(ctx, value, setting->minf, setting->maxf, 0, "", MU_OPT_ALIGNCENTER);
+
+    char buf[64];
+
+    if (setting->label != NULL)
+        setting->label(buf, sizeof(buf), value);
+    else
+        snprintf(buf, sizeof(buf), "%.2f", *value);
+
+    mu_draw_control_text(ctx, buf, ctx->last_rect, MU_COLOR_TEXT, MU_OPT_ALIGNCENTER);
+
+    mu_pop_id(ctx);
     return res;
 }
 
@@ -2713,14 +2780,14 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
                     }
 
                     case CONFIG_TYPE_STRING: {
-                        mu_textbox(ctx, a->value, a->max + 1);
+                        mu_textbox(ctx, a->value, a->size);
                         break;
                     }
 
                     case CONFIG_TYPE_INT: {
                         if (a->defaults_length > 0) {
                             int_slider_defaults(ctx, a);
-                        } else if (a->max == INT_MAX) {
+                        } else if (a->maxi == INT_MAX) {
                             int_number(ctx, a->value);
                         } else {
                             int_slider(ctx, a);
@@ -2730,11 +2797,11 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
                     }
 
                     case CONFIG_TYPE_FLOAT: {
-                        if (a->max == INT_MAX) {
+                        if (a->maxf == FLT_MAX) {
                             mu_number(ctx, a->value, 0.1F);
-                            *((float *) a->value) = max(a->min, *((float *) a->value));
+                            *((float *) a->value) = max(a->minf, *((float *) a->value));
                         } else {
-                            mu_slider(ctx, a->value, a->min, a->max);
+                            float_slider(ctx, a);
                         }
 
                         break;

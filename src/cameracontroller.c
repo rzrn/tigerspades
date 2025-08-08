@@ -79,6 +79,7 @@ void cameracontroller_death_render(void) {
 }
 
 float last_cy;
+
 void cameracontroller_fps(float dt) {
     players[local_player.id].alive = 1;
 
@@ -169,27 +170,21 @@ void cameracontroller_fps(float dt) {
         players[local_player.id].input.buttons &= MASKOFF(BUTTON_PRIMARY);
     }
 
+    camera.v = players[local_player.id].physics.velocity;
+
     float tau = 0.039F; // see “src/player.c”
 
-    float lx = (tau * players[local_player.id].orientation_smooth.x + dt * sin(camera.rot.x) * sin(camera.rot.y)) / (tau + dt);
-    float ly = (tau * players[local_player.id].orientation_smooth.y + dt * cos(camera.rot.y)) / (tau + dt);
-    float lz = (tau * players[local_player.id].orientation_smooth.z + dt * cos(camera.rot.x) * sin(camera.rot.y)) / (tau + dt);
+    camera.muzzle.x = (tau * camera.muzzle.x + dt * camera.crosshair.x) / (tau + dt);
+    camera.muzzle.y = (tau * camera.muzzle.y + dt * camera.crosshair.y) / (tau + dt);
 
-    players[local_player.id].orientation_smooth.x = lx;
-    players[local_player.id].orientation_smooth.y = ly;
-    players[local_player.id].orientation_smooth.z = lz;
-
-    float len = hypot3f(lx, ly, lz);
-    players[local_player.id].orientation.x = lx / len;
-    players[local_player.id].orientation.y = ly / len;
-    players[local_player.id].orientation.z = lz / len;
-
-    camera.v = players[local_player.id].physics.velocity;
+    players[local_player.id].orientation = players[local_player.id].orientation_smooth = muzzle_direction();
 }
 
 void cameracontroller_fps_render(void) {
-    matrix_lookAt(matrix_view, camera.pos.x, camera.pos.y, camera.pos.z, camera.pos.x + sin(camera.rot.x) * sin(camera.rot.y),
-                  camera.pos.y + cos(camera.rot.y), camera.pos.z + cos(camera.rot.x) * sin(camera.rot.y), 0.0F, 1.0F, 0.0F);
+    float x = camera.pos.x, y = camera.pos.y, z = camera.pos.z;
+    Vector3f o = ISSCOPING(&players[local_player.id]) ? crosshair_direction() : camera_orientation();
+
+    matrix_lookAt(matrix_view, x, y, z, x + o.x, y + o.y, z + o.z, 0.0F, 1.0F, 0.0F);
 }
 
 void cameracontroller_bodyview_next(void) {
@@ -306,19 +301,23 @@ void cameracontroller_spectator(float dt) {
 }
 
 void cameracontroller_spectator_render(void) {
+    float x = camera.pos.x, y = camera.pos.y, z = camera.pos.z;
+
+    float ox, oy, oz;
+
     if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
         Player * p = &players[cameracontroller_bodyview_player];
 
         Vector3f * o = settings.smooth_orientation ? &p->orientation_smooth : &p->orientation;
 
         float n = hypot3f(o->x, o->y, o->z);
-        float ox = o->x / n, oy = o->y / n, oz = o->z / n;
-        matrix_lookAt(matrix_view, camera.pos.x, camera.pos.y, camera.pos.z, camera.pos.x + ox, camera.pos.y + oy, camera.pos.z + oz, 0.0F,
-                      1.0F, 0.0F);
+        ox = o->x / n; oy = o->y / n; oz = o->z / n;
     } else {
-        matrix_lookAt(matrix_view, camera.pos.x, camera.pos.y, camera.pos.z, camera.pos.x + sin(camera.rot.x) * sin(camera.rot.y),
-                      camera.pos.y + cos(camera.rot.y), camera.pos.z + cos(camera.rot.x) * sin(camera.rot.y), 0.0F, 1.0F, 0.0F);
+        Vector3f o = camera_orientation();
+        ox = o.x; oy = o.y; oz = o.z;
     }
+
+    matrix_lookAt(matrix_view, x, y, z, x + ox, y + oy, z + oz, 0.0F, 1.0F, 0.0F);
 }
 
 void cameracontroller_bodyview(float dt) {

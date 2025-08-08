@@ -59,6 +59,10 @@ const char * texture_filename(enum Texture index) {
         case TEXTURE_CROSSHAIR2:   return "png/crosshair2.png";
         case TEXTURE_INDICATOR:    return "png/indicator.png";
 
+        case TEXTURE_FREEAIM1:     return "png/freeaim1.png";
+        case TEXTURE_FREEAIM2:     return "png/freeaim2.png";
+        case TEXTURE_FREEAIM3:     return "png/freeaim3.png";
+
         case TEXTURE_PLAYER:       return "png/player.png";
         case TEXTURE_MEDICAL:      return "png/medical.png";
         case TEXTURE_INTEL:        return "png/intel.png";

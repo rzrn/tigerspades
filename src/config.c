@@ -117,7 +117,7 @@ ConfigKey _config_key[] = {
     [WINDOW_KEY_LASTTOOL]      = {.keycode = TOOLKIT_KEY_Q,            .name = "last_tool",         .display = "Last tool"},
     [WINDOW_KEY_FIREMODE]      = {.keycode = TOOLKIT_KEY_F,            .name = "fire_mode",         .display = "Change fire mode"},
 
-    [WINDOW_KEY_ESCAPE]        = {.keycode = TOOLKIT_KEY_ESCAPE,       .name = "quit_game",         .display = "Quit", .category = "Game"},
+    [WINDOW_KEY_ESCAPE]        = {.keycode = TOOLKIT_KEY_ESCAPE,       .name = "quit_game",         .display = "Main menu & return to game", .category = "Game"},
     [WINDOW_KEY_VOLUME_UP]     = {.keycode = TOOLKIT_KEY_ADD,          .name = "volume_up",         .display = "Volume up"},
     [WINDOW_KEY_VOLUME_DOWN]   = {.keycode = TOOLKIT_KEY_SUBTRACT,     .name = "volume_down",       .display = "Volume down"},
     [WINDOW_KEY_CHAT]          = {.keycode = TOOLKIT_KEY_T,            .name = "chat_global",       .display = "Chat"},

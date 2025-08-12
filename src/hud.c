@@ -1916,6 +1916,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                     case WINDOW_KEY_SELECT1: new_team = TEAM1;          break;
                     case WINDOW_KEY_SELECT2: new_team = TEAM_SPECTATOR; break;
                     case WINDOW_KEY_SELECT3: new_team = TEAM2;          break;
+                    default:                 new_team = -1;             break;
                 }
 
                 if (new_team >= 0) {

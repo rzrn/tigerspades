@@ -195,6 +195,18 @@ Setting config_settings[] = {
         .display  = "Show ammo",
     },
     {
+        .value    = &settings_tmp.show_hotbar,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_hotbar",
+        .display  = "Show equipment hotbar",
+    },
+    {
+        .value    = &settings_tmp.show_friendly_tag,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_friendly_tag",
+        .display  = "Show friendly tag",
+    },
+    {
         .value    = &settings_tmp.deadzone_horiz,
         .type     = CONFIG_TYPE_FLOAT,
         .minf     = 0.0F,
@@ -569,6 +581,8 @@ Options settings = {
     .show_crosshair         = true,
     .show_health            = true,
     .show_ammo              = true,
+    .show_hotbar            = true,
+    .show_friendly_tag      = true,
     .report_client_version  = true,
     .left_handed            = false,
     .kill_indicator         = false,

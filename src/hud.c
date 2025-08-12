@@ -153,6 +153,77 @@ static inline void kv6_center(mat4 matrix, kv6 * model) {
     );
 }
 
+static void hud_draw_hotbar(void) {
+    const float t = window_time() * 57.4F;
+
+    {
+        static kv6 * const model_spade = &model[MODEL_SPADE];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_SPADE) * 0.5F, -6.0F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_spade);
+
+        if (players[local_player.id].held_item == TOOL_SPADE)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        matrix_upload();
+        kv6_render(model_spade, players[local_player.id].team);
+    }
+
+    if (local_player.blocks > 0) {
+        static kv6 * const model_block = &model[MODEL_BLOCK];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_BLOCK) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, 1.5F, 0.0F, 0.0F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_block);
+
+        if (players[local_player.id].held_item == TOOL_BLOCK)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        model_block->red   = players[local_player.id].block.r / 255.0F;
+        model_block->green = players[local_player.id].block.g / 255.0F;
+        model_block->blue  = players[local_player.id].block.b / 255.0F;
+
+        matrix_upload();
+        kv6_render(model_block, players[local_player.id].team);
+    }
+
+    if (local_player.ammo + local_player.ammo_reserved > 0) {
+        kv6 * gun = weapon_model(players[local_player.id].weapon);
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GUN) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, 3.0F, 0.0F, 0.0F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, gun);
+
+        if (players[local_player.id].held_item == TOOL_GUN)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        matrix_upload();
+        kv6_render(gun, players[local_player.id].team);
+    }
+
+    if (local_player.grenades > 0) {
+        static kv6 * const model_grenade = &model[MODEL_GRENADE];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GRENADE) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, 4.5F, 0.0F, 0.0F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_grenade);
+
+        if (players[local_player.id].held_item == TOOL_GRENADE)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        matrix_upload();
+        kv6_render(model_grenade, players[local_player.id].team);
+    }
+}
+
 static void hud_ingame_render3D(void) {
     font_select(font_primary);
 
@@ -168,74 +239,7 @@ static void hud_ingame_render3D(void) {
     if (camera.mode == CAMERAMODE_FPS && players[local_player.id].items_show) {
         players[local_player.id].input.buttons &= MASKOFF(BUTTON_SECONDARY);
 
-        const float t = window_time() * 57.4F;
-
-        {
-            static kv6 * const model_spade = &model[MODEL_SPADE];
-
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_SPADE) * 0.5F, -6.0F);
-            matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
-            kv6_center(matrix_model, model_spade);
-
-            if (players[local_player.id].held_item == TOOL_SPADE)
-                matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
-
-            matrix_upload();
-            kv6_render(model_spade, players[local_player.id].team);
-        }
-
-        if (local_player.blocks > 0) {
-            static kv6 * const model_block = &model[MODEL_BLOCK];
-
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_BLOCK) * 0.5F, -6.0F);
-            matrix_translate(matrix_model, 1.5F, 0.0F, 0.0F);
-            matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
-            kv6_center(matrix_model, model_block);
-
-            if (players[local_player.id].held_item == TOOL_BLOCK)
-                matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
-
-            model_block->red   = players[local_player.id].block.r / 255.0F;
-            model_block->green = players[local_player.id].block.g / 255.0F;
-            model_block->blue  = players[local_player.id].block.b / 255.0F;
-
-            matrix_upload();
-            kv6_render(model_block, players[local_player.id].team);
-        }
-
-        if (local_player.ammo + local_player.ammo_reserved > 0) {
-            kv6 * gun = weapon_model(players[local_player.id].weapon);
-
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GUN) * 0.5F, -6.0F);
-            matrix_translate(matrix_model, 3.0F, 0.0F, 0.0F);
-            matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
-            kv6_center(matrix_model, gun);
-
-            if (players[local_player.id].held_item == TOOL_GUN)
-                matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
-
-            matrix_upload();
-            kv6_render(gun, players[local_player.id].team);
-        }
-
-        if (local_player.grenades > 0) {
-            static kv6 * const model_grenade = &model[MODEL_GRENADE];
-
-            matrix_identity(matrix_model);
-            matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GRENADE) * 0.5F, -6.0F);
-            matrix_translate(matrix_model, 4.5F, 0.0F, 0.0F);
-            matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
-            kv6_center(matrix_model, model_grenade);
-
-            if (players[local_player.id].held_item == TOOL_GRENADE)
-                matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
-
-            matrix_upload();
-            kv6_render(model_grenade, players[local_player.id].team);
-        }
+        if (settings.show_hotbar) hud_draw_hotbar();
     }
 
     if (screen_current == SCREEN_TEAM_SELECT) {
@@ -1404,9 +1408,10 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             hud_draw_minimap(scale); // minimized, top right
     }
 
-    if (player_intersection_type >= 0
-       && (players[local_player.id].team == TEAM_SPECTATOR ||
-           players[player_intersection_player].team == players[local_player.id].team)) {
+    bool is_tag_visible = players[local_player.id].team == TEAM_SPECTATOR ||
+                          players[player_intersection_player].team == players[local_player.id].team;
+
+    if (settings.show_friendly_tag && player_intersection_type >= 0 && is_tag_visible) {
         font_select(font_secondary);
 
         char * th[4] = {"torso", "head", "arms", "legs"}; char str[32];

@@ -89,6 +89,8 @@ typedef struct {
     bool  show_crosshair;
     bool  show_health;
     bool  show_ammo;
+    bool  show_hotbar;
+    bool  show_friendly_tag;
     bool  report_client_version;
     bool  left_handed;
     bool  kill_indicator;

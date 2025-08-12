@@ -273,6 +273,8 @@ void display(void) {
                     contained.pos.z       = 63 - pos[Y];
 
                     doPacketBlockAction(&contained);
+
+                    SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, false);
                 }
             }
 

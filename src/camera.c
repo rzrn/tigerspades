@@ -47,14 +47,14 @@ Camera camera = {
 };
 
 float camera_fov_scaled(void) {
-    int render_fpv = (camera.mode == CAMERAMODE_FPS)
-        || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
-            && cameracontroller_bodyview_mode);
-    int local_id = (camera.mode == CAMERAMODE_FPS) ? local_player.id : cameracontroller_bodyview_player;
+    bool render_fpv = (camera.mode == CAMERAMODE_FPS)
+        || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) &&
+            cameracontroller_bodyview_mode);
+    int local_id = camera.mode == CAMERAMODE_FPS ? local_player.id : cameracontroller_bodyview_player;
 
-    if (render_fpv && ISSCOPING(&players[local_id]) &&
-        !HASBIT(players[local_id].input.keys, INPUT_SPRINT) && players[local_id].alive)
-        return CAMERA_DEFAULT_FOV * atan(tan((CAMERA_DEFAULT_FOV / 180.0F * PI) / 2) / 2.0F) * 2.0F;
+    if (render_fpv && players[local_id].alive && ISSCOPING(&players[local_id]) &&
+       !HASBIT(players[local_id].input.keys, INPUT_SPRINT))
+        return CAMERA_SCOPE_FOV;
 
     return settings.camera_fov;
 }
@@ -133,13 +133,10 @@ Vector3f muzzle_direction(void)    { return Rodrigues3f(camera.muzzle);    }
 Vector3f crosshair_direction(void) { return Rodrigues3f(camera.crosshair); }
 
 void camera_hit_fromplayer(CameraHit * hit, int player_id, float range) {
+    Vector3f r = players[player_id].physics.eye;
     Vector3f o = player_id != local_player.id ? players[player_id].orientation : muzzle_direction();
 
-    camera_hit(
-        hit, player_id, players[player_id].physics.eye.x,
-        players[player_id].physics.eye.y + player_height(&players[player_id]),
-        players[player_id].physics.eye.z, o.x, o.y, o.z, range
-    );
+    camera_hit(hit, player_id, r.x, r.y + player_height(&players[player_id]), r.z, o.x, o.y, o.z, range);
 }
 
 void camera_hit(CameraHit * hit, int exclude_player, float x, float y, float z, float ray_x, float ray_y,

@@ -41,8 +41,9 @@ typedef struct {
 #define CAMERA_DEFAULT_SPEED 32.0F
 #define CAMERA_MAXIMUM_SPEED 512.0F
 
+#define CAMERA_SCOPE_FOV   45.0F
 #define CAMERA_DEFAULT_FOV 70.0F
-#define CAMERA_MAX_FOV 100.0F
+#define CAMERA_MAX_FOV     100.0F
 
 extern float frustum[6][4];
 extern Camera camera;

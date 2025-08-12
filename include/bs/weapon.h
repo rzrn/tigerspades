@@ -24,6 +24,30 @@
 #include <bs/sound.h>
 #include <bs/model.h>
 
+typedef enum {
+    RIFLE_SAFE,
+    RIFLE_SEMI,
+    SMG_SAFE,
+    SMG_SEMI,
+    SMG_BURST,
+    SMG_AUTO,
+    SHOTGUN_SAFE,
+    SHOTGUN_PUMP
+} WeaponFireMode;
+
+float weapon_recoil_anim(Weapon);
+int weapon_block_damage(Weapon);
+float weapon_delay(Weapon);
+
+WAV * weapon_sound(Weapon);
+WAV * weapon_sound_reload(Weapon);
+
+int weapon_ammo(Weapon);
+int weapon_ammo_reserved(Weapon);
+
+kv6 * weapon_casing(Weapon);
+kv6 * weapon_model(Weapon);
+
 void weapon_update(void);
 void weapon_set(bool restock);
 void weapon_reload(void);
@@ -31,18 +55,18 @@ bool weapon_reloading(void);
 int weapon_can_reload(void);
 void weapon_reload_abort(void);
 void weapon_shoot(void);
-int weapon_block_damage(int gun);
-float weapon_delay(int gun);
-int weapon_ammo(int gun);
-int weapon_ammo_reserved(int gun);
-kv6 * weapon_casing(int gun);
-kv6 * weapon_model(int gun);
-float weapon_recoil_anim(int gun);
-WAV * weapon_sound(int gun);
-WAV * weapon_sound_reload(int gun);
+
 void weapon_spread(Player * p, float * d);
-void weapon_recoil(int gun, double * horiz_recoil, double * vert_recoil);
+void weapon_recoil(Weapon, double * horiz_recoil, double * vert_recoil);
 
 extern float weapon_reload_start, weapon_last_shot;
+
+WeaponFireMode weapon_firemode_default(Weapon);
+WeaponFireMode weapon_firemode_cycle(WeaponFireMode);
+int weapon_firemode_burst(WeaponFireMode);
+const char * weapon_firemode_label(WeaponFireMode);
+
+extern WeaponFireMode weapon_firemode;
+extern int weapon_burst;
 
 #endif

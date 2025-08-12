@@ -115,6 +115,7 @@ ConfigKey _config_key[] = {
     [WINDOW_KEY_RELOAD]        = {.keycode = TOOLKIT_KEY_R,            .name = "reload",            .display = "Reload"},
     [WINDOW_KEY_CHANGEWEAPON]  = {.keycode = TOOLKIT_KEY_PERIOD,       .name = "change_weapon",     .display = "Gun select"},
     [WINDOW_KEY_LASTTOOL]      = {.keycode = TOOLKIT_KEY_Q,            .name = "last_tool",         .display = "Last tool"},
+    [WINDOW_KEY_FIREMODE]      = {.keycode = TOOLKIT_KEY_F,            .name = "fire_mode",         .display = "Change fire mode"},
 
     [WINDOW_KEY_ESCAPE]        = {.keycode = TOOLKIT_KEY_ESCAPE,       .name = "quit_game",         .display = "Quit", .category = "Game"},
     [WINDOW_KEY_VOLUME_UP]     = {.keycode = TOOLKIT_KEY_ADD,          .name = "volume_up",         .display = "Volume up"},

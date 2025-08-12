@@ -28,7 +28,7 @@
 typedef struct {
     char name[11];
     RGB3i color;
-} Team;
+} TeamObject;
 
 typedef struct {
     unsigned int team1_score, team2_score, capture_limit;
@@ -53,7 +53,7 @@ typedef struct {
 
 typedef struct {
     GameMode mode;
-    Team team1, team2;
+    TeamObject team1, team2;
     CTFState ctf; TCState tc;
 } GameState;
 
@@ -93,8 +93,8 @@ typedef struct {
     } distance;
 } Hit;
 
-bool player_intersection_exists(Hit * s);
-int player_intersection_choose(Hit * s, float * distance);
+bool player_intersection_exists(Hit *);
+HitType player_intersection_choose(Hit *, float * distance);
 
 typedef struct {
     char name[17];
@@ -107,7 +107,7 @@ typedef struct {
     float spade_use_timer;
     unsigned char spade_used, spade_use_type;
     unsigned int score;
-    unsigned char team, weapon, held_item;
+    Team team; Weapon weapon; Tool held_item;
     unsigned char alive, connected;
     float item_showup, item_disabled, items_show_start;
     bool items_show;
@@ -137,9 +137,10 @@ typedef struct {
 extern Player players[PLAYERS_MAX];
 // pyspades/pysnip/piqueserver sometimes uses ids that are out of range
 
-void player_on_held_item_change(Player *);
+float player_section_height(HitType);
+
+void player_on_held_item_change(void);
 bool player_can_spectate(Player *);
-float player_section_height(int section);
 void player_init(void);
 float player_height(const Player *);
 float player_height2(const Player *);
@@ -148,7 +149,7 @@ void player_update_position(float);
 void player_update_orientation(float);
 void player_render_all(void);
 void player_render(Player * p, int id);
-void player_collision(const Player *, Ray * ray, Hit * intersects);
+void player_collision(const Player *, Ray *, Hit *);
 void player_reset(Player *);
 int player_move(Player *, float fsynctics, int id);
 int player_uncrouch(Player *);

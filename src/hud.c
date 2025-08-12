@@ -323,6 +323,8 @@ static void hud_ingame_render3D(void) {
                 }
                 break;
             }
+
+            case TEAM_SPECTATOR: break;
         }
     }
 
@@ -782,6 +784,8 @@ static void hud_draw_map(float scale) {
             else switch (players[k].team) {
                 case TEAM1: glColorRGB3i(gamestate.team1.color); break;
                 case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+
+                case TEAM_SPECTATOR: break;
             }
 
             float x = k == local_player.id ? camera.pos.x : players[k].pos.x;
@@ -950,6 +954,8 @@ static void hud_draw_minimap(float scale) {
             else switch (players[k].team) {
                 case TEAM1: glColorRGB3i(gamestate.team1.color); break;
                 case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+
+                case TEAM_SPECTATOR: break;
             }
 
             float dx = (k == local_player.id ? camera.pos.x : players[k].pos.x) - x0;
@@ -995,10 +1001,9 @@ static void draw_crosshair(mat4 mvp) {
         matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
     }
 
-    bool firing = ISFIRING(&players[local_player.id]);
     Texture * texture_crosshair = texture(
         settings.free_crosshair ? TEXTURE_FREEAIM3 :
-                         firing ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1
+                 button_map.lmb ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1
     );
 
     texture_draw(texture_crosshair, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
@@ -1015,8 +1020,7 @@ static void draw_muzzle(mat4 mvp) {
         matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
     }
 
-    bool firing = ISFIRING(&players[local_player.id]);
-    Texture * texture_muzzle = texture(firing ? TEXTURE_FREEAIM2 : TEXTURE_FREEAIM1);
+    Texture * texture_muzzle = texture(button_map.lmb ? TEXTURE_FREEAIM2 : TEXTURE_FREEAIM1);
 
     texture_draw(texture_muzzle, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
 }
@@ -1332,6 +1336,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             switch (players[cameracontroller_bodyview_player].team) {
                 case TEAM1: glColorRGB3i(gamestate.team1.color); break;
                 case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+
+                case TEAM_SPECTATOR: break;
             }
 
             font_centered(
@@ -1485,7 +1491,7 @@ static void hud_ingame_scroll(double yoffset) {
 
         players[local_player.id].held_item = h;
         sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
-        player_on_held_item_change(players + local_player.id);
+        player_on_held_item_change();
     } else if (camera.mode == CAMERAMODE_SPECTATOR) {
         camera.speed = clamp(
             CAMERA_MINIMUM_SPEED, CAMERA_MAXIMUM_SPEED,
@@ -1531,11 +1537,11 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         return;
     }
 
-    if (button == WINDOW_MOUSE_LMB) button_map.lmb = (action == WINDOW_PRESS);
-
     if (button == WINDOW_MOUSE_RMB) {
-        if (action == WINDOW_PRESS && players[local_player.id].held_item == TOOL_GUN
-            && !settings.hold_down_sights && !players[local_player.id].items_show) {
+        button_map.rmb = (action == WINDOW_PRESS);
+
+        if (action == WINDOW_PRESS && players[local_player.id].held_item == TOOL_GUN &&
+           !settings.hold_down_sights && !players[local_player.id].items_show) {
             players[local_player.id].input.buttons ^= MASKON(BUTTON_SECONDARY);
         }
 
@@ -1566,8 +1572,8 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         }
 
         local_player.drag_active = 0;
-        if (action == WINDOW_PRESS && players[local_player.id].held_item == TOOL_BLOCK
-           && window_time() - players[local_player.id].item_showup >= 0.5F) {
+        if (action == WINDOW_PRESS && players[local_player.id].held_item == TOOL_BLOCK &&
+            window_time() - players[local_player.id].item_showup >= 0.5F) {
             int * pos = camera_terrain_pick(0);
 
             if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
@@ -1578,8 +1584,6 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
                 local_player.drag.z = pos[Z];
             }
         }
-
-        button_map.rmb = (action == WINDOW_PRESS);
     }
 
     if (button == WINDOW_MOUSE_MMB) button_map.mmb = (action == WINDOW_PRESS);
@@ -1619,67 +1623,33 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         }
     }
 
-    if (button == WINDOW_MOUSE_LMB) {
-        if (camera.mode == CAMERAMODE_FPS && window_time() - players[local_player.id].item_showup >= 0.5F) {
-            if (players[local_player.id].held_item == TOOL_GRENADE && local_player.grenades > 0) {
-                if (action == WINDOW_PRESS) {
-                    sound_create(SOUND_LOCAL, sound(SOUND_GRENADE_PIN), 0.0F, 0.0F, 0.0F);
-                }
+    if (button == WINDOW_MOUSE_LMB && action == WINDOW_PRESS && camera.mode == CAMERAMODE_FPS) {
+        if (weapon_reloading()) weapon_reload_abort();
 
-                if (action == WINDOW_RELEASE) {
-                    const float dt = window_time() - players[local_player.id].start.lmb;
+        if (local_player.ammo == 0 && 0.5F <= window_time() - players[local_player.id].item_showup) {
+            sound_create(SOUND_LOCAL, sound(SOUND_EMPTY), 0.0F, 0.0F, 0.0F);
 
-                    local_player.grenades--;
-
-                    PacketGrenade contained;
-                    contained.player_id   = local_player.id;
-                    contained.fuse_length = max(3.0F - dt, 0.0F);
-
-                    contained.pos = htonv3f(players[local_player.id].pos);
-
-                    if (contained.fuse_length == 0.0F) {
-                        contained.vel.x = 0.0F;
-                        contained.vel.y = 0.0F;
-                        contained.vel.z = 0.0F;
-                    } else {
-                        contained.vel.x = +players[local_player.id].orientation.x + players[local_player.id].physics.velocity.x;
-                        contained.vel.y = +players[local_player.id].orientation.z + players[local_player.id].physics.velocity.z;
-                        contained.vel.z = -players[local_player.id].orientation.y - players[local_player.id].physics.velocity.y;
-                    }
-
-                    sendPacketGrenade(&contained, 0);
-
-                    handlePacketGrenade(&contained); // server won’t loop packet back
-                    players[local_player.id].item_showup = window_time();
-                }
-            }
+            static const char popup[] = "RELOAD";
+            chat_showpopup(popup, sizeof(popup), ASCII, 0.4F, Red);
         }
     }
 
-    if (button == WINDOW_MOUSE_LMB && action == WINDOW_PRESS) {
-        players[local_player.id].start.lmb = window_time();
+    if (button == WINDOW_MOUSE_LMB) {
+        button_map.lmb = (action == WINDOW_PRESS);
 
-        if (camera.mode == CAMERAMODE_FPS) {
-            if (players[local_player.id].held_item == TOOL_GUN) {
-                if (weapon_reloading()) weapon_reload_abort();
-
-                if (local_player.ammo == 0 && window_time() - players[local_player.id].item_showup >= 0.5F) {
-                    sound_create(SOUND_LOCAL, sound(SOUND_EMPTY), 0.0F, 0.0F, 0.0F);
-
-                    static const char popup[] = "RELOAD";
-                    chat_showpopup(popup, sizeof(popup), ASCII, 0.4F, Red);
-                }
-            }
-        }
+        if (camera.mode == CAMERAMODE_FPS && action == WINDOW_RELEASE)
+            weapon_burst = 0;
 
         if (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) {
-            if (camera.mode == CAMERAMODE_SPECTATOR)
-                cameracontroller_bodyview_mode = true;
+            if (action == WINDOW_PRESS) {
+                if (camera.mode == CAMERAMODE_SPECTATOR)
+                    cameracontroller_bodyview_mode = true;
 
-            cameracontroller_bodyview_dec();
-            cameracontroller_bodyview_prev();
+                cameracontroller_bodyview_dec();
+                cameracontroller_bodyview_prev();
 
-            cameracontroller_bodyview_zoom = 0.0F;
+                cameracontroller_bodyview_zoom = 0.0F;
+            }
         }
     }
 }
@@ -1816,7 +1786,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 int tmp = players[local_player.id].held_item;
                 players[local_player.id].held_item = local_player.last_tool;
                 local_player.last_tool = tmp;
-                player_on_held_item_change(players + local_player.id);
+                player_on_held_item_change();
             }
 
             if (key == WINDOW_KEY_VOLUME_UP) {
@@ -1874,8 +1844,17 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 updateBlockColor();
             }
 
-            if (key == WINDOW_KEY_RELOAD && camera.mode == CAMERAMODE_FPS
-               && players[local_player.id].held_item == TOOL_GUN) {
+            if (camera.mode == CAMERAMODE_FPS &&
+                players[local_player.id].held_item == TOOL_GUN &&
+                key == WINDOW_KEY_FIREMODE && !button_map.lmb) {
+                weapon_firemode = weapon_firemode_cycle(weapon_firemode);
+
+                sprintf(hud_popup, "%s", weapon_firemode_label(weapon_firemode));
+                hud_popup_timer = window_time();
+            }
+
+            if (camera.mode == CAMERAMODE_FPS && key == WINDOW_KEY_RELOAD &&
+                players[local_player.id].held_item == TOOL_GUN) {
                 weapon_reload();
             }
 
@@ -1909,7 +1888,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                     players[local_player.id].held_item = item;
 
                     sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
-                    player_on_held_item_change(players + local_player.id);
+                    player_on_held_item_change();
                 }
             }
 
@@ -1932,7 +1911,6 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                     case WINDOW_KEY_SELECT1: new_team = TEAM1;          break;
                     case WINDOW_KEY_SELECT2: new_team = TEAM_SPECTATOR; break;
                     case WINDOW_KEY_SELECT3: new_team = TEAM2;          break;
-                    default:                 new_team = -1;             break;
                 }
 
                 if (new_team >= 0) {
@@ -1979,7 +1957,6 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                     case WINDOW_KEY_SELECT1: new_gun = WEAPON_RIFLE;   break;
                     case WINDOW_KEY_SELECT2: new_gun = WEAPON_SMG;     break;
                     case WINDOW_KEY_SELECT3: new_gun = WEAPON_SHOTGUN; break;
-                    default:                 new_gun = -1;             break;
                 }
 
                 if (new_gun >= 0) {

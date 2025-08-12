@@ -95,12 +95,13 @@ void player_reset(Player * p) {
     p->input.buttons      = 0;
 }
 
-void player_on_held_item_change(Player * p) {
-    if (HASBIT(p->input.buttons, BUTTON_PRIMARY))
-        p->start.lmb = window_time() + 0.8F;
+void player_on_held_item_change(void) {
+    Player * const p = &players[local_player.id];
 
-    if (HASBIT(p->input.buttons, BUTTON_SECONDARY))
-        p->start.rmb = window_time() + 0.8F;
+    weapon_burst = 0;
+
+    SETBIT(p->input.buttons, BUTTON_PRIMARY,   false);
+    SETBIT(p->input.buttons, BUTTON_SECONDARY, false);
 
     p->item_disabled    = window_time();
     p->items_show_start = window_time();
@@ -171,13 +172,16 @@ float * player_tool_func(const Player * p) {
                 }
             }
         }
-            // case TOOL_GRENADE:
-            /*if (p->input.buttons.lmb && p!=&players[local_player.id]) {
+        /* case TOOL_GRENADE: {
+            if (p->input.buttons.lmb && p!=&players[local_player.id]) {
                 ret[0] = max(-(window_time()-p->input.buttons.lmb_start)*35.0F,-35.0F);
                 return ret;
             } else {
                 return ret;
-            }*/
+            }
+        } */
+
+        default: break;
     }
     return ret;
 }
@@ -234,7 +238,7 @@ float player_height2(const Player * p) {
     return p->alive ? 0.0F : 1.0F;
 }
 
-float player_section_height(int section) {
+float player_section_height(HitType section) {
     switch (section) {
         case HITTYPE_HEAD:  return +1.00F;
         case HITTYPE_TORSO: return +0.00F;
@@ -248,8 +252,8 @@ bool player_intersection_exists(Hit * s) {
     return s->head || s->torso || s->arms || s->leg_left || s->leg_right;
 }
 
-int player_intersection_choose(Hit * s, float * dist) {
-    int type;
+HitType player_intersection_choose(Hit * s, float * dist) {
+    HitType type;
     *dist = FLT_MAX;
 
     if (s->arms && s->distance.arms < *dist) {
@@ -935,6 +939,8 @@ void player_render(Player * p, int id) {
         switch (p->team) {
             case TEAM1: glColorRGB3i(gamestate.team1.color); break;
             case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+
+            case TEAM_SPECTATOR: break;
         }
 
         font_select(font_primary);

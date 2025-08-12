@@ -84,11 +84,11 @@ typedef enum {
     GAMEMODE_TC  = 1
 } GameMode;
 
-enum {
+typedef enum {
     TEAM1          = 0,
     TEAM2          = 1,
     TEAM_SPECTATOR = 255
-};
+} Team;
 
 #define TEAM(t) (((t) == TEAM1 || (t) == TEAM2) ? (t) : TEAM_SPECTATOR)
 

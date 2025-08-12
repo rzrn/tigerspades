@@ -17,6 +17,7 @@
     along with BetterSpades.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <limits.h>
 #include <math.h>
 
 #include <bs/particle.h>
@@ -28,6 +29,9 @@
 
 float weapon_reload_start, weapon_last_shot = -INFINITY;
 bool weapon_reload_inprogress = false;
+
+WeaponFireMode weapon_firemode = SMG_BURST;
+int weapon_burst = 0;
 
 void weapon_update(void) {
     float t, delay = weapon_delay(players[local_player.id].weapon);
@@ -68,63 +72,67 @@ void weapon_update(void) {
             players[local_player.id].items_show       = true;
         } else weapon_reload_inprogress = false;
     } else {
-        if (screen_current == SCREEN_NONE && window_time() - players[local_player.id].item_disabled >= 0.5F) {
-            if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
-               (players[local_player.id].held_item == TOOL_GUN) &&
-               (local_player.ammo > 0) &&
-               (window_time() - weapon_last_shot >= delay)) {
-                weapon_shoot();
-                #if !(HACKS_ENABLED && HACK_NORELOAD)
-                local_player.ammo = max(local_player.ammo - 1, 0);
-                #endif
-                weapon_last_shot = window_time();
+        if (screen_current == SCREEN_NONE && window_time() - players[local_player.id].item_disabled >= 0.5F &&
+            players[local_player.id].held_item == TOOL_GUN) {
+            if (local_player.ammo == 0) {
+                SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, false);
+                weapon_burst = 0;
+            } else if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) && local_player.ammo > 0) {
+                float dt = window_time() - weapon_last_shot;
+
+                if (0.5F * delay <= dt && weapon_firemode_burst(weapon_firemode) <= weapon_burst) {
+                    SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, false);
+                } else if (delay <= dt) {
+                    weapon_shoot();
+                    #if !(HACKS_ENABLED && HACK_NORELOAD)
+                    local_player.ammo = max(local_player.ammo - 1, 0);
+                    #endif
+                    weapon_last_shot = window_time();
+
+                    weapon_burst++;
+                }
             }
         }
     }
 }
 
-float weapon_recoil_anim(int gun) {
-    switch (gun) {
+float weapon_recoil_anim(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return 0.3F;
         case WEAPON_SMG:     return 0.125F;
         case WEAPON_SHOTGUN: return 0.75F;
-        default:             return 0.0F;
     }
 }
 
-int weapon_block_damage(int gun) {
-    switch (gun) {
+int weapon_block_damage(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return 50;
         case WEAPON_SMG:     return 34;
         case WEAPON_SHOTGUN: return 20;
-        default:             return 0;
     }
 }
 
-float weapon_delay(int gun) {
-    switch (gun) {
+float weapon_delay(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return 0.5F;
         case WEAPON_SMG:     return 0.1F;
         case WEAPON_SHOTGUN: return 1.0F;
-        default:             return 0.0F;
     }
 }
 
-WAV * weapon_sound(int gun) {
-    switch (gun) {
+WAV * weapon_sound(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return sound(SOUND_RIFLE_SHOOT);
         case WEAPON_SMG:     return sound(SOUND_SMG_SHOOT);
         case WEAPON_SHOTGUN: return sound(SOUND_SHOTGUN_SHOOT);
-        default:             return NULL;
     }
 }
 
-WAV * weapon_sound_reload(int gun) {
-    switch (gun) {
+WAV * weapon_sound_reload(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return sound(SOUND_RIFLE_RELOAD);
         case WEAPON_SMG:     return sound(SOUND_SMG_RELOAD);
         case WEAPON_SHOTGUN: return sound(SOUND_SHOTGUN_RELOAD);
-        default:             return NULL;
     }
 }
 
@@ -146,8 +154,8 @@ void weapon_spread(Player * p, float * d) {
 #endif
 }
 
-void weapon_recoil(int gun, double * horiz_recoil, double * vert_recoil) {
-    switch (gun) {
+void weapon_recoil(Weapon weapon, double * horiz_recoil, double * vert_recoil) {
+    switch (weapon) {
         case WEAPON_RIFLE:
             *horiz_recoil = 0.0001;
             *vert_recoil  = 0.05;
@@ -166,44 +174,92 @@ void weapon_recoil(int gun, double * horiz_recoil, double * vert_recoil) {
     }
 }
 
-int weapon_ammo(int gun) {
-    switch (gun) {
+int weapon_ammo(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return 10;
         case WEAPON_SMG:     return 30;
         case WEAPON_SHOTGUN: return 6;
-        default:             return 0;
     }
 }
 
-int weapon_ammo_reserved(int gun) {
-    switch (gun) {
+int weapon_ammo_reserved(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return 50;
         case WEAPON_SMG:     return 120;
         case WEAPON_SHOTGUN: return 48;
-        default:             return 0;
     }
 }
 
-kv6 * weapon_casing(int gun) {
-    switch (gun) {
+kv6 * weapon_casing(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return &model[MODEL_SEMI_CASING];
         case WEAPON_SMG:     return &model[MODEL_SMG_CASING];
         case WEAPON_SHOTGUN: return &model[MODEL_SHOTGUN_CASING];
-        default:             return NULL;
     }
 }
 
-kv6 * weapon_model(int gun) {
-    switch (gun) {
+kv6 * weapon_model(Weapon weapon) {
+    switch (weapon) {
         case WEAPON_RIFLE:   return &model[MODEL_SEMI];
         case WEAPON_SMG:     return &model[MODEL_SMG];
         case WEAPON_SHOTGUN: return &model[MODEL_SHOTGUN];
-        default:             return NULL;
+    }
+}
+
+WeaponFireMode weapon_firemode_default(Weapon weapon) {
+    switch (weapon) {
+        case WEAPON_RIFLE:   return RIFLE_SEMI;
+        case WEAPON_SMG:     return SMG_AUTO;
+        case WEAPON_SHOTGUN: return SHOTGUN_PUMP;
+    }
+}
+
+WeaponFireMode weapon_firemode_cycle(WeaponFireMode mode) {
+    switch (mode) {
+        case RIFLE_SAFE:   return RIFLE_SEMI;
+        case RIFLE_SEMI:   return RIFLE_SAFE;
+        case SMG_SAFE:     return SMG_SEMI;
+        case SMG_SEMI:     return SMG_BURST;
+        case SMG_BURST:    return SMG_AUTO;
+        case SMG_AUTO:     return SMG_SAFE;
+        case SHOTGUN_SAFE: return SHOTGUN_PUMP;
+        case SHOTGUN_PUMP: return SHOTGUN_SAFE;
+    }
+}
+
+int weapon_firemode_burst(WeaponFireMode mode) {
+    switch (mode) {
+        case RIFLE_SAFE:   return 0;
+        case RIFLE_SEMI:   return 1;
+        case SMG_SAFE:     return 0;
+        case SMG_SEMI:     return 1;
+        case SMG_BURST:    return 3;
+        case SMG_AUTO:     return INT_MAX;
+        case SHOTGUN_SAFE: return 0;
+        case SHOTGUN_PUMP: return INT_MAX;
+    }
+}
+
+const char * weapon_firemode_label(WeaponFireMode mode) {
+    switch (mode) {
+        case RIFLE_SAFE:   return "Safety";
+        case RIFLE_SEMI:   return "Semi-Automatic";
+        case SMG_SAFE:     return "Safety";
+        case SMG_SEMI:     return "Semi-Automatic";
+        case SMG_BURST:    return "3-Round Burst";
+        case SMG_AUTO:     return "Automatic";
+        case SHOTGUN_SAFE: return "Safety";
+        case SHOTGUN_PUMP: return "Pump Action";
     }
 }
 
 void weapon_set(bool restock) {
-    if (!restock) local_player.ammo = weapon_ammo(players[local_player.id].weapon);
+    if (!restock) {
+        weapon_firemode = weapon_firemode_default(players[local_player.id].weapon);
+        weapon_burst = 0;
+
+        local_player.ammo = weapon_ammo(players[local_player.id].weapon);
+    }
 
     local_player.ammo_reserved = weapon_ammo_reserved(players[local_player.id].weapon);
     weapon_reload_inprogress = false;

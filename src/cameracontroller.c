@@ -27,6 +27,8 @@
 #include <bs/cameracontroller.h>
 #include <bs/config.h>
 #include <bs/hud.h>
+#include <bs/sound.h>
+#include <bs/weapon.h>
 
 bool cameracontroller_bodyview_mode = false;
 int cameracontroller_bodyview_player = 0;
@@ -83,27 +85,27 @@ float last_cy;
 void cameracontroller_fps(float dt) {
     players[local_player.id].alive = 1;
 
-    int cooldown = 0;
+    bool cooldown = false;
     if (players[local_player.id].held_item == TOOL_GRENADE && local_player.grenades == 0) {
         local_player.last_tool = players[local_player.id].held_item--;
-        cooldown = 1;
+        cooldown = true;
     }
 
     if (players[local_player.id].held_item == TOOL_GUN && local_player.ammo + local_player.ammo_reserved == 0) {
         local_player.last_tool = players[local_player.id].held_item--;
-        cooldown = 1;
+        cooldown = true;
     }
 
     if (players[local_player.id].held_item == TOOL_BLOCK && local_player.blocks == 0) {
         local_player.last_tool = players[local_player.id].held_item--;
-        cooldown = 1;
+        cooldown = true;
     }
 
-    if (cooldown) player_on_held_item_change(players + local_player.id);
+    if (cooldown) player_on_held_item_change();
 
 #ifdef USE_TOUCH
     if (!local_player.ammo) {
-        hud_ingame.input_keyboard(WINDOW_KEY_RELOAD, WINDOW_PRESS, 0, 0);
+        hud_ingame.input_keyboard(WINDOW_KEY_RELOAD, WINDOW_PRESS,   0, 0);
         hud_ingame.input_keyboard(WINDOW_KEY_RELOAD, WINDOW_RELEASE, 0, 0);
     }
 #endif
@@ -153,7 +155,81 @@ void cameracontroller_fps(float dt) {
         players[local_player.id].items_show       = true;
     }
 
-    SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, button_map.lmb);
+    if (0.5F <= window_time() - players[local_player.id].item_showup) {
+        bool primary = HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY);
+
+        if (button_map.lmb && !primary) {
+            players[local_player.id].start.lmb = window_time();
+
+            switch (players[local_player.id].held_item) {
+                case TOOL_GUN: {
+                    if (weapon_burst < weapon_firemode_burst(weapon_firemode)) {
+                        SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, true);
+                        weapon_burst = 0;
+                    }
+
+                    break;
+                }
+
+                case TOOL_GRENADE: {
+                    if (local_player.grenades > 0) {
+                        sound_create(SOUND_LOCAL, sound(SOUND_GRENADE_PIN), 0.0F, 0.0F, 0.0F);
+                        SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, true);
+                    }
+
+                    break;
+                }
+
+                default: {
+                    SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, true);
+                    break;
+                }
+            }
+        }
+
+        if (!button_map.lmb && primary) {
+            weapon_burst = 0;
+
+            switch (players[local_player.id].held_item) {
+                case TOOL_GRENADE: {
+                    const float dt = window_time() - players[local_player.id].start.lmb;
+
+                    local_player.grenades--;
+
+                    PacketGrenade contained;
+
+                    contained.player_id   = local_player.id;
+                    contained.fuse_length = max(3.0F - dt, 0.0F);
+
+                    Vector3f v = {0.0F, 0.0F, 0.0F};
+                    if (contained.fuse_length != 0.0F) {
+                        Vector3f * o  = &players[local_player.id].orientation;
+                        Vector3f * v0 = &players[local_player.id].physics.velocity;
+
+                        v.x = o->x + v0->x;
+                        v.y = o->y + v0->y;
+                        v.z = o->z + v0->z;
+                    }
+
+                    contained.pos = htonv3f(players[local_player.id].pos);
+                    contained.vel = htonov3f(v);
+
+                    sendPacketGrenade(&contained, 0);
+
+                    handlePacketGrenade(&contained); // server won’t loop packet back
+                    players[local_player.id].item_showup = window_time();
+
+                    SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, false);
+                    break;
+                }
+
+                default: {
+                    SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, false);
+                    break;
+                }
+            }
+        }
+    }
 
     if (players[local_player.id].held_item != TOOL_GUN || settings.hold_down_sights)
         SETBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY, button_map.rmb);

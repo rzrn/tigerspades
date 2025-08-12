@@ -190,7 +190,7 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
             Hit intersects = {0};
             player_collision(players + i, &dir, &intersects);
 
-            float d; int type = player_intersection_choose(&intersects, &d);
+            float d; HitType type = player_intersection_choose(&intersects, &d);
             if (player_intersection_exists(&intersects) && d < hit->distance) {
                 hit->type           = CAMERA_HITTYPE_PLAYER;
                 hit->distance       = d;

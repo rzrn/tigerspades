@@ -20,7 +20,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <ace/types.h>
+#include <ace/protocol.h>
 
 typedef enum {
     CAMERAMODE_SELECTION,
@@ -51,7 +51,8 @@ typedef struct {
     char type;
     float x, y, z, distance;
     int xb, yb, zb;
-    unsigned char player_id, player_section;
+    unsigned char player_id;
+    HitType player_section;
 } CameraHit;
 
 enum {

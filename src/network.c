@@ -856,11 +856,13 @@ static void getPacketKillAction(uint8_t * data, size_t len) {
 
             if (settings.kill_indicator) {
                 if (p.kill_type == KILLTYPE_WEAPON || p.kill_type == KILLTYPE_HEADSHOT)
-                        sound_create(SOUND_LOCAL, sound(SOUND_SPADE_WHACK), 0.0F, 0.0F, 0.0F);
+                    sound_create(SOUND_LOCAL, sound(SOUND_SPADE_WHACK), 0.0F, 0.0F, 0.0F);
             }
         } else switch (players[p.killer_id].team) {
             case TEAM1: chat_add(1, opaque(gamestate.team1.color), buff, sizeof(buff), UTF8); break;
             case TEAM2: chat_add(1, opaque(gamestate.team2.color), buff, sizeof(buff), UTF8); break;
+
+            case TEAM_SPECTATOR: break;
         }
     }
 }
@@ -1008,6 +1010,9 @@ static void getPacketIntelCapture(uint8_t * data, size_t len) {
                 gamestate.ctf.team2_score++;
                 sprintf(capture_str, "%s has captured the %s Intel", players[p.player_id].name, gamestate.team1.name);
                 break;
+
+            case TEAM_SPECTATOR:
+                break;
         }
 
         sound_create(SOUND_LOCAL, sound(p.winning ? SOUND_HORN : SOUND_PICKUP), 0.0F, 0.0F, 0.0F);
@@ -1020,6 +1025,8 @@ static void getPacketIntelCapture(uint8_t * data, size_t len) {
             switch (players[p.player_id].team) {
                 case TEAM1: name = gamestate.team1.name; break;
                 case TEAM2: name = gamestate.team2.name; break;
+
+                case TEAM_SPECTATOR: break;
             }
 
             sprintf(capture_str, "%s Team Wins!", name);
@@ -1050,6 +1057,9 @@ static void getPacketIntelPickup(uint8_t * data, size_t len) {
                 sprintf(pickup_str, "%s has the %s Intel", players[p.player_id].name, gamestate.team1.name);
                 break;
             }
+
+            case TEAM_SPECTATOR:
+                break;
         }
 
         chat_add(0, Red, pickup_str, sizeof(pickup_str), UTF8);
@@ -1072,6 +1082,8 @@ static void getPacketIntelDrop(uint8_t * data, size_t len) {
                 gamestate.ctf.team2_has_intel = false;
                 gamestate.ctf.team1_flag = ntohv3f(p.pos);
                 sprintf(drop_str, "%s has dropped the %s Intel", players[p.player_id].name, gamestate.team1.name);
+                break;
+            case TEAM_SPECTATOR:
                 break;
         }
 

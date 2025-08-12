@@ -60,7 +60,8 @@ float camera_fov_scaled(void) {
 }
 
 float camera_clamp_pitch(float y) {
-    float y1 = EPSILON, y2 = settings.render_player ? 15.0F / 180.0F * PI : EPSILON;
+    float y1 = EPSILON, y2 = camera.mode == CAMERAMODE_FPS && settings.render_player
+                           ? 15.0F / 180.0F * PI : EPSILON;
 
     return clamp(y1, PI - y2, y);
 }

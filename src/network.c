@@ -442,13 +442,13 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
     chat_add(0, color, buff, sizeof(buff), UTF8);
 }
 
-static inline void addExtInfoEntry(uint8_t id, uint8_t version, size_t * index) {
+static inline void addExtInfoEntry(uint8_t id, uint8_t version, size_t * dest) {
     PacketExtInfoEntry extension;
     extension.id      = id;
     extension.version = version;
 
-    size_t offset = 1 + sizePacketExtInfo + *index; // skip packet id byte & header
-    *index += writePacketExtInfoEntry(network_buffer + offset, &extension);
+    size_t offset = 1 + sizePacketExtInfo + *dest; // skip packet id byte & header
+    *dest += writePacketExtInfoEntry(network_buffer + offset, &extension);
 }
 
 static const char * getExtensionName(uint8_t id) {
@@ -486,27 +486,27 @@ static void getPacketExtInfo(uint8_t * data, size_t len) {
             }
         } else log_info("Server does not support extensions");
 
-        size_t index = 0, length = 0;
+        size_t offset = 0, length = 0;
 
-        addExtInfoEntry(EXT_PLAYER_PROPERTIES, 1, &index); length++;
-        addExtInfoEntry(EXT_256PLAYERS,        1, &index); length++;
-        addExtInfoEntry(EXT_MESSAGES,          1, &index); length++;
-        addExtInfoEntry(EXT_KICKREASON,        1, &index); length++;
-        addExtInfoEntry(EXT_TRACE_BULLETS,     1, &index); length++;
-        addExtInfoEntry(EXT_HIT_EFFECTS,       1, &index); length++;
-        addExtInfoEntry(EXT_DRAWING,           1, &index); length++;
+        addExtInfoEntry(EXT_PLAYER_PROPERTIES, 1, &offset); length++;
+        addExtInfoEntry(EXT_256PLAYERS,        1, &offset); length++;
+        addExtInfoEntry(EXT_MESSAGES,          1, &offset); length++;
+        addExtInfoEntry(EXT_KICKREASON,        1, &offset); length++;
+        addExtInfoEntry(EXT_TRACE_BULLETS,     1, &offset); length++;
+        addExtInfoEntry(EXT_HIT_EFFECTS,       1, &offset); length++;
+        addExtInfoEntry(EXT_DRAWING,           1, &offset); length++;
 
         PacketExtInfo reply; reply.length = length;
-        sendPacketExtInfo(&reply, index);
+        sendPacketExtInfo(&reply, offset);
     }
 }
 
 static void getPacketWorldUpdate075(uint8_t * data, size_t len) {
     if (len % sizePacketWorldUpdate075 == 0) {
-        size_t index = 0;
+        size_t offset = 0;
 
         for (size_t k = 0; k < len / sizePacketWorldUpdate075; k++) { // supports up to 256 players
-            PacketWorldUpdate075 p; index += readPacketWorldUpdate075(data + index, &p);
+            PacketWorldUpdate075 p; offset += readPacketWorldUpdate075(data + offset, &p);
 
             if (players[k].connected && players[k].alive && k != local_player.id) {
                 Vector3f r = ntohv3f(p.pos);
@@ -522,10 +522,10 @@ static void getPacketWorldUpdate075(uint8_t * data, size_t len) {
 
 static void getPacketWorldUpdate076(uint8_t * data, size_t len) {
     if (len % sizePacketWorldUpdate076 == 0) {
-        size_t index = 0;
+        size_t offset = 0;
 
         for (size_t k = 0; k < len / sizePacketWorldUpdate076; k++) {
-            PacketWorldUpdate076 p; index += readPacketWorldUpdate076(data + index, &p);
+            PacketWorldUpdate076 p; offset += readPacketWorldUpdate076(data + offset, &p);
 
             if (players[p.player_id].connected && players[p.player_id].alive && p.player_id != local_player.id) {
                 Vector3f r = ntohv3f(p.pos);
@@ -656,7 +656,7 @@ static inline Vector3f readv3f(uint8_t * buff)
 static void getPacketStateData(uint8_t * data, size_t len) {
     if (len < sizePacketStateData) ERRLEN(PacketStateData, len);
 
-    PacketStateData p; size_t index = readPacketStateData(data, &p);
+    PacketStateData p; size_t offset = readPacketStateData(data, &p);
 
     decodeMagic(gamestate.team1.name, sizeof(gamestate.team1.name), (char *) p.team1_name.data, p.team1_name.size);
     gamestate.team1.color = p.team1;
@@ -669,7 +669,7 @@ static void getPacketStateData(uint8_t * data, size_t len) {
     if (p.gamemode == GAMEMODE_CTF) {
         if (len < sizePacketStateData + sizeCTFStateData) ERRLEN(PacketStateData, len);
 
-        CTFStateData ctf; index += readCTFStateData(data + index, &ctf);
+        CTFStateData ctf; offset += readCTFStateData(data + offset, &ctf);
         gamestate.ctf.team1_score     = ctf.team1_score;
         gamestate.ctf.team2_score     = ctf.team2_score;
         gamestate.ctf.capture_limit   = ctf.capture_limit;
@@ -691,11 +691,11 @@ static void getPacketStateData(uint8_t * data, size_t len) {
     } else if (p.gamemode == GAMEMODE_TC) {
         if (len < sizePacketStateData + sizeTCStateData) ERRLEN(PacketStateData, len);
 
-        TCStateData tc; index += readTCStateData(data + index, &tc);
+        TCStateData tc; offset += readTCStateData(data + offset, &tc);
         gamestate.tc.territory_count = tc.territory_count;
 
         for (size_t i = 0; i < tc.territory_count; i++) {
-            TCTerritory territory; index += readTCTerritory(data + index, &territory);
+            TCTerritory territory; offset += readTCTerritory(data + offset, &territory);
 
             gamestate.tc.territory[i].pos  = ntohv3f(territory.pos);
             gamestate.tc.territory[i].team = TEAM(territory.team);
@@ -1302,7 +1302,7 @@ static Graph * graph_remove(Graph ** g, size_t index) {
 }
 
 static void getPacketGraphNew(uint8_t * data, size_t len) {
-    PacketGraphNew p; size_t index = readPacketGraphNew(data, &p);
+    PacketGraphNew p; size_t offset = readPacketGraphNew(data, &p);
     if (len % sizePacketGraphNewEntry != 0) ERRLEN(PacketGraphNewEntry, len);
 
     size_t nrows = len / sizePacketGraphNewEntry;
@@ -1311,7 +1311,7 @@ static void getPacketGraphNew(uint8_t * data, size_t len) {
     graph_alloc(g, p.index, nrows, p.length);
 
     for (size_t j = 0; j < g->nrows; j++) {
-        PacketGraphNewEntry e; index += readPacketGraphNewEntry(data + index, &e);
+        PacketGraphNewEntry e; offset += readPacketGraphNewEntry(data + offset, &e);
 
         LegendEntry * p = &g->legend[j];
         decodeMagic(p->label, sizeof(p->label), (char *) e.label.data, e.label.size);
@@ -1321,7 +1321,7 @@ static void getPacketGraphNew(uint8_t * data, size_t len) {
 }
 
 static void getPacketGraphData(uint8_t * data, size_t len) {
-    PacketGraphData p; size_t index = readPacketGraphData(data, &p);
+    PacketGraphData p; size_t offset = readPacketGraphData(data, &p);
     if (len % sizePacketGraphDataEntry != 0) ERRLEN(PacketGraphDataEntry, len);
 
     size_t nrows = len / sizePacketGraphDataEntry;
@@ -1340,7 +1340,7 @@ static void getPacketGraphData(uint8_t * data, size_t len) {
             *cod(g, i, j) = *cod(g, i + 1, j);
 
     for (size_t j = 0; j < g->nrows; j++) {
-        PacketGraphDataEntry e; index += readPacketGraphDataEntry(data + index, &e);
+        PacketGraphDataEntry e; offset += readPacketGraphDataEntry(data + offset, &e);
         *cod(g, g->ncols - 1, j) = clamp(-FLT_MAX, FLT_MAX, e.value);
     }
 }
@@ -1359,26 +1359,26 @@ static void getPacketGraphDel(uint8_t * data, size_t len) {
 
 static void getPacketDraw(uint8_t * data, size_t len) {
     if (len < sizePacketDraw) ERRLEN(PacketDraw, len);
-    PacketDraw p; size_t index = readPacketDraw(data, &p);
+    PacketDraw p; size_t offset = readPacketDraw(data, &p);
 
     len -= sizePacketDraw;
 
     switch (p.subID) {
         case subIdPacketGraphNew: {
             if (len < sizePacketGraphNew) ERRLEN(PacketGraphNew, len);
-            getPacketGraphNew(data + index, len - sizePacketGraphNew);
+            getPacketGraphNew(data + offset, len - sizePacketGraphNew);
             break;
         }
 
         case subIdPacketGraphData: {
             if (len < sizePacketGraphData) ERRLEN(PacketGraphData, len);
-            getPacketGraphData(data + index, len - sizePacketGraphData);
+            getPacketGraphData(data + offset, len - sizePacketGraphData);
             break;
         }
 
         case subIdPacketGraphDel: {
             if (len < sizePacketGraphDel) ERRLEN(PacketGraphDel, len);
-            getPacketGraphDel(data + index, len - sizePacketGraphDel);
+            getPacketGraphDel(data + offset, len - sizePacketGraphDel);
             break;
         }
 

@@ -151,7 +151,7 @@ void network_join_game(unsigned char team, unsigned char weapon) {
                    network_send(id##T, size##T + len); }
 #include <ace/packets.h>
 
-#define ERRLEN(T, len) { log_error(#T " of invalid size (%ld) was received.", len); return; }
+#define ERRLEN(T, len) do { log_error(#T " of invalid size (%ld) was received.", len); return; } while (false)
 #define READPACKET(T, contained, src, len) T contained; if (size##T <= len) read##T(src, &contained); else ERRLEN(T, len);
 
 static void getPacketPositionData(uint8_t * data, size_t len) {
@@ -303,7 +303,7 @@ void handlePacketBlockAction(PacketBlockAction * p) {
                 if (map_isair(x, 63 - z, y))
                     sound_create(SOUND_WORLD, sound(SOUND_BUILD), xc, yc, zc);
 
-                RGBA4i color = opaque(players[p->player_id].block);
+                RGBA4i color = RGB3iAs4i(players[p->player_id].block);
                 map_set(x, 63 - z, y, &color);
             }
 
@@ -456,6 +456,7 @@ static const char * getExtensionName(uint8_t id) {
         case EXT_PLAYER_PROPERTIES: return "Player Properties";
         case EXT_TRACE_BULLETS:     return "Trace Bullets";
         case EXT_HIT_EFFECTS:       return "Hit Effects";
+        case EXT_DRAWING:           return "Drawing";
         case EXT_256PLAYERS:        return "Player Limit";
         case EXT_MESSAGES:          return "Message Types";
         case EXT_KICKREASON:        return "Kick Reason";
@@ -493,6 +494,7 @@ static void getPacketExtInfo(uint8_t * data, size_t len) {
         addExtInfoEntry(EXT_KICKREASON,        1, &index); length++;
         addExtInfoEntry(EXT_TRACE_BULLETS,     1, &index); length++;
         addExtInfoEntry(EXT_HIT_EFFECTS,       1, &index); length++;
+        addExtInfoEntry(EXT_DRAWING,           1, &index); length++;
 
         PacketExtInfo reply; reply.length = length;
         sendPacketExtInfo(&reply, index);
@@ -859,8 +861,8 @@ static void getPacketKillAction(uint8_t * data, size_t len) {
                     sound_create(SOUND_LOCAL, sound(SOUND_SPADE_WHACK), 0.0F, 0.0F, 0.0F);
             }
         } else switch (players[p.killer_id].team) {
-            case TEAM1: chat_add(1, opaque(gamestate.team1.color), buff, sizeof(buff), UTF8); break;
-            case TEAM2: chat_add(1, opaque(gamestate.team2.color), buff, sizeof(buff), UTF8); break;
+            case TEAM1: chat_add(1, RGB3iAs4i(gamestate.team1.color), buff, sizeof(buff), UTF8); break;
+            case TEAM2: chat_add(1, RGB3iAs4i(gamestate.team2.color), buff, sizeof(buff), UTF8); break;
 
             case TEAM_SPECTATOR: break;
         }
@@ -1221,6 +1223,172 @@ static void getPacketHitEffect(uint8_t * data, size_t len) {
         particle_create(Red, r.x, r.y, r.z, 3.5F, 1.0F, 8, 0.1F, 0.4F);
 }
 
+static inline float * dom(Graph * g, size_t i, size_t j)
+{ return &g->data[i + g->ncols * j][0]; }
+
+static inline float * cod(Graph * g, size_t i, size_t j)
+{ return &g->data[i + g->ncols * j][1]; }
+
+static void graph_alloc(Graph * g, uint8_t index, size_t nrows, size_t ncols) {
+    g->index  = index;
+    g->nrows  = nrows;
+    g->ncols  = ncols;
+    g->legend = malloc(nrows * sizeof(LegendEntry));
+    g->data   = malloc(nrows * ncols * sizeof(float2));
+    g->next   = NULL;
+
+    for (size_t i = 0; i < ncols; i++) {
+        float t = (float) i / (float) (ncols - 1);
+
+        for (size_t j = 0; j < nrows; j++) {
+            *dom(g, i, j) = t;
+            *cod(g, i, j) = -FLT_MAX;
+        }
+    }
+}
+
+static void graph_free(Graph * g) {
+    free(g->legend);
+    free(g->data);
+}
+
+static Graph * graph_try_emplace(Graph ** g, size_t index) {
+    Graph * prev = NULL, * curr;
+
+    for (curr = *g; curr != NULL; prev = curr, curr = curr->next)
+        if (curr->index == index)
+            break;
+
+    if (curr == NULL) {
+        curr = malloc(sizeof(Graph));
+
+        if (prev == NULL)
+            *g = curr;
+        else
+            prev->next = curr;
+    } else {
+        Graph * next = curr->next;
+
+        graph_free(curr);
+        curr->next = next;
+    }
+
+    return curr;
+}
+
+static Graph * graph_find(Graph * g, size_t index) {
+    for (Graph * curr = g; curr != NULL; curr = curr->next)
+        if (curr->index == index)
+            return curr;
+
+    return NULL;
+}
+
+static Graph * graph_remove(Graph ** g, size_t index) {
+    Graph * prev = NULL, * curr;
+
+    for (curr = *g; curr != NULL; prev = curr, curr = curr->next)
+        if (curr->index == index)
+            break;
+
+    if (curr == NULL) return NULL;
+
+    if (prev == NULL)
+        *g = curr->next;
+    else
+        prev->next = curr->next;
+
+    return curr;
+}
+
+static void getPacketGraphNew(uint8_t * data, size_t len) {
+    PacketGraphNew p; size_t index = readPacketGraphNew(data, &p);
+    if (len % sizePacketGraphNewEntry != 0) ERRLEN(PacketGraphNewEntry, len);
+
+    size_t nrows = len / sizePacketGraphNewEntry;
+
+    Graph * g = graph_try_emplace(&hud_graph, p.index);
+    graph_alloc(g, p.index, nrows, p.length);
+
+    for (size_t j = 0; j < g->nrows; j++) {
+        PacketGraphNewEntry e; index += readPacketGraphNewEntry(data + index, &e);
+
+        LegendEntry * p = &g->legend[j];
+        decodeMagic(p->label, sizeof(p->label), (char *) e.label.data, e.label.size);
+
+        p->color = RGB3iAs3f(e.color);
+    }
+}
+
+static void getPacketGraphData(uint8_t * data, size_t len) {
+    PacketGraphData p; size_t index = readPacketGraphData(data, &p);
+    if (len % sizePacketGraphDataEntry != 0) ERRLEN(PacketGraphDataEntry, len);
+
+    size_t nrows = len / sizePacketGraphDataEntry;
+
+    Graph * g = graph_find(hud_graph, p.index);
+
+    if (g == NULL) {
+        log_error("Invalid graph ID (%d) was received.", p.index);
+        return;
+    }
+
+    if (g->nrows != nrows) ERRLEN(PacketGraphDataEntry, len);
+
+    for (size_t i = 0; i + 1 < g->ncols; i++)
+        for (size_t j = 0; j < g->nrows; j++)
+            *cod(g, i, j) = *cod(g, i + 1, j);
+
+    for (size_t j = 0; j < g->nrows; j++) {
+        PacketGraphDataEntry e; index += readPacketGraphDataEntry(data + index, &e);
+        *cod(g, g->ncols - 1, j) = clamp(-FLT_MAX, FLT_MAX, e.value);
+    }
+}
+
+static void getPacketGraphDel(uint8_t * data, size_t len) {
+    PacketGraphDel p; readPacketGraphDel(data, &p);
+
+    Graph * g = graph_remove(&hud_graph, p.index);
+
+    if (g == NULL) {
+        log_error("Invalid graph ID (%d) was received.", p.index);
+    } else {
+        graph_free(g); free(g);
+    }
+}
+
+static void getPacketDraw(uint8_t * data, size_t len) {
+    if (len < sizePacketDraw) ERRLEN(PacketDraw, len);
+    PacketDraw p; size_t index = readPacketDraw(data, &p);
+
+    len -= sizePacketDraw;
+
+    switch (p.subID) {
+        case subIdPacketGraphNew: {
+            if (len < sizePacketGraphNew) ERRLEN(PacketGraphNew, len);
+            getPacketGraphNew(data + index, len - sizePacketGraphNew);
+            break;
+        }
+
+        case subIdPacketGraphData: {
+            if (len < sizePacketGraphData) ERRLEN(PacketGraphData, len);
+            getPacketGraphData(data + index, len - sizePacketGraphData);
+            break;
+        }
+
+        case subIdPacketGraphDel: {
+            if (len < sizePacketGraphDel) ERRLEN(PacketGraphDel, len);
+            getPacketGraphDel(data + index, len - sizePacketGraphDel);
+            break;
+        }
+
+        default: {
+            log_error("Invalid subID of PackedDraw (%d) was received.", p.subID);
+            break;
+        }
+    }
+}
+
 void updateBlockColor(void) {
     PacketSetColor contained;
     contained.player_id = local_player.id;
@@ -1541,4 +1709,5 @@ void network_init(void) {
     packets[PACKET_EXT_BASE + EXT_PLAYER_PROPERTIES] = getPacketPlayerProperties;
     packets[PACKET_EXT_BASE + EXT_TRACE_BULLETS]     = getPacketBulletTrace;
     packets[PACKET_EXT_BASE + EXT_HIT_EFFECTS]       = getPacketHitEffect;
+    packets[PACKET_EXT_BASE + EXT_DRAWING]           = getPacketDraw;
 }

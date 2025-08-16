@@ -424,7 +424,7 @@ void texture_init(void) {
 
             for (int ys = 0; ys < 6; ys++)
                 for (int xs = 0; xs < 6; xs++)
-                    writeRGBA(pixels + (x * 8 + xs) + (y * 8 + ys) * 64, opaque(color));
+                    writeRGBA(pixels + (x * 8 + xs) + (y * 8 + ys) * 64, RGB3iAs4i(color));
         }
     }
 

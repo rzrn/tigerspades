@@ -1,5 +1,5 @@
-#ifndef PROTOCOL_H
-#define PROTOCOL_H
+#ifndef ACE_PROTOCOL_H
+#define ACE_PROTOCOL_H
 
 #include <ace/types.h>
 
@@ -195,6 +195,7 @@ enum Extension {
     EXT_PLAYER_PROPERTIES = 0x00,
     EXT_TRACE_BULLETS     = 0x10,
     EXT_HIT_EFFECTS       = 0x11,
+    EXT_DRAWING           = 0x12,
     EXT_256PLAYERS        = 0xC0,
     EXT_MESSAGES          = 0xC1,
     EXT_KICKREASON        = 0xC2,
@@ -204,6 +205,12 @@ enum HitEffectTarget {
     HITEFFECT_BLOCK    = 0,
     HITEFFECT_HEADSHOT = 1,
     HITEFFECT_PLAYER   = 2,
+};
+
+enum {
+    subIdPacketGraphNew  = 0,
+    subIdPacketGraphData = 1,
+    subIdPacketGraphDel  = 2
 };
 
 #define begin(T) typedef struct _##T T; struct _##T {

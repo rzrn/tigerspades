@@ -1,5 +1,5 @@
-#ifndef AOS_TYPES_H
-#define AOS_TYPES_H
+#ifndef ACE_TYPES_H
+#define ACE_TYPES_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -40,5 +40,9 @@ typedef struct {
 typedef struct {
     uint8_t * data; size_t size;
 } Blob;
+
+typedef float float2[2];
+typedef float float3[3];
+typedef float float4[4];
 
 #endif

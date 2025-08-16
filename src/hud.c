@@ -50,7 +50,7 @@
 #include <bs/opengl.h>
 
 static char hud_popup[256];
-static float hud_popup_timer = 0;
+static float hud_popup_timer = -INFINITY;
 
 HUD * hud_active;
 
@@ -538,6 +538,134 @@ static float hud_draw_debug_screen(float top, float scale) {
     font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
 
     font_select(font_old);
+
+    return top;
+}
+
+static inline void hud_draw_graph_grid(float alpha) {
+    glEnable(GL_DEPTH_TEST);
+
+    {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+        glBegin(GL_LINES);
+        for (size_t i = 1; i < 10; i++) {
+            float t = (float) i / (float) 10;
+
+            glVertex2f(0.0f, t);
+            glVertex2f(1.0f, t);
+        }
+
+        for (size_t j = 1; j < 20; j++) {
+            float s = (float) j / (float) 20;
+
+            glVertex2f(s, 0.0f);
+            glVertex2f(s, 1.0f);
+        }
+        glEnd();
+    }
+
+    {
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+        glEnable(GL_BLEND);
+
+        glColor4f(1.0F, 1.0F, 1.0F, alpha);
+        glDepthFunc(GL_EQUAL);
+        texture_draw_empty(0.0F, 1.0F, 1.0F, 1.0F);
+
+        glColor4f(0.0F, 0.0F, 0.0F, alpha);
+        glDepthFunc(GL_LESS);
+        texture_draw_empty(0.0F, 1.0F, 1.0F, 1.0F);
+
+        glDisable(GL_BLEND);
+    }
+
+    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_DEPTH_TEST);
+}
+
+static inline void hud_draw_graph_border(float x, float y, float w, float h, float bw) {
+    glEnable(GL_DEPTH_TEST);
+
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    texture_draw_empty(x, y, w, h);
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+    glColor3f(0.0F, 0.0F, 0.0F);
+    glDepthFunc(GL_NOTEQUAL);
+    texture_draw_empty(x - bw, y + bw, w + 2 * bw, h + 2 * bw);
+
+    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_DEPTH_TEST);
+}
+
+static inline float hud_draw_graph_legend(Graph * g, float scale, float x, float y) {
+    for (size_t j = 0; j < g->nrows; j++) {
+        LegendEntry * const legend = &g->legend[j];
+
+        glColor3f(1.0F, 1.0F, 1.0F);
+        font_render(x + 16.0F * scale, y, 1.0F * scale, legend->label, UTF8);
+
+        glColor3f(legend->color.r, legend->color.g, legend->color.b);
+        texture_draw_empty(x, y - 1.0F * scale, 14.0F * scale, 14.0F * scale);
+
+        y -= 16.0F * scale;
+    }
+
+    return y;
+}
+
+static inline float * row(Graph * g, size_t j)
+{ return &g->data[g->ncols * j][0]; }
+
+static Vector2f hud_draw_graph(Graph * g, float x, float y, float scale) {
+    float w = 200.0F * scale, h = 100.0F * scale;
+    float bw = 1.0F * scale, liw = 2.0F * scale;
+
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(x, y - h, w, h);
+
+    glPushMatrix();
+        glLoadIdentity();
+        glTranslatef(x, y - h, 0.0F);
+        glScalef(w, h, 1.0F);
+
+        hud_draw_graph_grid(0.2F);
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glLineWidth(liw);
+
+        for (size_t j = 0; j < g->nrows; j++) {
+            RGB3f color = g->legend[j].color;
+
+            glColor3f(color.r, color.g, color.b);
+            glVertexPointer(2, GL_FLOAT, 0, row(g, j));
+            glDrawArrays(GL_LINE_STRIP, 0, g->ncols);
+        }
+
+        glLineWidth(1);
+        glDisableClientState(GL_VERTEX_ARRAY);
+    glPopMatrix();
+
+    glDisable(GL_SCISSOR_TEST);
+
+    hud_draw_graph_border(x, y, w, h, bw); y -= h;
+    y = hud_draw_graph_legend(g, scale, x, y - 4.0F * scale);
+
+    return (Vector2f) {x + w, y};
+}
+
+Graph * hud_graph = NULL;
+
+static float hud_draw_figure(float top, float scale) {
+    float x = 11.0F * scale, y = top - 8.0F * scale;
+
+    for (Graph * g = hud_graph; g != NULL; g = g->next) {
+        Vector2f c = hud_draw_graph(g, x, y, scale);
+        x = c.x + 11.0F * scale; top = min(top, c.y);
+    }
 
     return top;
 }
@@ -1387,6 +1515,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         top = hud_draw_killfeed(top, scale);
 
         top = hud_draw_popup(top, scale);
+
+        top = hud_draw_figure(top, scale);
 
         if (window_key_down(WINDOW_KEY_NETWORKSTATS))
             top = hud_draw_network_stats(top, scale);

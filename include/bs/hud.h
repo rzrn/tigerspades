@@ -65,4 +65,21 @@ void hud_mousemode(int mode);
 
 void load_map(const char *);
 
+typedef struct {
+    RGB3f color;
+    char label[64];
+} LegendEntry;
+
+typedef struct _Graph Graph;
+
+struct _Graph {
+    uint8_t index;
+    size_t nrows, ncols;
+    LegendEntry * legend;
+    float2 * data;
+    Graph * next;
+};
+
+extern Graph * hud_graph;
+
 #endif

@@ -311,7 +311,12 @@ static inline RGBA4i getbgra(uint8_t * const buff, size_t * index) {
     return (RGBA4i) {r, g, b, a};
 }
 
-static inline RGBA4i opaque(RGB3i color)
+static inline RGB3f RGB3iAs3f(RGB3i color)
+{ return (RGB3f) {.r = (float) color.r / 255.0F,
+                  .g = (float) color.g / 255.0F,
+                  .b = (float) color.b / 255.0F}; }
+
+static inline RGBA4i RGB3iAs4i(RGB3i color)
 { return (RGBA4i) {.r = color.r, .g = color.g, .b = color.b, .a = 255}; }
 
 void writeRGBA(uint32_t *, RGBA4i);

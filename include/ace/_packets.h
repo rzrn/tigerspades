@@ -273,4 +273,32 @@
         v3i(block)
         u8(target)
     end()
+
+    begin(PacketDraw)
+        u8(subID)
+    end()
+
+    #if PACKET_INCOMPLETE
+        begin(PacketGraphNew)
+            u8(index)
+            u8(length)
+        end()
+
+        begin(PacketGraphNewEntry)
+            bgr(color)
+            blob(label, 64)
+        end()
+
+        begin(PacketGraphData)
+            u8(index)
+        end()
+
+        begin(PacketGraphDataEntry)
+            f32(value)
+        end()
+
+        begin(PacketGraphDel)
+            u8(index)
+        end()
+    #endif
 #endif

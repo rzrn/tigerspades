@@ -249,7 +249,7 @@ void display(void) {
                 if (pick != NULL) {
                     players[local_player.id].item_showup = window_time();
 
-                    RGBA4i color = opaque(players[local_player.id].block);
+                    RGBA4i color = RGB3iAs4i(players[local_player.id].block);
                     map_set(pick[X], pick[Y], pick[Z], &color);
                 }
             }

@@ -66,14 +66,14 @@ void weapon_update(void) {
             weapon_reload_inprogress = false;
         }
 
-        if (players[local_player.id].held_item == TOOL_GUN) {
+        if (players[local_player.id].tool == TOOL_WEAPON) {
             players[local_player.id].item_disabled    = weapon_reload_inprogress ? window_time() : 0;
             players[local_player.id].items_show_start = window_time();
             players[local_player.id].items_show       = true;
         } else weapon_reload_inprogress = false;
     } else {
         if (screen_current == SCREEN_NONE && window_time() - players[local_player.id].item_disabled >= 0.5F &&
-            players[local_player.id].held_item == TOOL_GUN) {
+            players[local_player.id].tool == TOOL_WEAPON) {
             if (local_player.ammo == 0) {
                 SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, false);
                 weapon_burst = 0;

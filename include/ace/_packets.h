@@ -39,7 +39,7 @@
         u8(player_id)
         u8(team)
         u8(weapon)
-        u8(held_item)
+        u8(tool)
         u32(kills)
         bgr(color)
         string(name)

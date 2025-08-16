@@ -156,7 +156,7 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
     hit->distance = FLT_MAX;
 
 #if HACKS_ENABLED && HACK_WALLHACK
-    if (players[local_player.id].held_item != TOOL_GUN) {
+    if (players[local_player.id].tool != TOOL_WEAPON) {
 #endif
     int * pos = camera_terrain_pickEx(1, x, y, z, ray_x, ray_y, ray_z);
     if (pos != NULL && norm3f(x, y, z, pos[0], pos[1], pos[2]) <= sqrf(range)) {

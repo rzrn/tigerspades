@@ -83,7 +83,7 @@ void player_init(void) {
 void player_reset(Player * p) {
     p->connected          = 0;
     p->alive              = 0;
-    p->held_item          = TOOL_GUN;
+    p->tool               = TOOL_DEFAULT;
     p->block              = Gray;
     p->physics.velocity.x = 0.0F;
     p->physics.velocity.y = 0.0F;
@@ -95,7 +95,7 @@ void player_reset(Player * p) {
     p->input.buttons      = 0;
 }
 
-void player_on_held_item_change(void) {
+void player_on_tool_change(void) {
     Player * const p = &players[local_player.id];
 
     weapon_burst = 0;
@@ -129,7 +129,7 @@ float player_spade_func(float x) {
 float * player_tool_func(const Player * p) {
     static float ret[3];
     ret[0] = ret[1] = ret[2] = 0.0F;
-    switch (p->held_item) {
+    switch (p->tool) {
         case TOOL_SPADE: {
             float t = window_time() - p->spade_use_timer;
             if (p->spade_use_type == 1 && t > 0.2F) return ret;
@@ -193,7 +193,7 @@ float * player_tool_translate_func(Player * p) {
         if (window_time() - p->item_showup < 0.5F) {
             return ret;
         }
-        if (p->held_item == TOOL_GUN
+        if (p->tool == TOOL_WEAPON
            && window_time() - weapon_last_shot < weapon_delay(players[local_player.id].weapon)) {
             ret[2] = -(weapon_delay(players[local_player.id].weapon) - (window_time() - weapon_last_shot))
                 / weapon_delay(players[local_player.id].weapon) * weapon_recoil_anim(players[local_player.id].weapon)
@@ -201,7 +201,7 @@ float * player_tool_translate_func(Player * p) {
             return ret;
         }
 
-        if (p->held_item == TOOL_SPADE) {
+        if (p->tool == TOOL_SPADE) {
             float t = window_time() - p->spade_use_timer;
             if (t > 1.0F) {
                 return ret;
@@ -217,7 +217,7 @@ float * player_tool_translate_func(Player * p) {
                 }
             }
         }
-        if (p->held_item == TOOL_GRENADE) {
+        if (p->tool == TOOL_GRENADE) {
             if (HASBIT(p->input.buttons, BUTTON_PRIMARY)) {
                 ret[1] = (window_time() - p->start.lmb) * 1.3F;
                 ret[0] = -ret[1];
@@ -347,7 +347,7 @@ void player_render_all(void) {
                 players[k].spade_use_timer = 0;
         }
 
-        if (players[k].alive && players[k].held_item == TOOL_SPADE
+        if (players[k].alive && players[k].tool == TOOL_SPADE
            && (HASBIT(players[k].input.buttons, BUTTON_PRIMARY) ||
                HASBIT(players[k].input.buttons, BUTTON_SECONDARY))
            && window_time() - players[k].item_showup >= 0.5F) {
@@ -464,7 +464,7 @@ void player_render_all(void) {
                 }
             }
 
-            if (players[k].alive && players[k].held_item == TOOL_GUN && HASBIT(players[k].input.buttons, BUTTON_PRIMARY)) {
+            if (players[k].alive && players[k].tool == TOOL_WEAPON && HASBIT(players[k].input.buttons, BUTTON_PRIMARY)) {
                 if (window_time() - players[k].gun_shoot_timer > weapon_delay(players[k].weapon) && players[k].ammo > 0) {
                     players[k].ammo--;
                     sound_create_sticky(weapon_sound(players[k].weapon), players + k, k);
@@ -834,7 +834,7 @@ static void player_render_alive(Player * p, int id) {
     if (render_fpv)
         matrix_translate(matrix_model, 0.0F, -2 * 0.1F, -2 * 0.1F);
 
-    if (!(settings.render_player && p->held_item == TOOL_SPADE) && render_fpv && p->alive) {
+    if (!(settings.render_player && p->tool == TOOL_SPADE) && render_fpv && p->alive) {
         float speed = hypot2f(p->physics.velocity.x, p->physics.velocity.z) / 0.25F;
         float * f = player_tool_translate_func(p);
         matrix_translate(matrix_model, f[X], f[Y], 0.1F * player_swing_func(time / 1000.0F) * speed + f[Z]);
@@ -846,7 +846,7 @@ static void player_render_alive(Player * p, int id) {
     if (render_fpv && window_time() - p->item_showup < 0.5F)
         matrix_rotate(matrix_model, 45.0F - (window_time() - p->item_showup) * 90.0F, 1.0F, 0.0F, 0.0F);
 
-    if (!(p->held_item == TOOL_SPADE && render_fpv && camera.mode == CAMERAMODE_FPS) || settings.render_player) {
+    if (!(p->tool == TOOL_SPADE && render_fpv && camera.mode == CAMERAMODE_FPS) || settings.render_player) {
         float * angles = player_tool_func(p);
         matrix_rotate(matrix_model, angles[0], 1.0F, 0.0F, 0.0F);
         matrix_rotate(matrix_model, angles[1], 0.0F, 1.0F, 0.0F);
@@ -865,7 +865,7 @@ static void player_render_alive(Player * p, int id) {
     static kv6 * const model_spade = &model[MODEL_SPADE];
 
     matrix_translate(matrix_model, -3.5F * 0.1F + 0.01F, 0.0F, 10 * 0.1F);
-    if (!settings.render_player && p->held_item == TOOL_SPADE && render_fpv && window_time() - p->item_showup >= 0.5F) {
+    if (!settings.render_player && p->tool == TOOL_SPADE && render_fpv && window_time() - p->item_showup >= 0.5F) {
         float * angles = player_tool_func(p);
         matrix_translate(matrix_model, 0.0F, (model_spade->zpiv - model_spade->zsiz) * 0.05F, 0.0F);
         matrix_rotate(matrix_model, angles[0], 1.0F, 0.0F, 0.0F);
@@ -874,7 +874,7 @@ static void player_render_alive(Player * p, int id) {
     }
 
     matrix_upload();
-    switch (p->held_item) {
+    switch (p->tool) {
         case TOOL_SPADE: kv6_render(model_spade, p->team); break;
 
         case TOOL_BLOCK: {
@@ -887,7 +887,7 @@ static void player_render_alive(Player * p, int id) {
             break;
         }
 
-        case TOOL_GUN: {
+        case TOOL_WEAPON: {
             // matrix_translate(matrix_model, 3.0F*0.1F-0.01F+0.025F,0.25F,-0.0625F);
             // matrix_upload();
             if (!(render_fpv && HASBIT(p->input.buttons, BUTTON_SECONDARY)))

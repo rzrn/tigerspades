@@ -156,11 +156,11 @@ typedef enum {
 typedef enum {
     TOOL_SPADE   = 0,
     TOOL_BLOCK   = 1,
-    TOOL_GUN     = 2,
+    TOOL_WEAPON  = 2,
     TOOL_GRENADE = 3,
     TOOL_MIN     = TOOL_SPADE,
     TOOL_MAX     = TOOL_GRENADE,
-    TOOL_DEFAULT = TOOL_GUN
+    TOOL_DEFAULT = TOOL_WEAPON
 } Tool;
 
 #define TOOL(t) ((t) > TOOL_MAX ? TOOL_DEFAULT : (t))

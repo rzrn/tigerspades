@@ -242,7 +242,7 @@ void display(void) {
             weapon_update();
 
             if (!network_connected && button_map.mmb &&
-                players[local_player.id].held_item == TOOL_BLOCK &&
+                players[local_player.id].tool == TOOL_BLOCK &&
                 window_time() - players[local_player.id].item_showup >= 0.5F) {
                 int * pick = camera_terrain_pick(1);
 
@@ -255,7 +255,7 @@ void display(void) {
             }
 
             if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
-                players[local_player.id].held_item == TOOL_BLOCK &&
+                players[local_player.id].tool == TOOL_BLOCK &&
                 window_time() - players[local_player.id].item_showup >= 0.5F &&
                 local_player.blocks > 0) {
                 int * pos = camera_terrain_pick(0);
@@ -279,7 +279,7 @@ void display(void) {
             }
 
             if (HASBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY) &&
-                players[local_player.id].held_item == TOOL_GRENADE &&
+                players[local_player.id].tool == TOOL_GRENADE &&
                 window_time() - players[local_player.id].start.lmb > 3.0F) {
                 local_player.grenades = max(local_player.grenades - 1, 0);
                 PacketGrenade contained;
@@ -296,7 +296,7 @@ void display(void) {
         }
 
         int * pos = NULL;
-        switch (players[local_id].held_item) {
+        switch (players[local_id].tool) {
             case TOOL_BLOCK:
                 if (!HASBIT(players[local_id].input.keys, INPUT_SPRINT) && render_fpv) {
                     if (is_local)
@@ -315,7 +315,7 @@ void display(void) {
             default: pos = NULL;
         }
 
-        if (players[local_id].alive && players[local_id].held_item == TOOL_BLOCK)
+        if (players[local_id].alive && players[local_id].tool == TOOL_BLOCK)
         if (pos != NULL && norm3f(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
             matrix_upload();
             glLineWidth(1.0F);

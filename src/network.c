@@ -135,7 +135,7 @@ void network_join_game(unsigned char team, unsigned char weapon) {
     contained.player_id = local_player.id;
     contained.team      = team;
     contained.weapon    = weapon;
-    contained.held_item = TOOL_GUN;
+    contained.tool      = TOOL_DEFAULT;
     contained.kills     = 0;
     contained.color     = players[local_player.id].block;
     contained.name      = namebuff;
@@ -208,7 +208,7 @@ static void getPacketSetTool(uint8_t * data, size_t len) {
     READPACKET(PacketSetTool, p, data, len);
 
     if (IDVALID(p.player_id) && p.tool < 4)
-        players[p.player_id].held_item = TOOL(p.tool);
+        players[p.player_id].tool = TOOL(p.tool);
 }
 
 static void getPacketSetColor(uint8_t * data, size_t len) {
@@ -235,7 +235,7 @@ static void getPacketExistingPlayer(uint8_t * data, size_t len) {
         players[p.player_id].alive         = 1;
         players[p.player_id].team          = TEAM(p.team);
         players[p.player_id].weapon        = WEAPON(p.weapon);
-        players[p.player_id].held_item     = TOOL(p.held_item);
+        players[p.player_id].tool          = TOOL(p.tool);
         players[p.player_id].score         = p.kills;
         players[p.player_id].block         = p.color;
         players[p.player_id].ammo          = weapon_ammo(p.weapon);
@@ -606,7 +606,7 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
         players[p.player_id].connected = 1;
         players[p.player_id].alive     = 1;
         players[p.player_id].team      = TEAM(p.team);
-        players[p.player_id].held_item = TOOL_GUN;
+        players[p.player_id].tool      = TOOL_DEFAULT;
         players[p.player_id].weapon    = WEAPON(p.weapon);
         players[p.player_id].pos       = ntohv3f(p.pos);
 
@@ -627,7 +627,7 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
             local_player.health    = 100;
             local_player.blocks    = 50;
             local_player.grenades  = 3;
-            local_player.last_tool = TOOL_GUN;
+            local_player.last_tool = TOOL_DEFAULT;
 
             camera.mode  = p.team == TEAM_SPECTATOR ? CAMERAMODE_SPECTATOR : CAMERAMODE_FPS;
             camera.rot.x = p.team == TEAM1 ? 0.5F * PI : 1.5F * PI;
@@ -1625,13 +1625,13 @@ int network_update(void) {
                 network_buttons_last = players[local_player.id].input.buttons;
             }
 
-            if (players[local_player.id].held_item != network_tool_last) {
+            if (players[local_player.id].tool != network_tool_last) {
                 PacketSetTool contained;
                 contained.player_id = local_player.id;
-                contained.tool      = players[local_player.id].held_item;
+                contained.tool      = players[local_player.id].tool;
                 sendPacketSetTool(&contained, 0);
 
-                network_tool_last = players[local_player.id].held_item;
+                network_tool_last = players[local_player.id].tool;
             }
 
             if (window_time() - network_pos_update > 1.0F

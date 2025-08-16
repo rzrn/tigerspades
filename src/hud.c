@@ -160,11 +160,11 @@ static void hud_draw_hotbar(void) {
         static kv6 * const model_spade = &model[MODEL_SPADE];
 
         matrix_identity(matrix_model);
-        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_SPADE) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].tool == TOOL_SPADE) * 0.5F, -6.0F);
         matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
         kv6_center(matrix_model, model_spade);
 
-        if (players[local_player.id].held_item == TOOL_SPADE)
+        if (players[local_player.id].tool == TOOL_SPADE)
             matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
 
         matrix_upload();
@@ -175,12 +175,12 @@ static void hud_draw_hotbar(void) {
         static kv6 * const model_block = &model[MODEL_BLOCK];
 
         matrix_identity(matrix_model);
-        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_BLOCK) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].tool == TOOL_BLOCK) * 0.5F, -6.0F);
         matrix_translate(matrix_model, 1.5F, 0.0F, 0.0F);
         matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
         kv6_center(matrix_model, model_block);
 
-        if (players[local_player.id].held_item == TOOL_BLOCK)
+        if (players[local_player.id].tool == TOOL_BLOCK)
             matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
 
         model_block->red   = players[local_player.id].block.r / 255.0F;
@@ -195,12 +195,12 @@ static void hud_draw_hotbar(void) {
         kv6 * gun = weapon_model(players[local_player.id].weapon);
 
         matrix_identity(matrix_model);
-        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GUN) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].tool == TOOL_WEAPON) * 0.5F, -6.0F);
         matrix_translate(matrix_model, 3.0F, 0.0F, 0.0F);
         matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
         kv6_center(matrix_model, gun);
 
-        if (players[local_player.id].held_item == TOOL_GUN)
+        if (players[local_player.id].tool == TOOL_WEAPON)
             matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
 
         matrix_upload();
@@ -211,12 +211,12 @@ static void hud_draw_hotbar(void) {
         static kv6 * const model_grenade = &model[MODEL_GRENADE];
 
         matrix_identity(matrix_model);
-        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].held_item == TOOL_GRENADE) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].tool == TOOL_GRENADE) * 0.5F, -6.0F);
         matrix_translate(matrix_model, 4.5F, 0.0F, 0.0F);
         matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
         kv6_center(matrix_model, model_grenade);
 
-        if (players[local_player.id].held_item == TOOL_GRENADE)
+        if (players[local_player.id].tool == TOOL_GRENADE)
             matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
 
         matrix_upload();
@@ -248,7 +248,7 @@ static void hud_ingame_render3D(void) {
             .spade_use_timer    = FLT_MAX,
             .input.keys         = 0,
             .input.buttons      = 0,
-            .held_item          = TOOL_SPADE,
+            .tool               = TOOL_SPADE,
             .pos                = {0, 0, 0},
             .orientation        = {1, 0, 0},
             .orientation_smooth = {1, 0, 0},
@@ -1164,7 +1164,7 @@ static void hud_draw_weapon(float scale) {
     int local_id = camera.mode == CAMERAMODE_FPS ? local_player.id : cameracontroller_bodyview_player;
 
     if (settings.show_iron_sight && players[local_id].alive &&
-        players[local_id].held_item == TOOL_GUN &&
+        players[local_id].tool == TOOL_WEAPON &&
         HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY)) {
         Texture * zoom = NULL;
         switch (players[local_id].weapon) {
@@ -1235,7 +1235,7 @@ static void hud_draw_game_ui(float scale) {
         char item_mini_str[32]; int off = 0;
         glColor3f(1.0F, 1.0F, 1.0F);
 
-        switch (players[local_id].held_item) {
+        switch (players[local_id].tool) {
             default:
             case TOOL_BLOCK: off = 64 * scale;
             case TOOL_SPADE:
@@ -1244,7 +1244,7 @@ static void hud_draw_game_ui(float scale) {
             case TOOL_GRENADE:
                 sprintf(item_mini_str, "%i", is_local ? local_player.grenades : 3);
                 break;
-            case TOOL_GUN: {
+            case TOOL_WEAPON: {
                 int ammo = is_local ? local_player.ammo : players[local_id].ammo;
                 int ammo_reserve = is_local ? local_player.ammo_reserved : players[local_id].ammo_reserved;
                 sprintf(item_mini_str, "%02i/%02i", ammo, ammo_reserve);
@@ -1261,7 +1261,7 @@ static void hud_draw_game_ui(float scale) {
             );
         }
 
-        if (players[local_id].held_item == TOOL_BLOCK) {
+        if (players[local_id].tool == TOOL_BLOCK) {
             if (0 <= local_player.color[X] && 0 <= local_player.color[Y]) {
                 static float T = 0.25F;
 
@@ -1607,7 +1607,7 @@ static void hud_ingame_scroll(double yoffset) {
     if (yoffset == 0.0F) return;
 
     if (camera.mode == CAMERAMODE_FPS) {
-        int h = players[local_player.id].held_item;
+        int h = players[local_player.id].tool;
 
         if (!players[local_player.id].items_show)
             local_player.last_tool = h;
@@ -1617,16 +1617,16 @@ static void hud_ingame_scroll(double yoffset) {
             h = 3;
         if (h == TOOL_BLOCK && local_player.blocks == 0)
             h += (yoffset < 0) ? 1 : -1;
-        if (h == TOOL_GUN && local_player.ammo + local_player.ammo_reserved == 0)
+        if (h == TOOL_WEAPON && local_player.ammo + local_player.ammo_reserved == 0)
             h += (yoffset < 0) ? 1 : -1;
         if (h == TOOL_GRENADE && local_player.grenades == 0)
             h += (yoffset < 0) ? 1 : -1;
         if (h > 3)
             h = 0;
 
-        players[local_player.id].held_item = h;
+        players[local_player.id].tool = h;
         sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
-        player_on_held_item_change();
+        player_on_tool_change();
     } else if (camera.mode == CAMERAMODE_SPECTATOR) {
         camera.speed = clamp(
             CAMERA_MINIMUM_SPEED, CAMERA_MAXIMUM_SPEED,
@@ -1675,12 +1675,12 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
     if (button == WINDOW_MOUSE_RMB) {
         button_map.rmb = (action == WINDOW_PRESS);
 
-        if (action == WINDOW_PRESS && players[local_player.id].held_item == TOOL_GUN &&
+        if (action == WINDOW_PRESS && players[local_player.id].tool == TOOL_WEAPON &&
            !settings.hold_down_sights && !players[local_player.id].items_show) {
             players[local_player.id].input.buttons ^= MASKON(BUTTON_SECONDARY);
         }
 
-        if (local_player.drag_active && action == WINDOW_RELEASE && players[local_player.id].held_item == TOOL_BLOCK) {
+        if (local_player.drag_active && action == WINDOW_RELEASE && players[local_player.id].tool == TOOL_BLOCK) {
             int * pos = camera_terrain_pick(0);
 
             if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
@@ -1707,7 +1707,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         }
 
         local_player.drag_active = 0;
-        if (action == WINDOW_PRESS && players[local_player.id].held_item == TOOL_BLOCK &&
+        if (action == WINDOW_PRESS && players[local_player.id].tool == TOOL_BLOCK &&
             window_time() - players[local_player.id].item_showup >= 0.5F) {
             int * pos = camera_terrain_pick(0);
 
@@ -1918,10 +1918,10 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 window_mousemode(WINDOW_CURSOR_ENABLED);
 
             if (key == WINDOW_KEY_LASTTOOL) {
-                int tmp = players[local_player.id].held_item;
-                players[local_player.id].held_item = local_player.last_tool;
-                local_player.last_tool = tmp;
-                player_on_held_item_change();
+                Tool tool = players[local_player.id].tool;
+                players[local_player.id].tool = local_player.last_tool;
+                local_player.last_tool = tool;
+                player_on_tool_change();
             }
 
             if (key == WINDOW_KEY_VOLUME_UP) {
@@ -1940,7 +1940,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if ((key == WINDOW_KEY_CURSOR_UP || key == WINDOW_KEY_CURSOR_DOWN || key == WINDOW_KEY_CURSOR_LEFT || key == WINDOW_KEY_CURSOR_RIGHT)
-               && camera.mode == CAMERAMODE_FPS && players[local_player.id].held_item == TOOL_BLOCK) {
+               && camera.mode == CAMERAMODE_FPS && players[local_player.id].tool == TOOL_BLOCK) {
                 if (local_player.color[X] < 0 || local_player.color[Y] < 0) {
                     local_player.color[X] = 3; local_player.color[Y] = 0;
                 } else {
@@ -1980,7 +1980,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if (camera.mode == CAMERAMODE_FPS &&
-                players[local_player.id].held_item == TOOL_GUN &&
+                players[local_player.id].tool == TOOL_WEAPON &&
                 key == WINDOW_KEY_FIREMODE && !button_map.lmb) {
                 weapon_firemode = weapon_firemode_cycle(weapon_firemode);
 
@@ -1989,7 +1989,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if (camera.mode == CAMERAMODE_FPS && key == WINDOW_KEY_RELOAD &&
-                players[local_player.id].held_item == TOOL_GUN) {
+                players[local_player.id].tool == TOOL_WEAPON) {
                 weapon_reload();
             }
 
@@ -2009,21 +2009,21 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if (screen_current == SCREEN_NONE && camera.mode == CAMERAMODE_FPS) {
-                int item = -1;
+                int tool = -1;
 
                 switch (key) {
-                    case WINDOW_KEY_TOOL1: item = TOOL_SPADE;   break;
-                    case WINDOW_KEY_TOOL2: item = TOOL_BLOCK;   break;
-                    case WINDOW_KEY_TOOL3: item = TOOL_GUN;     break;
-                    case WINDOW_KEY_TOOL4: item = TOOL_GRENADE; break;
+                    case WINDOW_KEY_TOOL1: tool = TOOL_SPADE;   break;
+                    case WINDOW_KEY_TOOL2: tool = TOOL_BLOCK;   break;
+                    case WINDOW_KEY_TOOL3: tool = TOOL_WEAPON;  break;
+                    case WINDOW_KEY_TOOL4: tool = TOOL_GRENADE; break;
                 }
 
-                if (0 <= item && players[local_player.id].held_item != item) {
-                    local_player.last_tool = players[local_player.id].held_item;
-                    players[local_player.id].held_item = item;
+                if (0 <= tool && players[local_player.id].tool != tool) {
+                    local_player.last_tool = players[local_player.id].tool;
+                    players[local_player.id].tool = tool;
 
                     sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
-                    player_on_held_item_change();
+                    player_on_tool_change();
                 }
             }
 
@@ -2122,7 +2122,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 return;
             }
 
-            if (key == WINDOW_KEY_PICKCOLOR && players[local_player.id].held_item == TOOL_BLOCK) {
+            if (key == WINDOW_KEY_PICKCOLOR && players[local_player.id].tool == TOOL_BLOCK) {
                 players[local_player.id].item_disabled    = window_time();
                 players[local_player.id].items_show_start = window_time();
                 players[local_player.id].items_show       = true;

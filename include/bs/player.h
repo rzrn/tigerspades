@@ -107,7 +107,7 @@ typedef struct {
     float spade_use_timer;
     unsigned char spade_used, spade_use_type;
     unsigned int score;
-    Team team; Weapon weapon; Tool held_item;
+    Team team; Weapon weapon; Tool tool;
     unsigned char alive, connected;
     float item_showup, item_disabled, items_show_start;
     bool items_show;
@@ -139,7 +139,7 @@ extern Player players[PLAYERS_MAX];
 
 float player_section_height(HitType);
 
-void player_on_held_item_change(void);
+void player_on_tool_change(void);
 bool player_can_spectate(Player *);
 void player_init(void);
 float player_height(const Player *);
@@ -156,7 +156,7 @@ int player_uncrouch(Player *);
 
 #define ISFIRING(player) (HASBIT((player)->input.buttons, BUTTON_PRIMARY))
 
-#define ISSCOPING(player) (HASBIT((player)->input.buttons, BUTTON_SECONDARY) && (player)->held_item == TOOL_GUN)
+#define ISSCOPING(player) (HASBIT((player)->input.buttons, BUTTON_SECONDARY) && (player)->tool == TOOL_WEAPON)
 
 #define ISMOVING(player) (HASBIT((player)->input.keys, INPUT_UP)   || \
                           HASBIT((player)->input.keys, INPUT_DOWN) || \

@@ -86,22 +86,22 @@ void cameracontroller_fps(float dt) {
     players[local_player.id].alive = 1;
 
     bool cooldown = false;
-    if (players[local_player.id].held_item == TOOL_GRENADE && local_player.grenades == 0) {
-        local_player.last_tool = players[local_player.id].held_item--;
+    if (players[local_player.id].tool == TOOL_GRENADE && local_player.grenades == 0) {
+        local_player.last_tool = players[local_player.id].tool--;
         cooldown = true;
     }
 
-    if (players[local_player.id].held_item == TOOL_GUN && local_player.ammo + local_player.ammo_reserved == 0) {
-        local_player.last_tool = players[local_player.id].held_item--;
+    if (players[local_player.id].tool == TOOL_WEAPON && local_player.ammo + local_player.ammo_reserved == 0) {
+        local_player.last_tool = players[local_player.id].tool--;
         cooldown = true;
     }
 
-    if (players[local_player.id].held_item == TOOL_BLOCK && local_player.blocks == 0) {
-        local_player.last_tool = players[local_player.id].held_item--;
+    if (players[local_player.id].tool == TOOL_BLOCK && local_player.blocks == 0) {
+        local_player.last_tool = players[local_player.id].tool--;
         cooldown = true;
     }
 
-    if (cooldown) player_on_held_item_change();
+    if (cooldown) player_on_tool_change();
 
 #ifdef USE_TOUCH
     if (!local_player.ammo) {
@@ -161,8 +161,8 @@ void cameracontroller_fps(float dt) {
         if (button_map.lmb && !primary) {
             players[local_player.id].start.lmb = window_time();
 
-            switch (players[local_player.id].held_item) {
-                case TOOL_GUN: {
+            switch (players[local_player.id].tool) {
+                case TOOL_WEAPON: {
                     if (weapon_burst < weapon_firemode_burst(weapon_firemode)) {
                         SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, true);
                         weapon_burst = 0;
@@ -190,7 +190,7 @@ void cameracontroller_fps(float dt) {
         if (!button_map.lmb && primary) {
             weapon_burst = 0;
 
-            switch (players[local_player.id].held_item) {
+            switch (players[local_player.id].tool) {
                 case TOOL_GRENADE: {
                     const float dt = window_time() - players[local_player.id].start.lmb;
 
@@ -231,7 +231,7 @@ void cameracontroller_fps(float dt) {
         }
     }
 
-    if (players[local_player.id].held_item != TOOL_GUN || settings.hold_down_sights)
+    if (players[local_player.id].tool != TOOL_WEAPON || settings.hold_down_sights)
         SETBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY, button_map.rmb);
 
     if (HASBIT(players[local_player.id].input.keys, INPUT_SPRINT) || players[local_player.id].items_show)

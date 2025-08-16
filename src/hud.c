@@ -1133,10 +1133,16 @@ static void draw_crosshair(mat4 mvp) {
         matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
     }
 
-    Texture * texture_crosshair = texture(
-        settings.free_crosshair ? TEXTURE_FREEAIM3 :
-                 button_map.lmb ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1
-    );
+    Texture * texture_crosshair;
+
+    if (settings.free_crosshair)
+        texture_crosshair = texture(TEXTURE_FREEAIM3);
+    else {
+        bool lmb = in_bodyview_mode()
+                 ? HASBIT(players[cameracontroller_bodyview_player].input.buttons, BUTTON_PRIMARY)
+                 : button_map.lmb;
+        texture_crosshair = texture(lmb ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1);
+    }
 
     texture_draw(texture_crosshair, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
 }

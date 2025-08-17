@@ -105,10 +105,11 @@ typedef struct {
     float gun_shoot_timer;
     int ammo, ammo_reserved;
     float spade_use_timer;
-    unsigned char spade_used, spade_use_type;
+    bool spade_used;
+    unsigned char spade_use_type;
     unsigned int score;
     Team team; Weapon weapon; Tool tool;
-    unsigned char alive, connected;
+    bool alive, connected;
     float item_showup, item_disabled, items_show_start;
     bool items_show;
     RGB3i block;
@@ -122,7 +123,7 @@ typedef struct {
     } start;
 
     struct {
-        unsigned char jump, airborne, wade;
+        bool jump, airborne, wade;
         float lastclimb;
         Vector3f velocity, eye;
     } physics;

@@ -81,16 +81,16 @@ void player_init(void) {
 }
 
 void player_reset(Player * p) {
-    p->connected          = 0;
-    p->alive              = 0;
+    p->connected          = false;
+    p->alive              = false;
     p->tool               = TOOL_DEFAULT;
     p->block              = Gray;
     p->physics.velocity.x = 0.0F;
     p->physics.velocity.y = 0.0F;
     p->physics.velocity.z = 0.0F;
-    p->physics.jump       = 0;
-    p->physics.airborne   = 0;
-    p->physics.wade       = 0;
+    p->physics.jump       = false;
+    p->physics.airborne   = false;
+    p->physics.wade       = false;
     p->input.keys         = 0;
     p->input.buttons      = 0;
 }
@@ -338,7 +338,7 @@ void player_render_all(void) {
 
         if (!HASBIT(players[k].input.buttons, BUTTON_PRIMARY) &&
             !HASBIT(players[k].input.buttons, BUTTON_SECONDARY)) {
-            players[k].spade_used = 0;
+            players[k].spade_used = false;
 
             if (players[k].spade_use_type == 1)
                 players[k].spade_use_type = 0;
@@ -407,7 +407,7 @@ void player_render_all(void) {
                 }
 
                 players[k].spade_use_type  = 1;
-                players[k].spade_used      = 1;
+                players[k].spade_used      = true;
                 players[k].spade_use_timer = window_time();
             }
 
@@ -435,7 +435,7 @@ void player_render_all(void) {
                 }
 
                 players[k].spade_use_type  = 2;
-                players[k].spade_used      = 1;
+                players[k].spade_used      = true;
                 players[k].spade_use_timer = window_time();
             }
         }
@@ -1113,7 +1113,7 @@ void player_boxclipmove(Player * p, float fsynctics) {
         nz += p->physics.velocity.z * fsynctics * 32.f;
     }
 
-    p->physics.airborne = 1;
+    p->physics.airborne = true;
 
     if (player_clipbox(p->pos.x - 0.45f, p->pos.y - 0.45f, nz + m)
      || player_clipbox(p->pos.x - 0.45f, p->pos.y + 0.45f, nz + m)
@@ -1121,7 +1121,7 @@ void player_boxclipmove(Player * p, float fsynctics) {
      || player_clipbox(p->pos.x + 0.45f, p->pos.y + 0.45f, nz + m)) {
         if (p->physics.velocity.z >= 0) {
             p->physics.wade = p->pos.z > 61;
-            p->physics.airborne = 0;
+            p->physics.airborne = false;
         }
         p->physics.velocity.z = 0;
     } else
@@ -1162,7 +1162,7 @@ int player_move(Player * p, float fsynctics, int id) {
         WAV * sound_jump = sound(p->physics.wade && !p->physics.airborne ? SOUND_JUMP_WATER : SOUND_JUMP);
         sound_create(local ? SOUND_LOCAL : SOUND_WORLD, sound_jump, p->pos.x, 63.0F - p->pos.z, p->pos.y);
 
-        p->physics.jump       = 0;
+        p->physics.jump       = false;
         p->physics.velocity.z = -0.36f;
     }
 

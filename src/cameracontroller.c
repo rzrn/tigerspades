@@ -92,7 +92,7 @@ void cameracontroller_fps(float dt) {
         camera.fov = settings.camera_fov;
     }
 
-    players[local_player.id].alive = 1;
+    players[local_player.id].alive = true;
 
     bool cooldown = false;
     if (players[local_player.id].tool == TOOL_GRENADE && local_player.grenades == 0) {
@@ -148,7 +148,7 @@ void cameracontroller_fps(float dt) {
         SETBIT(players[local_player.id].input.keys, INPUT_SNEAK,  window_key_down(WINDOW_KEY_SNEAK));
 
         if (window_key_down(WINDOW_KEY_SPACE) && !players[local_player.id].physics.airborne) {
-            players[local_player.id].physics.jump = 1;
+            players[local_player.id].physics.jump = true;
             updateInputData();
         }
     }

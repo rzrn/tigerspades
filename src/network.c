@@ -231,8 +231,8 @@ static void getPacketExistingPlayer(uint8_t * data, size_t len) {
         if (!players[p.player_id].connected) printJoinMsg(p.team, players[p.player_id].name);
 
         player_reset(&players[p.player_id]);
-        players[p.player_id].connected     = 1;
-        players[p.player_id].alive         = 1;
+        players[p.player_id].connected     = true;
+        players[p.player_id].alive         = true;
         players[p.player_id].team          = TEAM(p.team);
         players[p.player_id].weapon        = WEAPON(p.weapon);
         players[p.player_id].tool          = TOOL(p.tool);
@@ -603,8 +603,8 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
         RGB3i rgb = players[p.player_id].block;
 
         player_reset(&players[p.player_id]);
-        players[p.player_id].connected = 1;
-        players[p.player_id].alive     = 1;
+        players[p.player_id].connected = true;
+        players[p.player_id].alive     = true;
         players[p.player_id].team      = TEAM(p.team);
         players[p.player_id].tool      = TOOL_DEFAULT;
         players[p.player_id].weapon    = WEAPON(p.weapon);
@@ -818,7 +818,7 @@ static void getPacketKillAction(uint8_t * data, size_t len) {
             }
         }
 
-        players[p.player_id].alive         = 0;
+        players[p.player_id].alive         = false;
         players[p.player_id].input.keys    = 0;
         players[p.player_id].input.buttons = 0;
 
@@ -944,8 +944,8 @@ static void getPacketPlayerLeft(uint8_t * data, size_t len) {
     READPACKET(PacketPlayerLeft, p, data, len);
 
     if (IDVALID(p.player_id)) {
-        players[p.player_id].connected = 0;
-        players[p.player_id].alive     = 0;
+        players[p.player_id].connected = false;
+        players[p.player_id].alive     = false;
         players[p.player_id].score     = 0;
 
         char buff[32]; sprintf(buff, "%s disconnected", players[p.player_id].name);
@@ -1420,10 +1420,10 @@ static inline int network_destroy(void) {
     if (client != NULL) { enet_host_destroy(client); client = NULL; }
 
     for (size_t k = 0; k < PLAYERS_MAX; k++)
-        players[k].connected = 0;
+        players[k].connected = false;
 
     players[local_player.id].team  = TEAM1;
-    players[local_player.id].alive = 1;
+    players[local_player.id].alive = true;
 
     screen_current = SCREEN_NONE;
     camera.mode = CAMERAMODE_FPS;

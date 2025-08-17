@@ -244,7 +244,7 @@ static void hud_ingame_render3D(void) {
 
     if (screen_current == SCREEN_TEAM_SELECT) {
         static Player player = {
-            .alive              = 1,
+            .alive              = true,
             .spade_use_timer    = FLT_MAX,
             .input.keys         = 0,
             .input.buttons      = 0,

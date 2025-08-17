@@ -411,23 +411,19 @@ void cameracontroller_bodyview(float dt) {
     AABB aabb = {.min = {0, 0, 0}, .max = {0, 0, 0}};
     aabb_set_size(&aabb, 0.4F, 0.4F, 0.4F);
 
-    float k;
-    float traverse_lengths[2] = {-1, -1};
+    Player * const p = &players[cameracontroller_bodyview_player];
+
+    Vector3f r = p->pos, o = camera_orientation();
+    float h = player_height2(p);
+
+    float k; float traverse_lengths[2] = {-1, -1};
     for (k = 0.0F; k < 5.0F; k += 0.05F) {
-        aabb_set_center(&aabb,
-                        players[cameracontroller_bodyview_player].pos.x - sin(camera.rot.x) * sin(camera.rot.y) * k,
-                        players[cameracontroller_bodyview_player].pos.y - cos(camera.rot.y) * k
-                            + player_height2(&players[cameracontroller_bodyview_player]),
-                        players[cameracontroller_bodyview_player].pos.z - cos(camera.rot.x) * sin(camera.rot.y) * k);
+        aabb_set_center(&aabb, r.x - o.x * k, r.y - o.y * k + h, r.z - o.z * k);
 
         if (aabb_intersection_terrain(&aabb) && traverse_lengths[0] < 0)
             traverse_lengths[0] = fmax(k - 0.1F, 0);
 
-        aabb_set_center(&aabb,
-                        players[cameracontroller_bodyview_player].pos.x + sin(camera.rot.x) * sin(camera.rot.y) * k,
-                        players[cameracontroller_bodyview_player].pos.y + cos(camera.rot.y) * k
-                            + player_height2(&players[cameracontroller_bodyview_player]),
-                        players[cameracontroller_bodyview_player].pos.z + cos(camera.rot.x) * sin(camera.rot.y) * k);
+        aabb_set_center(&aabb, r.x + o.x * k, r.y + o.y * k + h, r.z + o.z * k);
 
         if (!aabb_intersection_terrain(&aabb) && traverse_lengths[1] < 0)
             traverse_lengths[1] = fmax(k - 0.1F, 0);
@@ -436,23 +432,18 @@ void cameracontroller_bodyview(float dt) {
     if (traverse_lengths[0] < 0) traverse_lengths[0] = 5.0F;
     if (traverse_lengths[1] < 0) traverse_lengths[1] = 5.0F;
 
-    float tmp = (traverse_lengths[0] <= 0) ? (-traverse_lengths[1]) : traverse_lengths[0];
-
-    cameracontroller_bodyview_zoom
-        = (tmp < cameracontroller_bodyview_zoom) ? tmp : fmin(tmp, cameracontroller_bodyview_zoom + dt * 8.0F);
+    float zoom = traverse_lengths[0] <= 0 ? -traverse_lengths[1] : traverse_lengths[0];
+    cameracontroller_bodyview_zoom = zoom < cameracontroller_bodyview_zoom
+                                   ? zoom : fmin(zoom, cameracontroller_bodyview_zoom + dt * 8.0F);
 
     // this is needed to determine which chunks need/can be rendered and for sound, minimap etc...
-    camera.pos.x = players[cameracontroller_bodyview_player].pos.x
-        - sin(camera.rot.x) * sin(camera.rot.y) * cameracontroller_bodyview_zoom;
-    camera.pos.y = players[cameracontroller_bodyview_player].pos.y - cos(camera.rot.y) * cameracontroller_bodyview_zoom
-        + player_height2(&players[cameracontroller_bodyview_player]);
-    camera.pos.z = players[cameracontroller_bodyview_player].pos.z
-        - cos(camera.rot.x) * sin(camera.rot.y) * cameracontroller_bodyview_zoom;
+    camera.pos.x = r.x - o.x * cameracontroller_bodyview_zoom;
+    camera.pos.y = r.y - o.y * cameracontroller_bodyview_zoom + h;
+    camera.pos.z = r.z - o.z * cameracontroller_bodyview_zoom;
 
-    camera.v = players[cameracontroller_bodyview_player].physics.velocity;
+    camera.v = p->physics.velocity;
 
-    if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
-        Player * p = &players[cameracontroller_bodyview_player];
+    if (cameracontroller_bodyview_mode && p->alive) {
         camera.pos    = p->physics.eye;
         camera.pos.y += player_height(p);
         camera.v      = p->physics.velocity;
@@ -460,28 +451,24 @@ void cameracontroller_bodyview(float dt) {
 }
 
 void cameracontroller_bodyview_render(void) {
-    if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
-        Player * p = &players[cameracontroller_bodyview_player];
-        float l  = hypot3f(p->orientation_smooth.x, p->orientation_smooth.y, p->orientation_smooth.z);
-        float ox = p->orientation_smooth.x / l;
-        float oy = p->orientation_smooth.y / l;
-        float oz = p->orientation_smooth.z / l;
+    Player * const p = &players[cameracontroller_bodyview_player];
 
-        matrix_lookAt(matrix_view, camera.pos.x, camera.pos.y, camera.pos.z, camera.pos.x + ox, camera.pos.y + oy, camera.pos.z + oz, 0.0F,
-                      1.0F, 0.0F);
+    if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
+        Vector3f r = camera.pos, o = p->orientation_smooth;
+        float n = hypot3f(o.x, o.y, o.z);
+
+        matrix_lookAt(matrix_view, r.x, r.y, r.z, r.x + o.x / n, r.y + o.y / n, r.z + o.z / n, 0.0F, 1.0F, 0.0F);
     } else {
-        matrix_lookAt(matrix_view,
-                      players[cameracontroller_bodyview_player].pos.x
-                          - sin(camera.rot.x) * sin(camera.rot.y) * cameracontroller_bodyview_zoom,
-                      players[cameracontroller_bodyview_player].pos.y
-                          - cos(camera.rot.y) * cameracontroller_bodyview_zoom
-                          + player_height2(&players[cameracontroller_bodyview_player]),
-                      players[cameracontroller_bodyview_player].pos.z
-                          - cos(camera.rot.x) * sin(camera.rot.y) * cameracontroller_bodyview_zoom,
-                      players[cameracontroller_bodyview_player].pos.x,
-                      players[cameracontroller_bodyview_player].pos.y
-                          + player_height2(&players[cameracontroller_bodyview_player]),
-                      players[cameracontroller_bodyview_player].pos.z, 0.0F, 1.0F, 0.0F);
+        Vector3f r = p->pos, o = camera_orientation();
+        float h = player_height2(p);
+
+        matrix_lookAt(
+            matrix_view,
+            r.x - o.x * cameracontroller_bodyview_zoom,
+            r.y - o.y * cameracontroller_bodyview_zoom + h,
+            r.z - o.z * cameracontroller_bodyview_zoom,
+            r.x, r.y + h, r.z, 0.0F, 1.0F, 0.0F
+        );
     }
 }
 

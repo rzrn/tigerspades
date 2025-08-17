@@ -387,6 +387,12 @@ Setting config_settings[] = {
         .category = "Sound",
     },
     {
+        .value   = &settings_tmp.play_intro,
+        .type    = CONFIG_TYPE_BOOLEAN,
+        .name    = "play_intro",
+        .display = "Play guitar intro"
+    },
+    {
         .value    = &settings_tmp.chat_beep,
         .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "chat_beep",
@@ -613,6 +619,7 @@ Options settings = {
     .deadzone_vert          = 0.0F,
     .free_crosshair         = false,
     .render_player          = false,
+    .play_intro             = true,
 };
 
 char * config_filepath = "config.ini";

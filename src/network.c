@@ -702,7 +702,7 @@ static void getPacketStateData(uint8_t * data, size_t len) {
         }
     } else log_error("Unknown gamemode (%d)!", p.gamemode);
 
-    sound_create(SOUND_LOCAL, sound(SOUND_INTRO), 0.0F, 0.0F, 0.0F);
+    if (settings.play_intro) sound_create(SOUND_LOCAL, sound(SOUND_INTRO), 0.0F, 0.0F, 0.0F);
 
     fog_color[0] = ((float) p.fog.r) / 255.0F;
     fog_color[1] = ((float) p.fog.g) / 255.0F;

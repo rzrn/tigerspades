@@ -108,6 +108,7 @@ typedef struct {
     float deadzone_vert;
     bool  free_crosshair;
     bool  render_player;
+    bool  play_intro;
 } Options;
 
 extern Options settings, settings_tmp;

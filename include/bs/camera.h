@@ -32,10 +32,12 @@ typedef enum {
 
 typedef struct {
     CameraMode mode; Vector3f pos, v, movement;
-    float size, height, eye_height, speed;
+    float size, height, eye_height, speed, fov;
     Euler rot, crosshair, muzzle;
     bool noclip;
 } Camera;
+
+#define CAMERA_ZOOM_TIME 0.20F
 
 #define CAMERA_MINIMUM_SPEED 0.0F
 #define CAMERA_DEFAULT_SPEED 32.0F

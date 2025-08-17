@@ -47,6 +47,14 @@ typedef struct {
     char value[32];
 } ConfigFileEntry;
 
+enum {
+    ADS_TOGGLE = 0,
+    ADS_HOLD   = 1,
+    ZOOM_HOLD  = 2
+};
+
+#define ZOOM_HOLD_TIME 0.25F
+
 typedef struct {
     char  name[16];
     int   min_lan_port;
@@ -68,7 +76,7 @@ typedef struct {
     bool  invert_y;
     bool  smooth_fog;
     float camera_fov;
-    bool  hold_down_sights;
+    int   ads_mode;
     bool  chat_shadow;
     int   scale;
     bool  tracing_enabled;
@@ -125,14 +133,15 @@ enum {
     CONFIG_TYPE_BOOLEAN,
     CONFIG_TYPE_STRING,
     CONFIG_TYPE_FLOAT,
+    CONFIG_TYPE_ENUM,
     CONFIG_TYPE_INT
 };
 
 typedef void Label(char *, size_t, void *);
 
 typedef struct {
-    void *       value;
     int          type;
+    void *       value;
     int          size;
     int          mini, maxi;
     float        minf, maxf;
@@ -140,8 +149,8 @@ typedef struct {
     const char * display;
     const char * help;
     const char * category;
-    int          defaults[8];
-    int          defaults_length;
+    size_t       numdefs;
+    int *        valdefs;
     Label *      label;
 } Setting;
 

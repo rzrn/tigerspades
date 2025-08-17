@@ -56,7 +56,7 @@ float camera_fov_scaled(void) {
        !HASBIT(players[local_id].input.keys, INPUT_SPRINT))
         return CAMERA_SCOPE_FOV;
 
-    return settings.camera_fov;
+    return camera.fov;
 }
 
 float camera_clamp_pitch(float y) {

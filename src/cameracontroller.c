@@ -83,6 +83,15 @@ void cameracontroller_death_render(void) {
 float last_cy;
 
 void cameracontroller_fps(float dt) {
+    if (settings.ads_mode == ZOOM_HOLD && players[local_player.id].tool == TOOL_WEAPON) {
+        float fov = button_map.rmb && window_time() - players[local_player.id].start.rmb > ZOOM_HOLD_TIME
+                  ? CAMERA_SCOPE_FOV : settings.camera_fov;
+
+        camera.fov = (CAMERA_ZOOM_TIME * camera.fov + dt * fov) / (CAMERA_ZOOM_TIME + dt);
+    } else {
+        camera.fov = settings.camera_fov;
+    }
+
     players[local_player.id].alive = 1;
 
     bool cooldown = false;
@@ -231,7 +240,7 @@ void cameracontroller_fps(float dt) {
         }
     }
 
-    if (players[local_player.id].tool != TOOL_WEAPON || settings.hold_down_sights)
+    if (players[local_player.id].tool != TOOL_WEAPON || settings.ads_mode == ADS_HOLD)
         SETBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY, button_map.rmb);
 
     if (HASBIT(players[local_player.id].input.keys, INPUT_SPRINT) || players[local_player.id].items_show)
@@ -248,7 +257,7 @@ void cameracontroller_fps(float dt) {
 
     camera.v = players[local_player.id].physics.velocity;
 
-    float tau = 0.039F; // see “src/player.c”
+    const float tau = 0.039F; // see “src/player.c”
 
     camera.muzzle.x = (tau * camera.muzzle.x + dt * camera.crosshair.x) / (tau + dt);
     camera.muzzle.y = (tau * camera.muzzle.y + dt * camera.crosshair.y) / (tau + dt);

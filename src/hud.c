@@ -1681,9 +1681,12 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
     if (button == WINDOW_MOUSE_RMB) {
         button_map.rmb = (action == WINDOW_PRESS);
 
-        if (action == WINDOW_PRESS && players[local_player.id].tool == TOOL_WEAPON &&
-           !settings.hold_down_sights && !players[local_player.id].items_show) {
-            players[local_player.id].input.buttons ^= MASKON(BUTTON_SECONDARY);
+        if (players[local_player.id].tool == TOOL_WEAPON && !players[local_player.id].items_show) {
+            bool toggle1 = settings.ads_mode == ADS_TOGGLE && action == WINDOW_PRESS;
+            bool toggle2 = settings.ads_mode == ZOOM_HOLD && action == WINDOW_RELEASE &&
+                           window_time() - players[local_player.id].start.rmb <= ZOOM_HOLD_TIME;
+
+            if (toggle1 || toggle2) players[local_player.id].input.buttons ^= MASKON(BUTTON_SECONDARY);
         }
 
         if (local_player.drag_active && action == WINDOW_RELEASE && players[local_player.id].tool == TOOL_BLOCK) {
@@ -2427,6 +2430,7 @@ void load_map(const char * filepath) {
     players[local_player.id].pos.z = map_size_z / 2.0F;
 
     local_hit_effects = true;
+
     camera.mode = CAMERAMODE_FPS;
 
     window_title(filepath);
@@ -2775,8 +2779,7 @@ static void hud_settings_init(void) {
 }
 
 static inline int defaults_round(Setting * setting, float value) {
-    int k = setting->defaults_length - 1;
-    for (; 0 < k && value < setting->defaults[k]; k--);
+    int k; for (k = setting->numdefs - 1; 0 < k && value < setting->valdefs[k]; k--);
 
     return k;
 }
@@ -2784,12 +2787,12 @@ static inline int defaults_round(Setting * setting, float value) {
 static int int_slider_defaults(mu_Context * ctx, Setting * setting) {
     int * value = setting->value;
 
-    mu_push_id(ctx, setting, sizeof(setting));
+    mu_push_id(ctx, &setting, sizeof(setting));
 
     float slider = defaults_round(setting, *value);
-    int res = mu_slider_ex(ctx, &slider, 0, setting->defaults_length - 1, 0, "", MU_OPT_ALIGNCENTER);
+    int res = mu_slider_ex(ctx, &slider, 0, setting->numdefs - 1, 0, "", MU_OPT_ALIGNCENTER);
 
-    if (res & MU_RES_CHANGE) *value = setting->defaults[(int) round(slider)];
+    if (res & MU_RES_CHANGE) *value = setting->valdefs[(int) round(slider)];
 
     if (setting->label != NULL) {
         char buf[64]; setting->label(buf, sizeof(buf), value);
@@ -2803,7 +2806,7 @@ static int int_slider_defaults(mu_Context * ctx, Setting * setting) {
 static int int_slider(mu_Context * ctx, Setting * setting) {
     int * value = setting->value;
 
-    mu_push_id(ctx, setting, sizeof(setting));
+    mu_push_id(ctx, &setting, sizeof(setting));
 
     float slider = *value;
     int res = mu_slider_ex(ctx, &slider, setting->mini, setting->maxi, 0, "", MU_OPT_ALIGNCENTER);
@@ -2835,7 +2838,7 @@ static int int_number(mu_Context * ctx, int * value) {
 static int float_slider(mu_Context * ctx, Setting * setting) {
     float * value = setting->value;
 
-    mu_push_id(ctx, setting, sizeof(setting));
+    mu_push_id(ctx, &setting, sizeof(setting));
 
     int res = mu_slider_ex(ctx, value, setting->minf, setting->maxf, 0, "", MU_OPT_ALIGNCENTER);
 
@@ -2853,7 +2856,7 @@ static int float_slider(mu_Context * ctx, Setting * setting) {
 }
 
 static void hud_bool(mu_Context * ctx, Setting * setting) {
-    mu_push_id(ctx, setting, sizeof(setting));
+    mu_push_id(ctx, &setting, sizeof(setting));
 
     bool * value = setting->value; char buf[64];
 
@@ -2864,6 +2867,25 @@ static void hud_bool(mu_Context * ctx, Setting * setting) {
 
     if (mu_button(ctx, buf))
         *value = !(*value);
+
+    mu_pop_id(ctx);
+}
+
+static void hud_enum(mu_Context * ctx, Setting * setting) {
+    mu_push_id(ctx, &setting, sizeof(setting));
+
+    int * value = setting->value;
+
+    char buf[64]; setting->label(buf, sizeof(buf), value);
+
+    if (mu_button(ctx, buf)) {
+        for (size_t i = 0; i < setting->numdefs; i++) {
+            if (setting->valdefs[i] == *value) {
+                *value = setting->valdefs[(i + 1) % setting->numdefs];
+                break;
+            }
+        }
+    }
 
     mu_pop_id(ctx);
 }
@@ -2903,8 +2925,13 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
                         break;
                     }
 
+                    case CONFIG_TYPE_ENUM: {
+                        hud_enum(ctx, a);
+                        break;
+                    }
+
                     case CONFIG_TYPE_INT: {
-                        if (a->defaults_length > 0) {
+                        if (a->numdefs > 0) {
                             int_slider_defaults(ctx, a);
                         } else if (a->maxi == INT_MAX) {
                             int_number(ctx, a->value);

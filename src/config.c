@@ -92,6 +92,16 @@ static void config_label_fixed_minimap(char * buffer, size_t length, void * void
     snprintf(buffer, length, value ? "Fixed" : "Rotating");
 }
 
+static void config_label_ads_mode(char * buffer, size_t length, void * voidptr) {
+    int value = *((int *) voidptr);
+
+    switch (value) {
+        case ADS_TOGGLE: snprintf(buffer, length, "Toggle");        break;
+        case ADS_HOLD:   snprintf(buffer, length, "Hold");          break;
+        case ZOOM_HOLD:  snprintf(buffer, length, "Toggle + Zoom"); break;
+    }
+}
+
 ConfigKey _config_key[] = {
     [WINDOW_KEY_UP]            = {.keycode = TOOLKIT_KEY_W,            .name = "move_forward",      .display = "Forward", .category = "Movement"},
     [WINDOW_KEY_LEFT]          = {.keycode = TOOLKIT_KEY_A,            .name = "move_left",         .display = "Left"},
@@ -152,6 +162,13 @@ ConfigKey _config_key[] = {
     [WINDOW_KEY_SELECT4]       = {.keycode = TOOLKIT_KEY_4,            .display = NULL},
     [WINDOW_KEY_UNKNOWN]       = {.keycode = 0,                        .display = NULL},
 };
+
+int config_ads_mode_valdefs[]     = {ADS_TOGGLE, ADS_HOLD, ZOOM_HOLD};
+int config_scale_valdefs[]        = {0, 1, 2, 4, 8, 16, 32, 64};
+int config_width_valdefs[]        = {640, 800, 854, 1024, 1280, 1920, 3840};
+int config_height_valdefs[]       = {480, 600, 720, 768, 1024, 1080, 2160};
+int config_vsync_valdefs[]        = {0, 1, 20, 30, 60, 120, 144, 240};
+int config_multisamples_valdefs[] = {0, 2, 4, 8, 16};
 
 Setting config_settings[] = {
     {
@@ -299,11 +316,13 @@ Setting config_settings[] = {
         .help     = "Invert vertical mouse movement"
     },
     {
-        .value    = &settings_tmp.hold_down_sights,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .help     = "Only aim while pressing RMB",
-        .name     = "hold_down_sights",
-        .display  = "Hold down sights"
+        .value   = &settings_tmp.ads_mode,
+        .type    = CONFIG_TYPE_ENUM,
+        .name    = "hold_down_sights",
+        .valdefs = config_ads_mode_valdefs,
+        .numdefs = lengthof(config_ads_mode_valdefs),
+        .display = "Aim Down Sights mode",
+        .label   = config_label_ads_mode
     },
     {
         .value    = &settings_tmp.toggle_crouch,
@@ -327,15 +346,15 @@ Setting config_settings[] = {
         .category = "Interface"
     },
     {
-        .value           = &settings_tmp.scale,
-        .type            = CONFIG_TYPE_INT,
-        .mini            = 0,
-        .maxi            = INT_MAX,
-        .name            = "scale",
-        .display         = "GUI scale",
-        .defaults        = {0, 1, 2, 4, 8, 16, 32, 64},
-        .defaults_length = 8,
-        .label           = config_label_scale
+        .value   = &settings_tmp.scale,
+        .type    = CONFIG_TYPE_INT,
+        .mini    = 0,
+        .maxi    = INT_MAX,
+        .name    = "scale",
+        .display = "GUI scale",
+        .valdefs = config_scale_valdefs,
+        .numdefs = lengthof(config_scale_valdefs),
+        .label   = config_label_scale
     },
     {
         .value    = &settings_tmp.chat_shadow,
@@ -404,40 +423,40 @@ Setting config_settings[] = {
         .category = "Graphics"
     },
     {
-        .value           = &settings_tmp.window_width,
-        .type            = CONFIG_TYPE_INT,
-        .mini            = 0,
-        .maxi            = INT_MAX,
-        .name            = "xres",
-        .display         = "Game width",
-        .defaults        = {640, 800, 854, 1024, 1280, 1920, 3840},
-        .defaults_length = 7,
-        .help            = "Default: 800",
-        .label           = config_label_pixels
+        .value   = &settings_tmp.window_width,
+        .type    = CONFIG_TYPE_INT,
+        .mini    = 0,
+        .maxi    = INT_MAX,
+        .name    = "xres",
+        .display = "Game width",
+        .valdefs = config_width_valdefs,
+        .numdefs = lengthof(config_width_valdefs),
+        .help    = "Default: 800",
+        .label   = config_label_pixels
     },
     {
-        .value           = &settings_tmp.window_height,
-        .type            = CONFIG_TYPE_INT,
-        .mini            = 0,
-        .maxi            = INT_MAX,
-        .name            = "yres",
-        .display         = "Game height",
-        .defaults        = {480, 600, 720, 768, 1024, 1080, 2160},
-        .defaults_length = 7,
-        .help            = "Default: 600",
-        .label           = config_label_pixels
+        .value   = &settings_tmp.window_height,
+        .type    = CONFIG_TYPE_INT,
+        .mini    = 0,
+        .maxi    = INT_MAX,
+        .name    = "yres",
+        .display = "Game height",
+        .valdefs = config_height_valdefs,
+        .numdefs = lengthof(config_height_valdefs),
+        .help    = "Default: 600",
+        .label   = config_label_pixels
     },
     {
-        .value           = &settings_tmp.vsync,
-        .type            = CONFIG_TYPE_INT,
-        .mini            = 0,
-        .maxi            = INT_MAX,
-        .name            = "vsync",
-        .display         = "V-Sync",
-        .help            = "Limits your game's fps",
-        .defaults        = {0, 1, 20, 30, 60, 120, 144, 240},
-        .defaults_length = 8,
-        .label           = config_label_vsync
+        .value   = &settings_tmp.vsync,
+        .type    = CONFIG_TYPE_INT,
+        .mini    = 0,
+        .maxi    = INT_MAX,
+        .name    = "vsync",
+        .display = "V-Sync",
+        .help    = "Limits your game's fps",
+        .valdefs = config_vsync_valdefs,
+        .numdefs = lengthof(config_vsync_valdefs),
+        .label   = config_label_vsync
     },
     {
         .value    = &settings_tmp.windowed,
@@ -446,16 +465,16 @@ Setting config_settings[] = {
         .display  = "Windowed"
     },
     {
-        .value           = &settings_tmp.multisamples,
-        .type            = CONFIG_TYPE_INT,
-        .mini            = 0,
-        .maxi            = 16,
-        .name            = "multisamples",
-        .display         = "Multisamples",
-        .help            = "Smooth out block edges",
-        .defaults        = {0, 2, 4, 8, 16},
-        .defaults_length = 5,
-        .label           = config_label_msaa
+        .value   = &settings_tmp.multisamples,
+        .type    = CONFIG_TYPE_INT,
+        .mini    = 0,
+        .maxi    = 16,
+        .name    = "multisamples",
+        .display = "Multisamples",
+        .help    = "Smooth out block edges",
+        .valdefs = config_multisamples_valdefs,
+        .numdefs = lengthof(config_multisamples_valdefs),
+        .label   = config_label_msaa
     },
     {
         .value    = &settings_tmp.voxlap_models,
@@ -560,7 +579,7 @@ Options settings = {
     .invert_y               = false,
     .smooth_fog             = false,
     .camera_fov             = CAMERA_DEFAULT_FOV,
-    .hold_down_sights       = false,
+    .ads_mode               = ADS_TOGGLE,
     .chat_shadow            = true,
     .scale                  = 0,
     .tracing_enabled        = false,
@@ -645,10 +664,14 @@ void config_save(void) {
     kv6_rebuild_complete();
 
     for (Setting * e = config_settings_begin; e != config_settings_end; e++) switch (e->type) {
-        case CONFIG_TYPE_INT: config_seti("client", e->name, *((int *) e->value)); break;
-        case CONFIG_TYPE_FLOAT: config_setf("client", e->name, *((float *) e->value)); break;
-        case CONFIG_TYPE_STRING: config_sets("client", e->name, (const char *) e->value); break;
-        case CONFIG_TYPE_BOOLEAN: config_seti("client", e->name, *((bool *) e->value)); break;
+        case CONFIG_TYPE_ENUM: case CONFIG_TYPE_INT:
+            config_seti("client", e->name, *((int *) e->value)); break;
+        case CONFIG_TYPE_FLOAT:
+            config_setf("client", e->name, *((float *) e->value)); break;
+        case CONFIG_TYPE_STRING:
+            config_sets("client", e->name, (const char *) e->value); break;
+        case CONFIG_TYPE_BOOLEAN:
+            config_seti("client", e->name, *((bool *) e->value)); break;
     }
 
     for (WindowKey key = WINDOW_KEY_FIRST; key <= WINDOW_KEY_LAST; key++) {
@@ -705,10 +728,14 @@ static int config_read_key(void * user, const char * section, const char * name,
         for (Setting * e = config_settings_begin; e != config_settings_end; e++) {
             if (strcmp(name, e->name) == 0) {
                 switch (e->type) {
-                    case CONFIG_TYPE_INT: *((int *) e->value) = atoi(value); break;
-                    case CONFIG_TYPE_FLOAT: *((float *) e->value) = atof(value); break;
-                    case CONFIG_TYPE_STRING: strcpy((char *) e->value, (const char *) value); break;
-                    case CONFIG_TYPE_BOOLEAN: *((bool *) e->value) = atoi(value); break;
+                    case CONFIG_TYPE_ENUM: case CONFIG_TYPE_INT:
+                        *((int *) e->value) = atoi(value); break;
+                    case CONFIG_TYPE_FLOAT:
+                        *((float *) e->value) = atof(value); break;
+                    case CONFIG_TYPE_STRING:
+                        strcpy((char *) e->value, (const char *) value); break;
+                    case CONFIG_TYPE_BOOLEAN:
+                        *((bool *) e->value) = atoi(value); break;
                 }
 
                 break;
@@ -758,7 +785,7 @@ void config_reload(void) {
     settings.volume = clamp(0, 10, settings.volume);
     sound_volume(settings.volume / 10.0F);
 
-    settings.camera_fov = clamp(CAMERA_DEFAULT_FOV, CAMERA_MAX_FOV, settings.camera_fov);
+    camera.fov = settings.camera_fov = clamp(CAMERA_DEFAULT_FOV, CAMERA_MAX_FOV, settings.camera_fov);
 }
 
 void config_init(void) {

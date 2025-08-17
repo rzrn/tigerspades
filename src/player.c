@@ -1264,7 +1264,7 @@ int player_move(Player * p, float fsynctics, int id) {
     return ret;
 }
 
-int player_uncrouch(Player * p) {
+bool player_can_uncrouch(Player * p) {
     player_coordsystem_adjust1(p);
 
     float x1 = p->pos.x + 0.45F, y1 = p->pos.y + 0.45F, z1 = p->pos.z + 2.25F;
@@ -1277,7 +1277,7 @@ int player_uncrouch(Player * p) {
             player_clipbox(x2, y1, z1) ||
             player_clipbox(x2, y2, z1))) {
         player_coordsystem_adjust2(p);
-        return 1;
+        return true;
     // then check if they can raise their head
     } else if (!(player_clipbox(x1, y1, z2) ||
                  player_clipbox(x1, y2, z2) ||
@@ -1288,9 +1288,25 @@ int player_uncrouch(Player * p) {
         if (&players[local_player.id] == p) last_cy += 0.9F;
 
         player_coordsystem_adjust2(p);
-        return 1;
+        return true;
     }
 
     player_coordsystem_adjust2(p);
-    return 0;
+    return false;
+}
+
+void player_try_crouch(void) {
+    // following if-statement disables smooth crouching on local player
+    if (!players[local_player.id].physics.airborne) {
+        players[local_player.id].pos.y         -= 0.9F;
+        players[local_player.id].physics.eye.y -= 0.9F;
+        last_cy                                -= 0.9F;
+    }
+
+    players[local_player.id].input.keys |= MASKON(INPUT_CROUCH);
+}
+
+void player_try_uncrouch(void) {
+    if (player_can_uncrouch(&players[local_player.id]))
+        players[local_player.id].input.keys &= MASKOFF(INPUT_CROUCH);
 }

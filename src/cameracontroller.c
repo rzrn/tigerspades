@@ -127,20 +127,14 @@ void cameracontroller_fps(float dt) {
         SETBIT(players[local_player.id].input.keys, INPUT_LEFT,  window_key_down(WINDOW_KEY_LEFT));
         SETBIT(players[local_player.id].input.keys, INPUT_RIGHT, window_key_down(WINDOW_KEY_RIGHT));
 
-        if (HASBIT(players[local_player.id].input.keys, INPUT_CROUCH) &&
-            !window_key_down(WINDOW_KEY_CROUCH) && player_uncrouch(&players[local_player.id]))
-            players[local_player.id].input.keys &= MASKOFF(INPUT_CROUCH);
+        if (!settings.toggle_crouch) {
+            bool crouch = HASBIT(players[local_player.id].input.keys, INPUT_CROUCH);
 
-        if (window_key_down(WINDOW_KEY_CROUCH)) {
-            // following if-statement disables smooth crouching on local player
-            if (!HASBIT(players[local_player.id].input.keys, INPUT_CROUCH) &&
-                !players[local_player.id].physics.airborne) {
-                players[local_player.id].pos.y         -= 0.9F;
-                players[local_player.id].physics.eye.y -= 0.9F;
-                last_cy                                -= 0.9F;
-            }
+            if (crouch && !window_key_down(WINDOW_KEY_CROUCH))
+                player_try_uncrouch();
 
-            players[local_player.id].input.keys |= MASKON(INPUT_CROUCH);
+            if (!crouch && window_key_down(WINDOW_KEY_CROUCH))
+                player_try_crouch();
         }
 
         SETBIT(players[local_player.id].input.keys, INPUT_SPRINT, window_key_down(WINDOW_KEY_SPRINT));

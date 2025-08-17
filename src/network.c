@@ -789,9 +789,6 @@ static void getPacketStateData(uint8_t * data, size_t len) {
 }
 
 void player_reset_toggleable_input(void) {
-    if (config_key(WINDOW_KEY_CROUCH)->toggle)
-        window_pressed_keys[WINDOW_KEY_CROUCH] = 0;
-
     if (config_key(WINDOW_KEY_SPRINT)->toggle)
         window_pressed_keys[WINDOW_KEY_SPRINT] = 0;
 }

@@ -1988,6 +1988,13 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 updateBlockColor();
             }
 
+            if (settings.toggle_crouch && camera.mode == CAMERAMODE_FPS && key == WINDOW_KEY_CROUCH) {
+                if (HASBIT(players[local_player.id].input.keys, INPUT_CROUCH))
+                    player_try_uncrouch();
+                else
+                    player_try_crouch();
+            }
+
             if (camera.mode == CAMERAMODE_FPS &&
                 players[local_player.id].tool == TOOL_WEAPON &&
                 key == WINDOW_KEY_FIREMODE && !button_map.lmb) {

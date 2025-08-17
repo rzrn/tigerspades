@@ -153,7 +153,9 @@ void player_render(Player * p, int id);
 void player_collision(const Player *, Ray *, Hit *);
 void player_reset(Player *);
 int player_move(Player *, float fsynctics, int id);
-int player_uncrouch(Player *);
+
+void player_try_crouch(void);
+void player_try_uncrouch(void);
 
 #define ISFIRING(player) (HASBIT((player)->input.buttons, BUTTON_PRIMARY))
 

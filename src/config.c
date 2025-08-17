@@ -629,7 +629,6 @@ ConfigKey * config_key(int key) {
 }
 
 static void config_keys_update(void) {
-    config_key(WINDOW_KEY_CROUCH)->toggle = settings.toggle_crouch;
     config_key(WINDOW_KEY_SPRINT)->toggle = settings.toggle_sprint;
 }
 

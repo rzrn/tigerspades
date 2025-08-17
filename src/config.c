@@ -181,49 +181,6 @@ Setting config_settings[] = {
         .category = "Game"
     },
     {
-        .value    = &settings_tmp.show_minimap,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_minimap",
-        .display  = "Display minimap"
-    },
-    {
-        .value    = &settings_tmp.fixed_minimap,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "fixed_minimap",
-        .display  = "Minimap orientation",
-        .label    = config_label_fixed_minimap
-    },
-    {
-        .value    = &settings_tmp.show_crosshair,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_crosshair",
-        .display  = "Enable crosshair"
-    },
-    {
-        .value    = &settings_tmp.show_health,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_health",
-        .display  = "Show health",
-    },
-    {
-        .value    = &settings_tmp.show_ammo,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_ammo",
-        .display  = "Show ammo",
-    },
-    {
-        .value    = &settings_tmp.show_hotbar,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_hotbar",
-        .display  = "Show equipment hotbar",
-    },
-    {
-        .value    = &settings_tmp.show_friendly_tag,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_friendly_tag",
-        .display  = "Show friendly tag",
-    },
-    {
         .value    = &settings_tmp.deadzone_horiz,
         .type     = CONFIG_TYPE_FLOAT,
         .minf     = 0.0F,
@@ -255,6 +212,29 @@ Setting config_settings[] = {
         .display  = "Render player body"
     },
     {
+        .value    = &settings_tmp.persistent_block_color,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .display  = "Persistent block color",
+        .name     = "persistent_block_color",
+        .help     = "Restore block color after respawn"
+    },
+    {
+        .value    = &settings_tmp.left_handed,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "left_handed",
+        .display  = "Main hand",
+        .help     = "Affects only your local character",
+        .label    = config_label_left_handed
+    },
+    {
+        .value    = &settings_tmp.report_client_version,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .display  = "Report client version",
+        .name     = "report_client_version",
+        .help     = "Server can enable extensions based on this",
+        .category = "Network"
+    },
+    {
         .value    = &settings_tmp.min_lan_port,
         .type     = CONFIG_TYPE_INT,
         .maxi     = INT_MAX,
@@ -273,31 +253,9 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.map_cache,
         .type     = CONFIG_TYPE_BOOLEAN,
-        .display  = "Use map cache",
+        .display  = "Use map cache (0.76)",
         .name     = "map_cache",
         .help     = "Can use a lot of disk space"
-    },
-    {
-        .value    = &settings_tmp.report_client_version,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .display  = "Report client version",
-        .name     = "report_client_version",
-        .help     = "Server can enable extensions based on this"
-    },
-    {
-        .value    = &settings_tmp.persistent_block_color,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .display  = "Persistent block color",
-        .name     = "persistent_block_color",
-        .help     = "Restore block color after respawn"
-    },
-    {
-        .value    = &settings_tmp.left_handed,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "left_handed",
-        .display  = "Main hand",
-        .help     = "Affects only your local character",
-        .label    = config_label_left_handed
     },
     {
         .value    = &settings_tmp.mouse_sensitivity,
@@ -337,24 +295,16 @@ Setting config_settings[] = {
         .display  = "Toggle sprint"
     },
     {
-        .value    = &settings_tmp.volume,
+        .value    = &settings_tmp.scale,
         .type     = CONFIG_TYPE_INT,
         .mini     = 0,
-        .maxi     = 10,
-        .name     = "vol",
-        .display  = "Volume",
+        .maxi     = INT_MAX,
+        .name     = "scale",
+        .display  = "GUI scale",
+        .valdefs  = config_scale_valdefs,
+        .numdefs  = lengthof(config_scale_valdefs),
+        .label    = config_label_scale,
         .category = "Interface"
-    },
-    {
-        .value   = &settings_tmp.scale,
-        .type    = CONFIG_TYPE_INT,
-        .mini    = 0,
-        .maxi    = INT_MAX,
-        .name    = "scale",
-        .display = "GUI scale",
-        .valdefs = config_scale_valdefs,
-        .numdefs = lengthof(config_scale_valdefs),
-        .label   = config_label_scale
     },
     {
         .value    = &settings_tmp.chat_shadow,
@@ -369,6 +319,72 @@ Setting config_settings[] = {
         .name     = "show_news",
         .display  = "Show news",
         .help     = "Show news on server list"
+    },
+    {
+        .value    = &settings_tmp.kill_indicator,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "kill_indicator",
+        .help     = "Confirmation sound + crosshair blink",
+        .display  = "Enable kill indicator"
+    },
+    {
+        .value    = &settings_tmp.show_iron_sight,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_iron_sight",
+        .help     = "Weapon-specific iron sights when using RMB",
+        .display  = "Show iron sight"
+    },
+    {
+        .value    = &settings_tmp.show_minimap,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_minimap",
+        .display  = "Display minimap"
+    },
+    {
+        .value    = &settings_tmp.fixed_minimap,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "fixed_minimap",
+        .display  = "Minimap orientation",
+        .label    = config_label_fixed_minimap
+    },
+    {
+        .value    = &settings_tmp.show_crosshair,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_crosshair",
+        .display  = "Enable crosshair"
+    },
+    {
+        .value    = &settings_tmp.show_health,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_health",
+        .display  = "Display health",
+    },
+    {
+        .value    = &settings_tmp.show_ammo,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_ammo",
+        .display  = "Display ammo",
+    },
+    {
+        .value    = &settings_tmp.show_hotbar,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_hotbar",
+        .display  = "Display equipment hotbar",
+    },
+    {
+        .value    = &settings_tmp.show_friendly_tag,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "show_friendly_tag",
+        .display  = "Display friendly tag",
+    },
+    {
+        .value    = &settings_tmp.volume,
+        .type     = CONFIG_TYPE_INT,
+        .mini     = 0,
+        .maxi     = 10,
+        .name     = "vol",
+        .display  = "Volume",
+        .category = "Sound",
     },
     {
         .value    = &settings_tmp.chat_beep,
@@ -397,20 +413,6 @@ Setting config_settings[] = {
         .name     = "team_change_beep",
         .display  = "Enable team change alert",
         .help     = "Beep sound when a player changes team"
-    },
-    {
-        .value    = &settings_tmp.kill_indicator,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "kill_indicator",
-        .help     = "Confirmation sound + crosshair blink",
-        .display  = "Enable kill indicator"
-    },
-    {
-        .value    = &settings_tmp.show_iron_sight,
-        .type     = CONFIG_TYPE_BOOLEAN,
-        .name     = "show_iron_sight",
-        .help     = "Weapon-specific iron sights when using RMB",
-        .display  = "Show iron sight"
     },
     {
         .value    = &settings_tmp.camera_fov,

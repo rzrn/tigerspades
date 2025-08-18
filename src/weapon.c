@@ -102,6 +102,8 @@ float weapon_recoil_anim(Weapon weapon) {
         case WEAPON_SMG:     return 0.125F;
         case WEAPON_SHOTGUN: return 0.75F;
     }
+
+    return 0.0F;
 }
 
 int weapon_block_damage(Weapon weapon) {
@@ -110,6 +112,8 @@ int weapon_block_damage(Weapon weapon) {
         case WEAPON_SMG:     return 34;
         case WEAPON_SHOTGUN: return 20;
     }
+
+    return 0.0F;
 }
 
 float weapon_delay(Weapon weapon) {
@@ -118,6 +122,8 @@ float weapon_delay(Weapon weapon) {
         case WEAPON_SMG:     return 0.1F;
         case WEAPON_SHOTGUN: return 1.0F;
     }
+
+    return 0.0F;
 }
 
 WAV * weapon_sound(Weapon weapon) {
@@ -126,6 +132,8 @@ WAV * weapon_sound(Weapon weapon) {
         case WEAPON_SMG:     return sound(SOUND_SMG_SHOOT);
         case WEAPON_SHOTGUN: return sound(SOUND_SHOTGUN_SHOOT);
     }
+
+    return NULL;
 }
 
 WAV * weapon_sound_reload(Weapon weapon) {
@@ -134,6 +142,8 @@ WAV * weapon_sound_reload(Weapon weapon) {
         case WEAPON_SMG:     return sound(SOUND_SMG_RELOAD);
         case WEAPON_SHOTGUN: return sound(SOUND_SHOTGUN_RELOAD);
     }
+
+    return NULL;
 }
 
 Vector3f weapon_spread(Player * p, const Vector3f d) {
@@ -166,6 +176,8 @@ Euler2d weapon_recoil(Weapon weapon) {
         case WEAPON_SMG:     return (Euler2d) {.h = 0.00005, .v = 0.0125};
         case WEAPON_SHOTGUN: return (Euler2d) {.h = 0.00020, .v = 0.1000};
     }
+
+    return (Euler2d) {.h = 0.0, .v = 0.0};
 }
 
 int weapon_ammo(Weapon weapon) {
@@ -174,6 +186,8 @@ int weapon_ammo(Weapon weapon) {
         case WEAPON_SMG:     return 30;
         case WEAPON_SHOTGUN: return 6;
     }
+
+    return 0;
 }
 
 int weapon_ammo_reserved(Weapon weapon) {
@@ -182,6 +196,8 @@ int weapon_ammo_reserved(Weapon weapon) {
         case WEAPON_SMG:     return 120;
         case WEAPON_SHOTGUN: return 48;
     }
+
+    return 0;
 }
 
 kv6 * weapon_casing(Weapon weapon) {
@@ -190,6 +206,8 @@ kv6 * weapon_casing(Weapon weapon) {
         case WEAPON_SMG:     return &model[MODEL_SMG_CASING];
         case WEAPON_SHOTGUN: return &model[MODEL_SHOTGUN_CASING];
     }
+
+    return NULL;
 }
 
 kv6 * weapon_model(Weapon weapon) {
@@ -198,6 +216,8 @@ kv6 * weapon_model(Weapon weapon) {
         case WEAPON_SMG:     return &model[MODEL_SMG];
         case WEAPON_SHOTGUN: return &model[MODEL_SHOTGUN];
     }
+
+    return NULL;
 }
 
 WeaponFireMode weapon_firemode_default(Weapon weapon) {
@@ -206,6 +226,8 @@ WeaponFireMode weapon_firemode_default(Weapon weapon) {
         case WEAPON_SMG:     return SMG_AUTO;
         case WEAPON_SHOTGUN: return SHOTGUN_PUMP;
     }
+
+    return 0;
 }
 
 WeaponFireMode weapon_firemode_cycle(WeaponFireMode mode) {
@@ -219,6 +241,8 @@ WeaponFireMode weapon_firemode_cycle(WeaponFireMode mode) {
         case SHOTGUN_SAFE: return SHOTGUN_PUMP;
         case SHOTGUN_PUMP: return SHOTGUN_SAFE;
     }
+
+    return 0;
 }
 
 int weapon_firemode_burst(WeaponFireMode mode) {
@@ -232,6 +256,8 @@ int weapon_firemode_burst(WeaponFireMode mode) {
         case SHOTGUN_SAFE: return 0;
         case SHOTGUN_PUMP: return INT_MAX;
     }
+
+    return 0;
 }
 
 const char * weapon_firemode_label(WeaponFireMode mode) {
@@ -245,6 +271,8 @@ const char * weapon_firemode_label(WeaponFireMode mode) {
         case SHOTGUN_SAFE: return "Safety";
         case SHOTGUN_PUMP: return "Pump Action";
     }
+
+    return NULL;
 }
 
 void weapon_set(bool restock) {

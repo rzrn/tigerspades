@@ -435,6 +435,8 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
             switch (players[p.player_id].connected ? players[p.player_id].team : players[local_player.id].team) {
                 case TEAM1: color.r = gamestate.team1.color.r; color.g = gamestate.team1.color.g; color.b = gamestate.team1.color.b; break;
                 case TEAM2: color.r = gamestate.team2.color.r; color.g = gamestate.team2.color.g; color.b = gamestate.team2.color.b; break;
+
+                default: break;
             }
         }
     }

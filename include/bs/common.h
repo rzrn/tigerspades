@@ -149,10 +149,14 @@ static inline int modnonnegi(int a, int b)
 static inline float modnonnegf(float a, float b)
 { assert(b > 0); float c = fmod(a, b); return c < 0 ? c + b : c; }
 
-static inline Vector3f Rodrigues3f(const Euler R)
-{ return (Vector3f) {.x = sin(R.x) * sin(R.y),
-                     .y = cos(R.y),
-                     .z = cos(R.x) * sin(R.y)}; }
+typedef struct { float h, v; } Euler2f;
+
+static inline Vector3f Rodrigues3f(const Euler2f R)
+{ return (Vector3f) {.x = sin(R.h) * sin(R.v),
+                     .y = cos(R.v),
+                     .z = cos(R.h) * sin(R.v)}; }
+
+typedef struct { double h, v; } Euler2d;
 
 #define PI      3.14159265F
 #define TAU     (PI * 2.0F)

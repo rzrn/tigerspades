@@ -630,8 +630,8 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
             local_player.last_tool = TOOL_DEFAULT;
 
             camera.mode  = p.team == TEAM_SPECTATOR ? CAMERAMODE_SPECTATOR : CAMERAMODE_FPS;
-            camera.rot.x = p.team == TEAM1 ? 0.5F * PI : 1.5F * PI;
-            camera.rot.y = 0.5F * PI;
+            camera.rot.h = p.team == TEAM1 ? 0.5F * PI : 1.5F * PI;
+            camera.rot.v = 0.5F * PI;
 
             camera.muzzle = camera.crosshair = camera.rot;
 

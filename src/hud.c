@@ -924,7 +924,7 @@ static void hud_draw_map(float scale) {
             float y = k == local_player.id ? camera.pos.z : players[k].pos.z;
 
             float ang = k == local_player.id
-                      ? camera.rot.x + PI
+                      ? camera.rot.h + PI
                       : -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
 
             texture_draw_rotated(
@@ -964,7 +964,7 @@ static void hud_draw_minimap(float scale) {
     float t = settings.fixed_minimap ? 0.0F :
                   in_bodyview_mode() ? -atan2(players[cameracontroller_bodyview_player].orientation.z,
                                               players[cameracontroller_bodyview_player].orientation.x) - HALFPI :
-                                       camera.rot.x + PI;
+                                       camera.rot.h + PI;
 
     float sx = 64.0F, sz = 64.0F;
 
@@ -1097,7 +1097,7 @@ static void hud_draw_minimap(float scale) {
 
             if (x > 0.0F && x < 128.0F && y > 0.0F && y < 128.0F) {
                 float ang = k == local_player.id
-                          ? camera.rot.x + PI
+                          ? camera.rot.h + PI
                           : -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
 
                 texture_draw_rotated(
@@ -2305,9 +2305,9 @@ static void hud_ingame_touch(void * finger, int action, float x, float y, float 
             return;
         }
 
-        if (1) {
-            camera.rot.x -= dx * 0.002F;
-            camera.rot.y += dy * 0.002F;
+        if (true) {
+            camera.rot.h -= dx * 0.002F;
+            camera.rot.v += dy * 0.002F;
             camera_overflow_adjust();
             return;
         }

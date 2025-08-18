@@ -33,7 +33,7 @@ typedef enum {
 typedef struct {
     CameraMode mode; Vector3f pos, v, movement;
     float size, height, eye_height, speed, fov;
-    Euler rot, crosshair, muzzle;
+    Euler2f rot, crosshair, muzzle;
     bool noclip;
 } Camera;
 

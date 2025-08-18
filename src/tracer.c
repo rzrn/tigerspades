@@ -34,10 +34,10 @@
 
 EntitySystem tracers;
 
-void tracer_pvelocity(float * o, Player * p) {
-    o[X] = o[X] * 256.0F / 32.0F + p->physics.velocity.x;
-    o[Y] = o[Y] * 256.0F / 32.0F + p->physics.velocity.y;
-    o[Z] = o[Z] * 256.0F / 32.0F + p->physics.velocity.z;
+void tracer_pvelocity(Vector3f * o, Player * p) {
+    o->x = o->x * 256.0F / 32.0F + p->physics.velocity.x;
+    o->y = o->y * 256.0F / 32.0F + p->physics.velocity.y;
+    o->z = o->z * 256.0F / 32.0F + p->physics.velocity.z;
 }
 
 typedef struct { float scalef, minimap_x, minimap_y; } TracerMapInfo;

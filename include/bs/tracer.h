@@ -32,7 +32,7 @@ typedef struct {
     float created;
 } Tracer;
 
-void tracer_pvelocity(float * o, Player * p);
+void tracer_pvelocity(Vector3f *, Player *);
 void tracer_add(int type, float x, float y, float z, float dx, float dy, float dz);
 void tracer_update(float dt);
 void tracer_render(void);

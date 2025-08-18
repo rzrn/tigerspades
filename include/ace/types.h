@@ -6,10 +6,6 @@
 #include <stddef.h>
 
 typedef struct {
-    float x, y;
-} Euler;
-
-typedef struct {
     int x, y;
 } Vector2i;
 
@@ -18,20 +14,20 @@ typedef struct {
 } Vector2f;
 
 typedef struct {
-    float x, y, z;
-} Vector3f;
-
-typedef struct {
     int x, y, z;
 } Vector3i;
 
 typedef struct {
-    float r, g, b;
-} RGB3f;
+    float x, y, z;
+} Vector3f;
 
 typedef struct {
     uint8_t r, g, b;
 } RGB3i;
+
+typedef struct {
+    float r, g, b;
+} RGB3f;
 
 typedef struct {
     uint8_t r, g, b, a;

@@ -253,8 +253,8 @@ void cameracontroller_fps(float dt) {
 
     const float tau = 0.039F; // see “src/player.c”
 
-    camera.muzzle.x = (tau * camera.muzzle.x + dt * camera.crosshair.x) / (tau + dt);
-    camera.muzzle.y = (tau * camera.muzzle.y + dt * camera.crosshair.y) / (tau + dt);
+    camera.muzzle.h = (tau * camera.muzzle.h + dt * camera.crosshair.h) / (tau + dt);
+    camera.muzzle.v = (tau * camera.muzzle.v + dt * camera.crosshair.v) / (tau + dt);
 
     players[local_player.id].orientation = players[local_player.id].orientation_smooth = muzzle_direction();
 }
@@ -308,11 +308,11 @@ void cameracontroller_spectator(float dt) {
     float xd = 0.0F, yd = 0.0F, zd = 0.0F;
 
     if (chat_input_mode == CHAT_NO_INPUT) {
-        float sx = sin(camera.rot.x), cx = cos(camera.rot.x);
-        float sy = sin(camera.rot.y), cy = cos(camera.rot.y);
+        float sh = sin(camera.rot.h), ch = cos(camera.rot.h);
+        float sv = sin(camera.rot.v), cv = cos(camera.rot.v);
 
-        float nx = sx * sy, ny = cy, nz = cx * sy;
-        float rx = -cx,     ry = 0,  rz = sx;
+        float nx = sh * sv, ny = cv, nz = ch * sv;
+        float rx = -ch,     ry = 0,  rz = sh;
 
         if (window_key_down(WINDOW_KEY_UP))    { xd += nx; yd += ny; zd += nz; }
         if (window_key_down(WINDOW_KEY_DOWN))  { xd -= nx; yd -= ny; zd -= nz; }

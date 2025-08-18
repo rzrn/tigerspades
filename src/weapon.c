@@ -136,8 +136,8 @@ WAV * weapon_sound_reload(Weapon weapon) {
     }
 }
 
-void weapon_spread(Player * p, float * d) {
-    float spread = 0.0F;
+Vector3f weapon_spread(Player * p, const Vector3f d) {
+    float spread;
     switch (p->weapon) {
         case WEAPON_RIFLE:   spread = 0.006F; break;
         case WEAPON_SMG:     spread = 0.012F; break;
@@ -148,29 +148,23 @@ void weapon_spread(Player * p, float * d) {
     float scope  = HASBIT(p->input.buttons, BUTTON_SECONDARY) ? 0.5F : 1.0F;
     float crouch = (HASBIT(p->input.keys, INPUT_CROUCH) && p->weapon != WEAPON_SHOTGUN) ? 0.5F : 1.0F;
 
-    d[0] += (ms_rand() - ms_rand()) / 16383.0F * spread * scope * crouch;
-    d[1] += (ms_rand() - ms_rand()) / 16383.0F * spread * scope * crouch;
-    d[2] += (ms_rand() - ms_rand()) / 16383.0F * spread * scope * crouch;
+    float n = spread * scope * crouch / 16383.0F;
+
+    return (Vector3f) {
+        .x = d.x + n * (ms_rand() - ms_rand()),
+        .y = d.y + n * (ms_rand() - ms_rand()),
+        .z = d.z + n * (ms_rand() - ms_rand())
+    };
+#elif
+    return (Vector3f) {0, 0, 0};
 #endif
 }
 
-void weapon_recoil(Weapon weapon, double * horiz_recoil, double * vert_recoil) {
+Euler2d weapon_recoil(Weapon weapon) {
     switch (weapon) {
-        case WEAPON_RIFLE:
-            *horiz_recoil = 0.0001;
-            *vert_recoil  = 0.05;
-            break;
-        case WEAPON_SMG:
-            *horiz_recoil = 0.00005;
-            *vert_recoil  = 0.0125;
-            break;
-        case WEAPON_SHOTGUN:
-            *horiz_recoil = 0.0002;
-            *vert_recoil  = 0.1;
-            break;
-        default:
-            *horiz_recoil = 0.0;
-            *vert_recoil  = 0.0;
+        case WEAPON_RIFLE:   return (Euler2d) {.h = 0.00010, .v = 0.0500};
+        case WEAPON_SMG:     return (Euler2d) {.h = 0.00005, .v = 0.0125};
+        case WEAPON_SHOTGUN: return (Euler2d) {.h = 0.00020, .v = 0.1000};
     }
 }
 
@@ -311,22 +305,14 @@ void weapon_shoot(void) {
     // https://pastebin.com/raw/TMjKSTXG
     // http://paste.quacknet.org/view/a3ea2743
 
-    for (int i = 0; i < WEAPON_ROUNDS(players[local_player.id].weapon); i++) {
-        float o[3] = {
-            players[local_player.id].orientation.x,
-            players[local_player.id].orientation.y,
-            players[local_player.id].orientation.z
-        };
+    Vector3f e = players[local_player.id].physics.eye;
+    float h = player_height(&players[local_player.id]);
 
-        weapon_spread(&players[local_player.id], o);
+    for (int i = 0; i < WEAPON_ROUNDS(players[local_player.id].weapon); i++) {
+        Vector3f o = weapon_spread(&players[local_player.id], players[local_player.id].orientation);
 
         CameraHit hit;
-        camera_hit(&hit, local_player.id,
-            players[local_player.id].physics.eye.x,
-            players[local_player.id].physics.eye.y + player_height(&players[local_player.id]),
-            players[local_player.id].physics.eye.z,
-            o[X], o[Y], o[Z], 128.0F
-        );
+        camera_hit(&hit, local_player.id, e.x, e.y + h, e.z, o.x, o.y, o.z, 128.0F);
 
         #if !(HACKS_ENABLED && HACK_NORELOAD)
         if (players[local_player.id].input.buttons != network_buttons_last) {
@@ -397,48 +383,41 @@ void weapon_shoot(void) {
             }
         }
 
-        tracer_pvelocity(o, &players[local_player.id]);
-        tracer_add(
-            players[local_player.id].weapon,
-            players[local_player.id].physics.eye.x,
-            players[local_player.id].physics.eye.y + player_height(&players[local_player.id]),
-            players[local_player.id].physics.eye.z,
-            o[0], o[1], o[2]
-        );
+        tracer_pvelocity(&o, &players[local_player.id]);
+        tracer_add(players[local_player.id].weapon, e.x, e.y + h, e.z, o.x, o.y, o.z);
     }
 
-    double horiz_recoil, vert_recoil;
-    weapon_recoil(players[local_player.id].weapon, &horiz_recoil, &vert_recoil);
+    Euler2d recoil = weapon_recoil(players[local_player.id].weapon);
 
     long triangle_wave = (long) (window_time() * 1000) & 511;
-    horiz_recoil *= ((double) triangle_wave) - 255.5;
+    recoil.h *= ((double) triangle_wave) - 255.5;
 
     if (((long) (window_time() * 1000) & 1023) < 512)
-        horiz_recoil *= -1.0;
+        recoil.h *= -1.0;
 
     if (ISMOVING(&players[local_player.id]) && !HASBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY)) {
-        vert_recoil  *= 2.0;
-        horiz_recoil *= 2.0;
+        recoil.v *= 2.0;
+        recoil.h *= 2.0;
     }
 
     if (players[local_player.id].physics.airborne) {
-        vert_recoil  *= 2.0;
-        horiz_recoil *= 2.0;
+        recoil.v *= 2.0;
+        recoil.h *= 2.0;
     } else if (HASBIT(players[local_player.id].input.keys, INPUT_CROUCH)) {
-        vert_recoil  *= 0.5;
-        horiz_recoil *= 0.5;
+        recoil.v *= 0.5;
+        recoil.h *= 0.5;
     }
 
     // converges to 0 for (+/-) 1.0 (only slowly, has no effect on usual orientation.y range)
-    horiz_recoil *= sqrtf(1.0F - fourthf(cos(camera.muzzle.y)));
+    recoil.h *= sqrtf(1.0F - fourthf(cos(camera.muzzle.v)));
 
 #if !(HACKS_ENABLED && HACK_NORECOIL)
-    camera.muzzle.x += horiz_recoil;
-    camera.muzzle.y -= vert_recoil;
+    camera.muzzle.h += recoil.h;
+    camera.muzzle.v -= recoil.v;
 
-    camera.muzzle.y = camera_clamp_pitch(camera.muzzle.y);
+    camera.muzzle.v = camera_clamp_pitch(camera.muzzle.v);
 
-    camera_crosshair_move(-horiz_recoil, -vert_recoil);
+    camera_crosshair_move(-recoil.h, -recoil.v);
 #endif
 
     sound_create(

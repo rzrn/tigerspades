@@ -469,19 +469,17 @@ void player_render_all(void) {
                     players[k].ammo--;
                     sound_create_sticky(weapon_sound(players[k].weapon), players + k, k);
 
-                    float o[3] = {players[k].orientation.x, players[k].orientation.y, players[k].orientation.z};
+                    Vector3f o = weapon_spread(&players[k], players[k].orientation);
 
-                    weapon_spread(&players[k], o);
+                    Vector3f e = players[k].physics.eye;
+                    float h = player_height(&players[k]);
 
-                    tracer_pvelocity(o, &players[k]);
-                    tracer_add(players[k].weapon, players[k].physics.eye.x,
-                               players[k].physics.eye.y + player_height(&players[k]), players[k].physics.eye.z, o[0],
-                               o[1], o[2]);
+                    tracer_pvelocity(&o, &players[k]);
+                    tracer_add(players[k].weapon, e.x, e.y + h, e.z, o.x, o.y, o.z);
                     particle_create_casing(&players[k]);
 
                     CameraHit hit;
-                    camera_hit(&hit, k, players[k].physics.eye.x, players[k].physics.eye.y + player_height(&players[k]),
-                               players[k].physics.eye.z, o[0], o[1], o[2], 128.0F);
+                    camera_hit(&hit, k, e.x, e.y + h, e.z, o.x, o.y, o.z, 128.0F);
 
                     if (!network_connected || local_hit_effects) switch (hit.type) {
                         case CAMERA_HITTYPE_PLAYER: {
@@ -931,8 +929,8 @@ void player_render(Player * p, int id) {
     {
         matrix_push(matrix_model);
         matrix_translate(matrix_model, p->pos.x, p->physics.eye.y + player_height(p) + 1.25F, p->pos.z);
-        matrix_rotate(matrix_model, camera.rot.x / PI * 180.0F + 180.0F, 0.0F, 1.0F, 0.0F);
-        matrix_rotate(matrix_model, -camera.rot.y / PI * 180.0F + 90.0F, 1.0F, 0.0F, 0.0F);
+        matrix_rotate(matrix_model, camera.rot.h / PI * 180.0F + 180.0F, 0.0F, 1.0F, 0.0F);
+        matrix_rotate(matrix_model, -camera.rot.v / PI * 180.0F + 90.0F, 1.0F, 0.0F, 0.0F);
         matrix_scale(matrix_model, 1.0F / 92.0F, 1.0F / 92.0F, 1.0F / 92.0F);
         matrix_upload();
 

@@ -67,41 +67,41 @@ float camera_clamp_pitch(float y) {
 }
 
 void camera_overflow_adjust(void) {
-    camera.rot.y       = camera_clamp_pitch(camera.rot.y);
-    camera.muzzle.y    = camera_clamp_pitch(camera.muzzle.y);
-    camera.crosshair.y = camera_clamp_pitch(camera.crosshair.y);
+    camera.rot.v       = camera_clamp_pitch(camera.rot.v);
+    camera.muzzle.v    = camera_clamp_pitch(camera.muzzle.v);
+    camera.crosshair.v = camera_clamp_pitch(camera.crosshair.v);
 
-    if (camera.rot.x > TAU) {
-        camera.rot.x       -= TAU;
-        camera.muzzle.x    -= TAU;
-        camera.crosshair.x -= TAU;
+    if (camera.rot.h > TAU) {
+        camera.rot.h       -= TAU;
+        camera.muzzle.h    -= TAU;
+        camera.crosshair.h -= TAU;
     }
 
-    if (camera.rot.x < 0.0F) {
-        camera.rot.x       += TAU;
-        camera.muzzle.x    += TAU;
-        camera.crosshair.x += TAU;
+    if (camera.rot.h < 0.0F) {
+        camera.rot.h       += TAU;
+        camera.muzzle.h    += TAU;
+        camera.crosshair.h += TAU;
     }
 }
 
-void camera_crosshair_move(float dx, float dy) {
+void camera_crosshair_move(float dh, float dv) {
     if (camera.mode == CAMERAMODE_FPS) {
-        camera.crosshair.x -= dx;
-        camera.crosshair.y += dy;
+        camera.crosshair.h -= dh;
+        camera.crosshair.v += dv;
 
         float h = settings.deadzone_horiz, v = settings.deadzone_vert;
 
-        if (h <= absf(camera.rot.x - camera.crosshair.x))
-            camera.rot.x -= dx;
+        if (h <= absf(camera.rot.h - camera.crosshair.h))
+            camera.rot.h -= dh;
 
-        if (v <= absf(camera.rot.y - camera.crosshair.y))
-            camera.rot.y += dy;
+        if (v <= absf(camera.rot.v - camera.crosshair.v))
+            camera.rot.v += dv;
 
-        camera.crosshair.x = clamp(camera.rot.x - h, camera.rot.x + h, camera.crosshair.x);
-        camera.crosshair.y = clamp(camera.rot.y - v, camera.rot.y + v, camera.crosshair.y);
+        camera.crosshair.h = clamp(camera.rot.h - h, camera.rot.h + h, camera.crosshair.h);
+        camera.crosshair.v = clamp(camera.rot.v - v, camera.rot.v + v, camera.crosshair.v);
     } else {
-        camera.rot.x -= dx;
-        camera.rot.y += dy;
+        camera.rot.h -= dh;
+        camera.rot.v += dv;
 
         camera.crosshair = camera.muzzle = camera.rot;
     }

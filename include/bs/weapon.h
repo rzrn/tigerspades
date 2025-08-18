@@ -56,8 +56,8 @@ int weapon_can_reload(void);
 void weapon_reload_abort(void);
 void weapon_shoot(void);
 
-void weapon_spread(Player * p, float * d);
-void weapon_recoil(Weapon, double * horiz_recoil, double * vert_recoil);
+Vector3f weapon_spread(Player *, const Vector3f);
+Euler2d weapon_recoil(Weapon);
 
 extern float weapon_reload_start, weapon_last_shot;
 

@@ -229,16 +229,18 @@ void sound_update(void) {
     if (!sound_enabled)
         return;
 
-    float sx = sin(camera.rot.x), cx = cos(camera.rot.x);
-    float sy = sin(camera.rot.y), cy = cos(camera.rot.y);
+    Vector3f r = camera.pos, v = camera.v;
+
+    float sh = sin(camera.rot.h), ch = cos(camera.rot.h);
+    float sv = sin(camera.rot.v), cv = cos(camera.rot.v);
 
     float orientation[] = {
-        +sx * sy, +cy, +cx * sy,
-        -sx * cy, +sy, -cx * cy,
+        +sh * sv, +cv, +ch * sv,
+        -sh * cv, +sv, -ch * cv,
     };
 
-    alListener3f(AL_POSITION, camera.pos.x * SOUND_SCALE, camera.pos.y * SOUND_SCALE, camera.pos.z * SOUND_SCALE);
-    alListener3f(AL_VELOCITY, camera.v.x * SOUND_SCALE, camera.v.y * SOUND_SCALE, camera.v.z * SOUND_SCALE);
+    alListener3f(AL_POSITION, r.x * SOUND_SCALE, r.y * SOUND_SCALE, r.z * SOUND_SCALE);
+    alListener3f(AL_VELOCITY, v.x * SOUND_SCALE, v.y * SOUND_SCALE, v.z * SOUND_SCALE);
     alListenerfv(AL_ORIENTATION, orientation);
 
     entitysys_iterate(&sound_sources, NULL, sound_update_single);

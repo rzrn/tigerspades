@@ -2908,7 +2908,7 @@ static Texture * hud_settings_ui_images(int icon_id, bool * resize) {
 static void hud_settings_render(mu_Context * ctx, float scale) {
     if (hud_header_render(ctx, scale, BSSUMMARY)) {
         mu_layout_row(ctx, 1, (int[]) {-1}, -1);
-        mu_begin_panel(ctx, "Content");
+        mu_begin_panel(ctx, "Settings");
 
         int width = mu_get_current_container(ctx)->body.w;
 
@@ -3044,7 +3044,7 @@ static void hud_controls_init(void) {
 static void hud_controls_render(mu_Context * ctx, float scale) {
     if (hud_header_render(ctx, scale, BSSUMMARY)) {
         mu_layout_row(ctx, 1, (int[]) {-1}, -1);
-        mu_begin_panel(ctx, "Content");
+        mu_begin_panel(ctx, "Controls");
 
         bool expanded = false;
 

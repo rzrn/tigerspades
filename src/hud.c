@@ -1122,6 +1122,11 @@ static void matrix_orientation(mat4 retval) {
     matrix_multiply(retval, proj);
 }
 
+static inline bool button_primary(void)
+{ return in_bodyview_mode()
+       ? HASBIT(players[cameracontroller_bodyview_player].input.buttons, BUTTON_PRIMARY)
+       : button_map.lmb; }
+
 static void draw_crosshair(mat4 mvp) {
     vec3 v;
 
@@ -1133,16 +1138,10 @@ static void draw_crosshair(mat4 mvp) {
         matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
     }
 
-    Texture * texture_crosshair;
-
-    if (settings.free_crosshair)
-        texture_crosshair = texture(TEXTURE_FREEAIM3);
-    else {
-        bool lmb = in_bodyview_mode()
-                 ? HASBIT(players[cameracontroller_bodyview_player].input.buttons, BUTTON_PRIMARY)
-                 : button_map.lmb;
-        texture_crosshair = texture(lmb ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1);
-    }
+    Texture * texture_crosshair = texture(
+        settings.free_crosshair ? TEXTURE_FREEAIM3 :
+               button_primary() ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1
+    );
 
     texture_draw(texture_crosshair, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
 }
@@ -1158,7 +1157,7 @@ static void draw_muzzle(mat4 mvp) {
         matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
     }
 
-    Texture * texture_muzzle = texture(button_map.lmb ? TEXTURE_FREEAIM2 : TEXTURE_FREEAIM1);
+    Texture * texture_muzzle = texture(button_primary() ? TEXTURE_FREEAIM2 : TEXTURE_FREEAIM1);
 
     texture_draw(texture_muzzle, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
 }

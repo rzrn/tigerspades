@@ -1766,14 +1766,16 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         }
     }
 
-    if (button == WINDOW_MOUSE_LMB && action == WINDOW_PRESS && camera.mode == CAMERAMODE_FPS) {
-        if (weapon_reloading()) weapon_reload_abort();
+    if (button == WINDOW_MOUSE_LMB && action == WINDOW_PRESS) {
+        if (camera.mode == CAMERAMODE_FPS && players[local_player.id].tool == TOOL_WEAPON) {
+            if (weapon_reloading()) weapon_reload_abort();
 
-        if (local_player.ammo == 0 && 0.5F <= window_time() - players[local_player.id].item_showup) {
-            sound_create(SOUND_LOCAL, sound(SOUND_EMPTY), 0.0F, 0.0F, 0.0F);
+            if (local_player.ammo == 0 && 0.5F <= window_time() - players[local_player.id].item_showup) {
+                sound_create(SOUND_LOCAL, sound(SOUND_EMPTY), 0.0F, 0.0F, 0.0F);
 
-            static const char popup[] = "RELOAD";
-            chat_showpopup(popup, sizeof(popup), ASCII, 0.4F, Red);
+                static const char popup[] = "RELOAD";
+                chat_showpopup(popup, sizeof(popup), ASCII, 0.4F, Red);
+            }
         }
     }
 

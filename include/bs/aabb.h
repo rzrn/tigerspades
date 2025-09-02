@@ -24,9 +24,7 @@
 
 #include <cglm/vec3.h>
 
-#define X 0
-#define Y 1
-#define Z 2
+enum { X = 0, Y = 1, Z = 2 };
 
 typedef struct { vec3 min, max; } AABB;
 typedef struct { vec3 origin, direction; } Ray;

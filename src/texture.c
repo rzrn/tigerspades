@@ -31,7 +31,7 @@
 struct _Texture {
     unsigned int width, height;
     GLuint texture_id;
-    unsigned char * pixels;
+    uint32_t * data;
 };
 
 #define TEXTURE_TOTAL (TEXTURE_LAST + 1)
@@ -139,16 +139,16 @@ void texture_filter(Texture * t, Filtering filter) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void texture_create_buffer(Texture * t, const char * name, unsigned int width, unsigned int height, unsigned char * buff, int new) {
+void texture_create_buffer(Texture * t, const char * name, unsigned int width, unsigned int height, uint32_t * buff, bool new) {
     if (new) glGenTextures(1, &t->texture_id);
     t->width  = width;
     t->height = height;
-    t->pixels = buff;
+    t->data   = buff;
 
     texture_resize_pow2(t, name, max(width, height));
 
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, t->pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, t->data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -157,7 +157,7 @@ void texture_create_buffer(Texture * t, const char * name, unsigned int width, u
 }
 
 void texture_delete(Texture * t) {
-    if (t->pixels) free(t->pixels);
+    if (t->data != NULL) free(t->data);
     glDeleteTextures(1, &t->texture_id);
 }
 
@@ -274,7 +274,7 @@ void texture_load(enum Texture index, Filtering filter) {
 
     int sz = file_size(filename);
     void * data = file_load(filename);
-    int error = lodepng_decode32(&t->pixels, &t->width, &t->height, data, sz);
+    int error = lodepng_decode32((unsigned char **) &t->data, &t->width, &t->height, data, sz);
     free(data);
 
     if (error) {
@@ -286,7 +286,7 @@ void texture_load(enum Texture index, Filtering filter) {
 
     glGenTextures(1, &t->texture_id);
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, t->pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, t->data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLfiltering(filter));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLfiltering(filter));
@@ -300,13 +300,8 @@ static inline bool has_npot_textures(void) {
     return strstr((const char *) glGetString(GL_EXTENSIONS), "ARB_texture_non_power_of_two") != NULL;
 }
 
-#define BYTE0(col) ((col) & 0xFF)
-#define BYTE1(col) (((col) >> 8) & 0xFF)
-#define BYTE2(col) (((col) >> 16) & 0xFF)
-#define BYTE3(col) (((col) >> 24) & 0xFF)
-
 void texture_resize_pow2(Texture * t, const char * name, unsigned int min_size) {
-    if (!t->pixels) return;
+    if (t->data == NULL) return;
 
     unsigned int max_size = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
@@ -333,42 +328,45 @@ void texture_resize_pow2(Texture * t, const char * name, unsigned int min_size) 
 
     log_info("%s: texture original: %i:%i now: %i:%i limit: %i", name, t->width, t->height, w, h, max_size);
 
-    if (!t->pixels)
-        return;
+    uint32_t * buff = malloc(w * h * sizeof(uint32_t));
+    CHECK_ALLOCATION_ERROR(buff)
 
-    unsigned int * pixels_new = malloc(w * h * sizeof(unsigned int));
-    CHECK_ALLOCATION_ERROR(pixels_new)
-    for (unsigned int y = 0; y < h; y++) {
-        for (unsigned int x = 0; x < w; x++) {
-            float px = (float) x / (float) w * (float) t->width;
-            float py = (float) y / (float) h * (float) t->height;
-            float u = px - (int) px;
-            float v = py - (int) py;
+    for (size_t y = 0; y < h; y++)
+    for (size_t x = 0; x < w; x++) {
+        float p = (float) x / (float) w, q = (float) y / (float) h;
 
-            unsigned int aa = ((unsigned int *) t->pixels)[(int) px + (int) py * t->width];
-            unsigned int ba = ((unsigned int *) t->pixels)[min((int) px + (int) py * t->width + 1, t->width * t->height)];
-            unsigned int ab = ((unsigned int *) t->pixels)[min((int) px + (int) py * t->width + t->width, t->width * t->height)];
-            unsigned int bb = ((unsigned int *) t->pixels)[min((int) px + (int) py * t->width + 1 + t->width, t->width * t->height)];
+        float xs = p * t->width, ys = q * t->height;
 
-            pixels_new[x + y * w] = 0;
-            pixels_new[x + y * w] |= (int) ((1.0F - v) * u * BYTE0(ba) + (1.0F - v) * (1.0F - u) * BYTE0(aa)
-                                            + v * u * BYTE0(bb) + v * (1.0F - u) * BYTE0(ab));
-            pixels_new[x + y * w] |= (int) ((1.0F - v) * u * BYTE1(ba) + (1.0F - v) * (1.0F - u) * BYTE1(aa)
-                                            + v * u * BYTE1(bb) + v * (1.0F - u) * BYTE1(ab))
-                << 8;
-            pixels_new[x + y * w] |= (int) ((1.0F - v) * u * BYTE2(ba) + (1.0F - v) * (1.0F - u) * BYTE2(aa)
-                                            + v * u * BYTE2(bb) + v * (1.0F - u) * BYTE2(ab))
-                << 16;
-            pixels_new[x + y * w] |= (int) ((1.0F - v) * u * BYTE3(ba) + (1.0F - v) * (1.0F - u) * BYTE3(aa)
-                                            + v * u * BYTE3(bb) + v * (1.0F - u) * BYTE3(ab))
-                << 24;
-        }
+        size_t x1 = xs, x2 = min(x1 + 1, t->width - 1);
+        size_t y1 = ys, y2 = min(y1 + 1, t->height - 1);
+
+        RGBA4i aa = readRGBA(t->data + x1 + y1 * t->width);
+        RGBA4i ba = readRGBA(t->data + x2 + y1 * t->width);
+        RGBA4i ab = readRGBA(t->data + x1 + y2 * t->width);
+        RGBA4i bb = readRGBA(t->data + x2 + y2 * t->width);
+
+        float tx = xs - x1, ty = ys - y1;
+
+        float taa = (1.0F - tx) * (1.0F - ty);
+        float tab = (1.0F - tx) * ty;
+        float tba = tx * (1.0F - ty);
+        float tbb = tx * ty;
+
+        RGBA4i color = {
+            .r = taa * aa.r + tab * ab.r + tba * ba.r + tbb * bb.r,
+            .g = taa * aa.g + tab * ab.g + tba * ba.g + tbb * bb.g,
+            .b = taa * aa.b + tab * ab.b + tba * ba.b + tbb * bb.b,
+            .a = taa * aa.a + tab * ab.a + tba * ba.a + tbb * bb.a
+        };
+
+        writeRGBA(buff + x + y * w, color);
     }
 
-    t->width = w;
+    free(t->data);
+
+    t->width  = w;
     t->height = h;
-    free(t->pixels);
-    t->pixels = (unsigned char *) pixels_new;
+    t->data   = buff;
 }
 
 RGB3i texture_block_color(int x, int y) {
@@ -415,30 +413,27 @@ void texture_init(void) {
     for (enum Texture i = TEXTURE_FIRST; i <= TEXTURE_LAST; i++)
         texture_load(i, TEXTURE_FILTER_NEAREST);
 
-    unsigned int pixels[64 * 64];
-    memset(pixels, 0, sizeof(pixels));
+    uint32_t data[64 * 64] = {0};
 
-    for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 8; x++) {
-            RGB3i color = texture_block_color(x, y);
+    for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) {
+        RGB3i color = texture_block_color(x, y);
 
-            for (int ys = 0; ys < 6; ys++)
-                for (int xs = 0; xs < 6; xs++)
-                    writeRGBA(pixels + (x * 8 + xs) + (y * 8 + ys) * 64, RGB3iAs4i(color));
-        }
+        for (int ys = 0; ys < 6; ys++) for (int xs = 0; xs < 6; xs++)
+            writeRGBA(data + (x * 8 + xs) + (y * 8 + ys) * 64, RGB3iAs4i(color));
     }
 
-    texture_create_buffer(texture_color_selection, "_texture_color_selection", 64, 64, (unsigned char *) pixels, 1);
+    texture_create_buffer(texture_color_selection, "_texture_color_selection", 64, 64, data, true);
 
-    texture_create_buffer(texture_minimap, "_texture_minimap", map_size_x, map_size_z, NULL, 1);
+    texture_create_buffer(texture_minimap, "_texture_minimap", map_size_x, map_size_z, NULL, true);
 
-    unsigned int * gradient = malloc(512 * 512 * sizeof(unsigned int));
+    uint32_t * gradient = malloc(512 * 512 * sizeof(uint32_t));
     CHECK_ALLOCATION_ERROR(gradient)
+
     texture_gradient_fog(gradient);
-    texture_create_buffer(texture_gradient, "_texture_gradient", 512, 512, (unsigned char *) gradient, 1);
+    texture_create_buffer(texture_gradient, "_texture_gradient", 512, 512, gradient, true);
     texture_filter(texture_gradient, TEXTURE_FILTER_LINEAR);
 
-    texture_create_buffer(texture_dummy, "_texture_dummy", 1, 1, (unsigned char[]) {0, 0, 0, 0}, 1);
+    texture_create_buffer(texture_dummy, "_texture_dummy", 1, 1, (uint32_t[]) {0}, true);
 }
 
 void texture_bind(Texture * t) {

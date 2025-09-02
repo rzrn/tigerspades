@@ -21,6 +21,17 @@ void writeRGBA(uint32_t * dest, RGBA4i color) {
     *((uint8_t *) dest + 3) = color.a;
 }
 
+RGBA4i readRGBA(uint32_t * src) {
+    RGBA4i retval;
+
+    retval.r = *((uint8_t *) src + 0);
+    retval.g = *((uint8_t *) src + 1);
+    retval.b = *((uint8_t *) src + 2);
+    retval.a = *((uint8_t *) src + 3);
+
+    return retval;
+}
+
 void writeBGR(uint32_t * dest, RGBA4i color) {
     *((uint8_t *) dest + 0) = color.b;
     *((uint8_t *) dest + 1) = color.g;
@@ -37,6 +48,13 @@ RGBA4i readBGR(uint32_t * src) {
     retval.a = 255;
 
     return retval;
+}
+
+void writeBGRA(uint32_t * dest, RGBA4i color) {
+    *((uint8_t *) dest + 0) = color.b;
+    *((uint8_t *) dest + 1) = color.g;
+    *((uint8_t *) dest + 2) = color.r;
+    *((uint8_t *) dest + 3) = color.a;
 }
 
 RGBA4i readBGRA(uint32_t * src) {

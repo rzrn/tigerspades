@@ -953,18 +953,18 @@ void player_render(Player * p, int id) {
     glCullFace(GL_BACK);
 }
 
-int player_clipbox(float x, float y, float z) {
-    int sz;
-
-    if (x < 0 || x >= 512 || y < 0 || y >= 512)
-        return 1;
+bool player_clipbox(float x, float y, float z) {
+    if (x < 0 || 512 <= x || y < 0 || 512 <= y)
+        return true;
     else if (z < 0)
-        return 0;
-    sz = (int) z;
+        return false;
+
+    int sz = z;
     if (sz == 63)
         sz = 62;
     else if (sz >= 64)
-        return 1;
+        return true;
+
     return !map_isair((int) x, 63 - sz, (int) y);
 }
 
@@ -1024,7 +1024,7 @@ void player_coordsystem_adjust2(Player * p) {
 
 void player_boxclipmove(Player * p, float fsynctics) {
     float offset, m, f, nx, ny, nz, z;
-    long climb = 0;
+    bool climb = false;
 
     f = fsynctics * 32.f;
     nx = f * p->physics.velocity.x + p->pos.x;
@@ -1045,8 +1045,9 @@ void player_boxclipmove(Player * p, float fsynctics) {
     else
         f = 0.45f;
     z = m;
-    while (z >= -1.36f && !player_clipbox(nx + f, p->pos.y - 0.45f, nz + z)
-          && !player_clipbox(nx + f, p->pos.y + 0.45f, nz + z))
+    while (z >= -1.36f
+        && !player_clipbox(nx + f, p->pos.y - 0.45f, nz + z)
+        && !player_clipbox(nx + f, p->pos.y + 0.45f, nz + z))
         z -= 0.9f;
 #if !(HACKS_ENABLED && HACK_NOCLIP)
     if (z < -1.36f)
@@ -1054,16 +1055,17 @@ void player_boxclipmove(Player * p, float fsynctics) {
     if (true)
 #endif
         p->pos.x = nx;
-    else if (!HASBIT(p->input.keys, INPUT_CROUCH) &&
-              (p->orientation.z < 0.5f)           &&
-             !HASBIT(p->input.keys, INPUT_SPRINT)) {
+    else if (p->orientation.z < 0.5f
+          && !HASBIT(p->input.keys, INPUT_CROUCH)
+          && !HASBIT(p->input.keys, INPUT_SPRINT)) {
         z = 0.35f;
-        while (z >= -2.36f && !player_clipbox(nx + f, p->pos.y - 0.45f, nz + z)
-              && !player_clipbox(nx + f, p->pos.y + 0.45f, nz + z))
+        while (z >= -2.36f
+            && !player_clipbox(nx + f, p->pos.y - 0.45f, nz + z)
+            && !player_clipbox(nx + f, p->pos.y + 0.45f, nz + z))
             z -= 0.9f;
         if (z < -2.36f) {
             p->pos.x = nx;
-            climb = 1;
+            climb = true;
         } else
             p->physics.velocity.x = 0;
     } else
@@ -1074,8 +1076,9 @@ void player_boxclipmove(Player * p, float fsynctics) {
     else
         f = 0.45f;
     z = m;
-    while (z >= -1.36f && !player_clipbox(p->pos.x - 0.45f, ny + f, nz + z)
-          && !player_clipbox(p->pos.x + 0.45f, ny + f, nz + z))
+    while (z >= -1.36f
+        && !player_clipbox(p->pos.x - 0.45f, ny + f, nz + z)
+        && !player_clipbox(p->pos.x + 0.45f, ny + f, nz + z))
         z -= 0.9f;
 #if !(HACKS_ENABLED && HACK_NOCLIP)
     if (z < -1.36f)
@@ -1083,17 +1086,18 @@ void player_boxclipmove(Player * p, float fsynctics) {
     if (true)
 #endif
         p->pos.y = ny;
-    else if (!HASBIT(p->input.keys, INPUT_CROUCH) &&
-              (p->orientation.z < 0.5f)           &&
-             !HASBIT(p->input.keys, INPUT_SPRINT) &&
-             !climb) {
+    else if (p->orientation.z < 0.5f
+          && !HASBIT(p->input.keys, INPUT_CROUCH)
+          && !HASBIT(p->input.keys, INPUT_SPRINT)
+          && !climb) {
         z = 0.35f;
-        while (z >= -2.36f && !player_clipbox(p->pos.x - 0.45f, ny + f, nz + z)
-              && !player_clipbox(p->pos.x + 0.45f, ny + f, nz + z))
+        while (z >= -2.36f
+            && !player_clipbox(p->pos.x - 0.45f, ny + f, nz + z)
+            && !player_clipbox(p->pos.x + 0.45f, ny + f, nz + z))
             z -= 0.9f;
         if (z < -2.36f) {
             p->pos.y = ny;
-            climb = 1;
+            climb = true;
         } else
             p->physics.velocity.y = 0;
     } else if (!climb)

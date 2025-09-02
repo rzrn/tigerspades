@@ -81,7 +81,7 @@ void texture_flag_offset(int index, float * u, float * v);
 void texture_filter(Texture *, Filtering filter);
 void texture_init(void);
 void texture_load(enum Texture, Filtering filter);
-void texture_create_buffer(Texture *, const char *, unsigned int width, unsigned int height, unsigned char * buff, int new);
+void texture_create_buffer(Texture *, const char *, unsigned int width, unsigned int height, uint32_t *, bool new);
 void texture_delete(Texture *);
 void texture_draw(Texture *, float x, float y, float w, float h);
 void texture_draw_sector(Texture *, float x, float y, float w, float h, float u, float v, float us, float vs);

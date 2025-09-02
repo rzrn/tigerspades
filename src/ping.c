@@ -324,11 +324,11 @@ void * ping_update(void * data) {
                         if (imglen > 0) {
                             int size = base64_decode(img, imglen);
 
-                            unsigned char * buffer; unsigned int width, height;
-                            lodepng_decode32(&buffer, &width, &height, (uint8_t *) img, size);
+                            uint32_t * buffer; unsigned int width, height;
+                            lodepng_decode32((unsigned char **) &buffer, &width, &height, (uint8_t *) img, size);
 
                             current->image = texture_alloc();
-                            texture_create_buffer(current->image, "image", width, height, buffer, 1);
+                            texture_create_buffer(current->image, "image", width, height, buffer, true);
                             texture_filter(current->image, TEXTURE_FILTER_LINEAR);
                         }
                     }

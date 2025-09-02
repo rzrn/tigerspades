@@ -36,6 +36,12 @@
 
 #include <ini.h>
 
+static void config_label_ads_scale(char * buffer, size_t length, void * voidptr) {
+    float value = *((float *) voidptr);
+
+    snprintf(buffer, length, "%.2f×", value);
+}
+
 static void config_label_degrees(char * buffer, size_t length, void * voidptr) {
     float value = *((float *) voidptr);
 
@@ -265,6 +271,15 @@ Setting config_settings[] = {
         .display  = "Mouse sensitivity",
         .name     = "mouse_sensitivity",
         .category = "Control"
+    },
+    {
+        .value    = &settings_tmp.ads_sensitivity_scale,
+        .type     = CONFIG_TYPE_FLOAT,
+        .minf     = 0.0F,
+        .maxf     = 1.0F,
+        .display  = "Scoping sensitivity scale",
+        .name     = "ads_sensitivity_scale",
+        .label    = config_label_ads_scale
     },
     {
         .value    = &settings_tmp.invert_y,
@@ -580,6 +595,7 @@ Options settings = {
     .greedy_meshing         = false,
     .vsync                  = 1,
     .mouse_sensitivity      = 5.0F,
+    .ads_sensitivity_scale  = 0.5F,
     .show_news              = true,
     .volume                 = 10,
     .voxlap_models          = false,

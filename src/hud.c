@@ -1664,7 +1664,7 @@ static void hud_ingame_mouselocation(double dx, double dy) {
 
     float r = (settings.mouse_sensitivity / 5.0F) * (float) MOUSE_SENSITIVITY;
     if (camera.mode == CAMERAMODE_FPS && ISSCOPING(&players[local_player.id]))
-        r *= 0.5F;
+        r *= settings.ads_sensitivity_scale;
 
     camera_crosshair_move(dx * r, dy * r);
 }

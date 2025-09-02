@@ -69,6 +69,7 @@ typedef struct {
     bool  greedy_meshing;
     int   vsync;
     float mouse_sensitivity;
+    float ads_sensitivity_scale;
     bool  show_news;
     int   volume;
     bool  voxlap_models;

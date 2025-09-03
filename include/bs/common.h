@@ -143,6 +143,12 @@ static inline float angle3f(float x1, float y1, float z1, float x2, float y2, fl
 static inline float hypot2f(float x, float y) { return sqrtf(x * x + y * y); }
 static inline float hypot3f(float x, float y, float z) { return sqrtf(x * x + y * y + z * z); }
 
+static inline Vector3f normalize3f(const Vector3f v) {
+    float n = hypot3f(v.x, v.y, v.z);
+
+    return (Vector3f) {.x = v.x / n, .y = v.y / n, .z = v.z / n};
+}
+
 static inline int modnonnegi(int a, int b)
 { assert(b > 0); float c = a % b; return c < 0 ? c + b : c; }
 

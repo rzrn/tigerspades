@@ -44,11 +44,15 @@ typedef struct {
 typedef struct {
     uint16_t xsiz, ysiz, zsiz;
     float xpiv, ypiv, zpiv;
+    float scale;
+} Box;
+
+typedef struct {
+    Box box;
     bool has_display_list, colorize;
     GLXDisplayList display_list[2];
     Voxel * voxels;
     size_t voxel_count;
-    float scale;
     float red, green, blue;
 } kv6;
 

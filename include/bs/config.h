@@ -110,6 +110,7 @@ typedef struct {
     bool  free_crosshair;
     bool  render_player;
     bool  play_intro;
+    bool  spectator_esp;
 } Options;
 
 extern Options settings, settings_tmp;

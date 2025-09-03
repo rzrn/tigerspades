@@ -462,6 +462,9 @@ void player_render_all(void) {
                         player_intersection_type   = type;
                     }
                 }
+
+                if (settings.spectator_esp && camera.mode == CAMERAMODE_SPECTATOR && !is_bodyview_player)
+                    player_draw_box(&players[k]);
             }
 
             if (players[k].alive && players[k].tool == TOOL_WEAPON && HASBIT(players[k].input.buttons, BUTTON_PRIMARY)) {
@@ -519,55 +522,77 @@ static float foot_function(const Player * p) {
     return p->sound.feet_cylce ? f : -f;
 }
 
-typedef struct {
-    float pivot[3];
-    int size[3];
-    float scale;
-} Hitbox;
-
-static const Hitbox box_head = {
-    .pivot = {2.5F, 2.5F, 0.5F},
-    .size  = {6, 6, 6},
+static const Box box_head = {
+    .xpiv  = 2.5F,
+    .ypiv  = 2.5F,
+    .zpiv  = 0.5F,
+    .xsiz  = 6,
+    .ysiz  = 6,
+    .zsiz  = 6,
     .scale = 0.1F,
 };
 
-static const Hitbox box_torso = {
-    .pivot = {3.5F, 1.5F, 9.5F},
-    .size  = {8, 4, 9},
+static const Box box_torso = {
+    .xpiv  = 3.5F,
+    .ypiv  = 1.5F,
+    .zpiv  = 9.5F,
+    .xsiz  = 8,
+    .ysiz  = 4,
+    .zsiz  = 9,
     .scale = 0.1F,
 };
 
-static const Hitbox box_torsoc = {
-    .pivot = {3.5F, 6.5F, 6.5F},
-    .size  = {8, 8, 7},
+static const Box box_torsoc = {
+    .xpiv  = 3.5F,
+    .ypiv  = 6.5F,
+    .zpiv  = 6.5F,
+    .xsiz  = 8,
+    .ysiz  = 8,
+    .zsiz  = 7,
     .scale = 0.1F,
 };
 
-static const Hitbox box_arm_left = {
-    .pivot = {5.5F, -0.5F, 5.5F},
-    .size  = {2, 9, 6},
+static const Box box_arm_left = {
+    .xpiv  = 5.5F,
+    .ypiv  = -0.5F,
+    .zpiv  = 5.5F,
+    .xsiz  = 2,
+    .ysiz  = 9,
+    .zsiz  = 6,
     .scale = 0.1F,
 };
 
-static const Hitbox box_arm_right = {
-    .pivot = {-3.5F, 4.25F, 1.5F},
-    .size  = {3, 14, 2},
+static const Box box_arm_right = {
+    .xpiv  = -3.5F,
+    .ypiv  = 4.25F,
+    .zpiv  = 1.5F,
+    .xsiz  = 3,
+    .ysiz  = 14,
+    .zsiz  = 2,
     .scale = 0.1F,
 };
 
-static const Hitbox box_leg = {
-    .pivot = {1.0F, 1.5F, 12.0F},
-    .size  = {3, 5, 12},
+static const Box box_leg = {
+    .xpiv  = 1.0F,
+    .ypiv  = 1.5F,
+    .zpiv  = 12.0F,
+    .xsiz  = 3,
+    .ysiz  = 5,
+    .zsiz  = 12,
     .scale = 0.1F,
 };
 
-static const Hitbox box_legc = {
-    .pivot = {1.0F, 1.5F, 7.0F},
-    .size  = {3, 7, 8},
+static const Box box_legc = {
+    .xpiv  = 1.0F,
+    .ypiv  = 1.5F,
+    .zpiv  = 7.0F,
+    .xsiz  = 3,
+    .ysiz  = 7,
+    .zsiz  = 8,
     .scale = 0.1F,
 };
 
-static bool hitbox_intersection(mat4 model, const Hitbox * box, Ray * r, float * distance) {
+static bool hitbox_intersection(mat4 model, const Box * box, Ray * r, float * distance) {
     mat4 inv_model;
     glm_mat4_inv(model, inv_model);
 
@@ -575,33 +600,95 @@ static bool hitbox_intersection(mat4 model, const Hitbox * box, Ray * r, float *
     glm_mat4_mulv3(inv_model, r->origin, 1.0F, origin);
     glm_mat4_mulv3(inv_model, r->direction, 0.0F, dir);
 
+    float x = -box->xpiv * box->scale;
+    float y = -box->ypiv * box->scale;
+    float z = -box->zpiv * box->scale;
+
+    float xsiz = box->xsiz * box->scale;
+    float ysiz = box->ysiz * box->scale;
+    float zsiz = box->zsiz * box->scale;
+
     return aabb_intersection_ray(
         &(AABB) {
-            .min = {-box->pivot[0] * box->scale, -box->pivot[2] * box->scale, -box->pivot[1] * box->scale},
-            .max = {(box->size[0] - box->pivot[0]) * box->scale, (box->size[2] - box->pivot[2]) * box->scale,
-                    (box->size[1] - box->pivot[1]) * box->scale},
+            .min = {x, z, y},
+            .max = {x + xsiz, z + zsiz, y + ysiz},
         },
         &(Ray) {
-            .origin = {origin[0], origin[1], origin[2]},
-            .direction = {dir[0], dir[1], dir[2]},
+            .origin = {origin[X], origin[Y], origin[Z]},
+            .direction = {dir[X], dir[Y], dir[Z]},
         },
         distance
     );
+}
+
+static inline void matrix_head(const Box * box, Vector3f r, Vector3f o, float head_scale) {
+    matrix_translate(matrix_model, r.x, r.y, r.z);
+    matrix_translate(matrix_model, 0.0F, box->zpiv * (head_scale - 1.0F) * box->scale, 0.0F);
+    matrix_scale3(matrix_model, head_scale);
+    matrix_pointAt(matrix_model, o.x, o.y, o.z);
+    matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+}
+
+static inline void matrix_torso(const Box * box, Vector3f r, Vector3f o) {
+    matrix_translate(matrix_model, r.x, r.y, r.z);
+    matrix_pointAt(matrix_model, o.x, 0.0F, o.z);
+    matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+}
+
+static inline void matrix_legl(const Box * torso, const Box * leg, Vector3f r, Vector3f o, bool c, float t1, float t2) {
+    float dx = (torso->xsiz * torso->scale - leg->xsiz * leg->scale) * 0.5F;
+    float dy = c ? (-torso->zsiz * torso->scale * 0.75F) : 0.0F;
+    float dz = -torso->zsiz * torso->scale * (c ? 0.6F : 1.0F);
+
+    matrix_translate(matrix_model, r.x, r.y, r.z);
+    matrix_pointAt(matrix_model, o.x, 0.0F, o.z);
+    matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+    matrix_translate(matrix_model, dx, dz, dy);
+    matrix_rotate(matrix_model, 45.0F * t1, 1.0F, 0.0F, 0.0F);
+    matrix_rotate(matrix_model, 45.0F * t2, 0.0F, 0.0F, 1.0F);
+}
+
+static inline void matrix_legr(const Box * torso, const Box * leg, Vector3f r, Vector3f o, bool c, float t1, float t2) {
+    float dx = (-torso->xsiz * torso->scale + leg->xsiz * leg->scale) * 0.5F;
+    float dy = c ? (-torso->zsiz * torso->scale * 0.75F) : 0.0F;
+    float dz = -torso->zsiz * torso->scale * (c ? 0.6F : 1.0F);
+
+    matrix_translate(matrix_model, r.x, r.y, r.z);
+    matrix_pointAt(matrix_model, o.x, 0.0F, o.z);
+    matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+    matrix_translate(matrix_model, dx, dz, dy);
+    matrix_rotate(matrix_model, -45.0F * t1, 1.0F, 0.0F, 0.0F);
+    matrix_rotate(matrix_model, -45.0F * t2, 0.0F, 0.0F, 1.0F);
+}
+
+static inline void matrix_arml(const Box * box, Vector3f r, Vector3f o, bool c, bool s, float a1, float a2) {
+    matrix_translate(matrix_model, r.x, r.y, r.z);
+    matrix_translate(matrix_model, 0.0F, (c ? box->scale : 0.0F) - box->scale * 2, 0.0F);
+    matrix_pointAt(matrix_model, o.x, o.y, o.z);
+    matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+
+    if (s && !c) matrix_rotate(matrix_model, 45.0F, 1.0F, 0.0F, 0.0F);
+
+    matrix_rotate(matrix_model, a1, 1.0F, 0.0F, 0.0F);
+    matrix_rotate(matrix_model, a2, 0.0F, 1.0F, 0.0F);
 }
 
 void player_collision(const Player * p, Ray * ray, Hit * intersects) {
     if (!p->alive || p->team == TEAM_SPECTATOR)
         return;
 
-    float l  = hypot3f(p->orientation_smooth.x, p->orientation_smooth.y, p->orientation_smooth.z);
-    float ox = p->orientation_smooth.x / l;
-    float oy = p->orientation_smooth.y / l;
-    float oz = p->orientation_smooth.z / l;
+    Vector3f o = normalize3f(p->orientation_smooth);
 
-    const Hitbox * torso = HASBIT(p->input.keys, INPUT_CROUCH) ? &box_torsoc : &box_torso;
-    const Hitbox * leg   = HASBIT(p->input.keys, INPUT_CROUCH) ? &box_legc   : &box_leg;
+    const Box * torso = HASBIT(p->input.keys, INPUT_CROUCH) ? &box_torsoc : &box_torso;
+    const Box * leg   = HASBIT(p->input.keys, INPUT_CROUCH) ? &box_legc   : &box_leg;
 
     float height = player_height(p) - 0.25F;
+
+    Vector3f r = {
+        .x = p->physics.eye.x,
+        .y = p->physics.eye.y + height,
+        .z = p->physics.eye.z
+    };
 
     float len = hypot2f(p->orientation.x, p->orientation.z);
     float fx  = p->orientation.x / len;
@@ -612,17 +699,15 @@ void player_collision(const Player * p, Ray * ray, Hit * intersects) {
 
     a /= 0.25F; b /= 0.25F;
 
+    float t1 = foot_function(p) * a, t2 = foot_function(p) * b;
+
     float dist; // distance
 
     matrix_push(matrix_model);
 
     matrix_identity(matrix_model);
-    matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
     float head_scale = hypot3f(p->orientation.x, p->orientation.y, p->orientation.z);
-    matrix_translate(matrix_model, 0.0F, box_head.pivot[2] * (head_scale * box_head.scale - box_head.scale), 0.0F);
-    matrix_scale3(matrix_model, head_scale);
-    matrix_pointAt(matrix_model, ox, oy, oz);
-    matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+    matrix_head(&box_head, r, o, head_scale);
 
     if (hitbox_intersection(matrix_model, &box_head, ray, &dist)) {
         intersects->head          = 1;
@@ -630,51 +715,38 @@ void player_collision(const Player * p, Ray * ray, Hit * intersects) {
     }
 
     matrix_identity(matrix_model);
-    matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
-    matrix_pointAt(matrix_model, ox, 0.0F, oz);
-    matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+    matrix_torso(torso, r, o);
 
     if (hitbox_intersection(matrix_model, torso, ray, &dist)) {
         intersects->torso          = 1;
         intersects->distance.torso = dist;
     }
 
-    matrix_push(matrix_model);
-    matrix_translate(matrix_model, torso->size[0] * 0.1F * 0.5F - leg->size[0] * 0.1F * 0.5F,
-                     -torso->size[2] * 0.1F * (HASBIT(p->input.keys, INPUT_CROUCH) ? 0.6F : 1.0F),
-                     HASBIT(p->input.keys, INPUT_CROUCH) ? (-torso->size[2] * 0.1F * 0.75F) : 0.0F);
-    matrix_rotate(matrix_model, 45.0F * foot_function(p) * a, 1.0F, 0.0F, 0.0F);
-    matrix_rotate(matrix_model, 45.0F * foot_function(p) * b, 0.0F, 0.0F, 1.0F);
+    matrix_identity(matrix_model);
+    matrix_legl(torso, leg, r, o, HASBIT(p->input.keys, INPUT_CROUCH), t1, t2);
 
     if (hitbox_intersection(matrix_model, leg, ray, &dist)) {
         intersects->leg_left          = 1;
         intersects->distance.leg_left = dist;
     }
 
-    matrix_pop(matrix_model);
-    matrix_translate(matrix_model, -torso->size[0] * 0.1F * 0.5F + leg->size[0] * 0.1F * 0.5F,
-                     -torso->size[2] * 0.1F * (HASBIT(p->input.keys, INPUT_CROUCH) ? 0.6F : 1.0F),
-                     HASBIT(p->input.keys, INPUT_CROUCH) ? (-torso->size[2] * 0.1F * 0.75F) : 0.0F);
-    matrix_rotate(matrix_model, -45.0F * foot_function(p) * a, 1.0F, 0.0F, 0.0F);
-    matrix_rotate(matrix_model, -45.0F * foot_function(p) * b, 0.0F, 0.0F, 1.0F);
+    matrix_identity(matrix_model);
+    matrix_legr(torso, leg, r, o, HASBIT(p->input.keys, INPUT_CROUCH), t1, t2);
 
     if (hitbox_intersection(matrix_model, leg, ray, &dist)) {
         intersects->leg_right          = 1;
         intersects->distance.leg_right = dist;
     }
 
-    matrix_identity(matrix_model);
-    matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
-    matrix_translate(matrix_model, 0.0F, (HASBIT(p->input.keys, INPUT_CROUCH) ? 0.1F : 0.0F) - 0.1F * 2, 0.0F);
-    matrix_pointAt(matrix_model, ox, oy, oz);
-    matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
-
-    if (HASBIT(p->input.keys, INPUT_SPRINT) && !HASBIT(p->input.keys, INPUT_CROUCH))
-        matrix_rotate(matrix_model, 45.0F, 1.0F, 0.0F, 0.0F);
-
     float * angles = player_tool_func(p);
-    matrix_rotate(matrix_model, angles[0], 1.0F, 0.0F, 0.0F);
-    matrix_rotate(matrix_model, angles[1], 0.0F, 1.0F, 0.0F);
+
+    matrix_identity(matrix_model);
+    matrix_arml(
+        &box_arm_left, r, o,
+        HASBIT(p->input.keys, INPUT_CROUCH),
+        HASBIT(p->input.keys, INPUT_SPRINT),
+        angles[0], angles[1]
+    );
 
     if (hitbox_intersection(matrix_model, &box_arm_left, ray, &dist)) {
         intersects->arms          = 1;
@@ -709,11 +781,130 @@ static void player_render_dead(Player * p, int id) {
     }
 }
 
+static inline void drawRectangularCuboid(float x1, float y1, float z1, float x2, float y2, float z2) {
+    float vertices[] = {
+        x1, y1, z1, x1, y1, z2,
+        x1, y1, z1, x2, y1, z1,
+        x2, y1, z2, x2, y1, z1,
+        x2, y1, z2, x1, y1, z2,
+
+        x1, y2, z1, x1, y2, z2,
+        x1, y2, z1, x2, y2, z1,
+        x2, y2, z2, x2, y2, z1,
+        x2, y2, z2, x1, y2, z2,
+
+        x1, y1, z1, x1, y2, z1,
+        x2, y1, z1, x2, y2, z1,
+        x2, y1, z2, x2, y2, z2,
+        x1, y1, z2, x1, y2, z2
+    };
+
+    glVertexPointer(3, GL_FLOAT, 0, vertices);
+    glDrawArrays(GL_LINES, 0, lengthof(vertices) / 3);
+}
+
+static inline void drawBox(const Box * box) {
+    float x = -box->xpiv * box->scale;
+    float y = -box->ypiv * box->scale;
+    float z = -box->zpiv * box->scale;
+
+    float xsiz = box->xsiz * box->scale;
+    float ysiz = box->ysiz * box->scale;
+    float zsiz = box->zsiz * box->scale;
+
+    drawRectangularCuboid(x, z, y, x + xsiz, z + zsiz, y + ysiz);
+}
+
+void player_draw_box(Player * p) {
+    if (!p->alive || p->team == TEAM_SPECTATOR)
+        return;
+
+    switch (p->team) {
+        case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+        case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+
+        case TEAM_SPECTATOR: break;
+    }
+
+    glLineWidth(1.0F);
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    Vector3f o = normalize3f(p->orientation_smooth);
+
+    const Box * torso = HASBIT(p->input.keys, INPUT_CROUCH) ? &box_torsoc : &box_torso;
+    const Box * leg   = HASBIT(p->input.keys, INPUT_CROUCH) ? &box_legc   : &box_leg;
+
+    float height = player_height(p) - 0.25F;
+
+    Vector3f r = {
+        .x = p->physics.eye.x,
+        .y = p->physics.eye.y + height,
+        .z = p->physics.eye.z
+    };
+
+    float len = hypot2f(p->orientation.x, p->orientation.z);
+    float fx  = p->orientation.x / len;
+    float fy  = p->orientation.z / len;
+
+    float a = fx * p->physics.velocity.x + fy * p->physics.velocity.z;
+    float b = fx * p->physics.velocity.z - fy * p->physics.velocity.x;
+
+    a /= 0.25F; b /= 0.25F;
+
+    float t1 = foot_function(p) * a, t2 = foot_function(p) * b;
+
+    matrix_push(matrix_model);
+    float head_scale = hypot3f(p->orientation.x, p->orientation.y, p->orientation.z);
+    matrix_head(&box_head, r, o, head_scale);
+    matrix_upload();
+    drawBox(&box_head);
+    matrix_pop(matrix_model);
+
+    matrix_push(matrix_model);
+    matrix_torso(torso, r, o);
+    matrix_upload();
+    drawBox(torso);
+    matrix_pop(matrix_model);
+
+    matrix_push(matrix_model);
+    matrix_legl(torso, leg, r, o, HASBIT(p->input.keys, INPUT_CROUCH), t1, t2);
+    matrix_upload();
+    drawBox(leg);
+    matrix_pop(matrix_model);
+
+    matrix_push(matrix_model);
+    matrix_legr(torso, leg, r, o, HASBIT(p->input.keys, INPUT_CROUCH), t1, t2);
+    matrix_upload();
+    drawBox(leg);
+    matrix_pop(matrix_model);
+
+    float * angles = player_tool_func(p);
+
+    matrix_push(matrix_model);
+    matrix_arml(
+        &box_arm_left, r, o,
+        HASBIT(p->input.keys, INPUT_CROUCH),
+        HASBIT(p->input.keys, INPUT_SPRINT),
+        angles[0], angles[1]
+    );
+    matrix_upload();
+    drawBox(&box_arm_left);
+
+    matrix_rotate(matrix_model, -45.0F, 0.0F, 1.0F, 0.0F);
+    matrix_upload();
+    drawBox(&box_arm_right);
+
+    matrix_pop(matrix_model);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+}
+
 static void player_render_alive(Player * p, int id) {
-    float l  = hypot3f(p->orientation_smooth.x, p->orientation_smooth.y, p->orientation_smooth.z);
-    float ox = p->orientation_smooth.x / l;
-    float oy = p->orientation_smooth.y / l;
-    float oz = p->orientation_smooth.z / l;
+    Vector3f o = normalize3f(p->orientation_smooth);
 
     float time = window_time() * 1000.0F;
 
@@ -723,6 +914,12 @@ static void player_render_alive(Player * p, int id) {
 
     if (id != local_player.id)
         height -= 0.25F;
+
+    Vector3f r = {
+        .x = p->physics.eye.x,
+        .y = p->physics.eye.y + height,
+        .z = p->physics.eye.z
+    };
 
     int render_body = (id != local_player.id || !p->alive || camera.mode != CAMERAMODE_FPS)
         && !((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
@@ -735,22 +932,19 @@ static void player_render_alive(Player * p, int id) {
         static kv6 * const model_playerhead = &model[MODEL_PLAYERHEAD];
 
         matrix_push(matrix_model);
-        matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
+
         float head_scale = hypot3f(p->orientation.x, p->orientation.y, p->orientation.z);
-        matrix_translate(matrix_model, 0.0F, model_playerhead->zpiv * (head_scale * model_playerhead->scale - model_playerhead->scale), 0.0F);
-        matrix_scale3(matrix_model, head_scale);
-        matrix_pointAt(matrix_model, ox, oy, oz);
-        matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+        matrix_head(&model_playerhead->box, r, o, head_scale);
+
         matrix_upload();
         kv6_render(model_playerhead, p->team);
+
         matrix_pop(matrix_model);
     }
 
     if (render_body || settings.render_player) {
         matrix_push(matrix_model);
-        matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
-        matrix_pointAt(matrix_model, ox, 0.0F, oz);
-        matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
+        matrix_torso(&torso->box, r, o);
         matrix_upload();
         kv6_render(torso, p->team);
         matrix_pop(matrix_model);
@@ -761,15 +955,15 @@ static void player_render_alive(Player * p, int id) {
             static kv6 * const model_intel = &model[MODEL_INTEL];
 
             matrix_push(matrix_model);
-            matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
-            matrix_pointAt(matrix_model, -oz, 0.0F, ox);
+            matrix_translate(matrix_model, r.x, r.y, r.z);
+            matrix_pointAt(matrix_model, -o.z, 0.0F, o.x);
             matrix_translate(
-                matrix_model, (torso->xsiz - model_intel->xsiz) * 0.5F * torso->scale,
-                -(torso->zpiv - torso->zsiz * 0.5F + model_intel->zsiz * (HASBIT(p->input.keys, INPUT_CROUCH) ? 0.125F : 0.25F)) * torso->scale,
-                (torso->ypiv + model_intel->ypiv) * torso->scale
+                matrix_model, (torso->box.xsiz - model_intel->box.xsiz) * 0.5F * torso->box.scale,
+                -(torso->box.zpiv - torso->box.zsiz * 0.5F + model_intel->box.zsiz * (HASBIT(p->input.keys, INPUT_CROUCH) ? 0.125F : 0.25F)) * torso->box.scale,
+                (torso->box.ypiv + model_intel->box.ypiv) * torso->box.scale
             );
 
-            matrix_scale3(matrix_model, torso->scale / model_intel->scale);
+            matrix_scale3(matrix_model, torso->box.scale / model_intel->box.scale);
 
             if (HASBIT(p->input.keys, INPUT_CROUCH))
                 matrix_rotate(matrix_model, -45.0F, 1.0F, 0.0F, 0.0F);
@@ -796,38 +990,26 @@ static void player_render_alive(Player * p, int id) {
 
         a /= 0.25F; b /= 0.25F;
 
+        float t1 = foot_function(p) * a, t2 = foot_function(p) * b;
+
         matrix_push(matrix_model);
-        matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
-        matrix_pointAt(matrix_model, ox, 0.0F, oz);
-        matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
-        matrix_translate(matrix_model, torso->xsiz * 0.1F * 0.5F - leg->xsiz * 0.1F * 0.5F,
-                         -torso->zsiz * 0.1F * (HASBIT(p->input.keys, INPUT_CROUCH) ? 0.6F : 1.0F),
-                         HASBIT(p->input.keys, INPUT_CROUCH) ? (-torso->zsiz * 0.1F * 0.75F) : 0.0F);
-        matrix_rotate(matrix_model, 45.0F * foot_function(p) * a, 1.0F, 0.0F, 0.0F);
-        matrix_rotate(matrix_model, 45.0F * foot_function(p) * b, 0.0F, 0.0F, 1.0F);
+        matrix_legl(&torso->box, &leg->box, r, o, HASBIT(p->input.keys, INPUT_CROUCH), t1, t2);
         matrix_upload();
         kv6_render(leg, p->team);
         matrix_pop(matrix_model);
 
         matrix_push(matrix_model);
-        matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
-        matrix_pointAt(matrix_model, ox, 0.0F, oz);
-        matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
-        matrix_translate(matrix_model, -torso->xsiz * 0.1F * 0.5F + leg->xsiz * 0.1F * 0.5F,
-                         -torso->zsiz * 0.1F * (HASBIT(p->input.keys, INPUT_CROUCH) ? 0.6F : 1.0F),
-                         HASBIT(p->input.keys, INPUT_CROUCH) ? (-torso->zsiz * 0.1F * 0.75F) : 0.0F);
-        matrix_rotate(matrix_model, -45.0F * foot_function(p) * a, 1.0F, 0.0F, 0.0F);
-        matrix_rotate(matrix_model, -45.0F * foot_function(p) * b, 0.0F, 0.0F, 1.0F);
+        matrix_legr(&torso->box, &leg->box, r, o, HASBIT(p->input.keys, INPUT_CROUCH), t1, t2);
         matrix_upload();
         kv6_render(leg, p->team);
         matrix_pop(matrix_model);
     }
 
     matrix_push(matrix_model);
-    matrix_translate(matrix_model, p->physics.eye.x, p->physics.eye.y + height, p->physics.eye.z);
+    matrix_translate(matrix_model, r.x, r.y, r.z);
     if (!render_fpv) matrix_translate(matrix_model, 0.0F, (HASBIT(p->input.keys, INPUT_CROUCH) ? 0.1F : 0.0F) - 0.1F * 2, 0.0F);
 
-    matrix_pointAt(matrix_model, ox, oy, oz);
+    matrix_pointAt(matrix_model, o.x, o.y, o.z);
     matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);
     if (render_fpv)
         matrix_translate(matrix_model, 0.0F, -2 * 0.1F, -2 * 0.1F);
@@ -865,10 +1047,10 @@ static void player_render_alive(Player * p, int id) {
     matrix_translate(matrix_model, -3.5F * 0.1F + 0.01F, 0.0F, 10 * 0.1F);
     if (!settings.render_player && p->tool == TOOL_SPADE && render_fpv && window_time() - p->item_showup >= 0.5F) {
         float * angles = player_tool_func(p);
-        matrix_translate(matrix_model, 0.0F, (model_spade->zpiv - model_spade->zsiz) * 0.05F, 0.0F);
+        matrix_translate(matrix_model, 0.0F, (model_spade->box.zpiv - model_spade->box.zsiz) * 0.05F, 0.0F);
         matrix_rotate(matrix_model, angles[0], 1.0F, 0.0F, 0.0F);
         matrix_rotate(matrix_model, angles[1], 0.0F, 1.0F, 0.0F);
-        matrix_translate(matrix_model, 0.0F, -(model_spade->zpiv - model_spade->zsiz) * 0.05F, 0.0F);
+        matrix_translate(matrix_model, 0.0F, -(model_spade->box.zpiv - model_spade->box.zsiz) * 0.05F, 0.0F);
     }
 
     matrix_upload();

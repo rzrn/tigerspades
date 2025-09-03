@@ -147,9 +147,9 @@ static int playertable_sort(const void * a, const void * b) {
 static inline void kv6_center(mat4 matrix, kv6 * model) {
     matrix_translate(
         matrix,
-        (model->xpiv - model->xsiz * 0.5F) * model->scale,
-        (model->zpiv - model->zsiz * 0.5F) * model->scale,
-        (model->ypiv - model->ysiz * 0.5F) * model->scale
+        (model->box.xpiv - model->box.xsiz * 0.5F) * model->box.scale,
+        (model->box.zpiv - model->box.zsiz * 0.5F) * model->box.scale,
+        (model->box.ypiv - model->box.ysiz * 0.5F) * model->box.scale
     );
 }
 
@@ -346,7 +346,7 @@ static void hud_ingame_render3D(void) {
 
     if (rotating_model != NULL) {
         matrix_identity(matrix_model);
-        matrix_translate(matrix_model, 0.0F, -(rotating_model->zsiz * 0.5F + rotating_model->zpiv) * rotating_model->scale, -10.0F);
+        matrix_translate(matrix_model, 0.0F, -(rotating_model->box.zsiz * 0.5F + rotating_model->box.zpiv) * rotating_model->box.scale, -10.0F);
         matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
         matrix_upload();
         glViewport(-settings.window_width * 0.4F, settings.window_height * 0.2F, settings.window_width, settings.window_height);

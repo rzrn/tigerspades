@@ -81,7 +81,7 @@ static void kv6_load_file(kv6 * model, const char * filename, float scale) {
 }
 
 static void kv6_check_dimensions(kv6 * model, const char * name, float max) {
-    if (max(max(model->xsiz, model->ysiz), model->zsiz) * model->scale > max) {
+    if (max(max(model->box.xsiz, model->box.ysiz), model->box.zsiz) * model->box.scale > max) {
         log_error("%s: model dimensions too large", name);
         model->voxel_count = 0;
     }
@@ -107,18 +107,20 @@ void kv6_load(kv6 * model, const char * name, uint8_t * buff, float scale) {
 
     model->colorize         = false;
     model->has_display_list = false;
-    model->scale            = scale;
+    model->box.scale        = scale;
+
+    Box * const box = &model->box;
 
     size_t index = 0;
 
     if (getu32le(buff, &index) == 0x6C78764B) { // Kvxl
-        model->xsiz = getu32le(buff, &index);
-        model->ysiz = getu32le(buff, &index);
-        model->zsiz = getu32le(buff, &index);
+        box->xsiz = getu32le(buff, &index);
+        box->ysiz = getu32le(buff, &index);
+        box->zsiz = getu32le(buff, &index);
 
-        model->xpiv = getf32le(buff, &index);
-        model->ypiv = getf32le(buff, &index);
-        model->zpiv = model->zsiz - getf32le(buff, &index);
+        box->xpiv = getf32le(buff, &index);
+        box->ypiv = getf32le(buff, &index);
+        box->zpiv = box->zsiz - getf32le(buff, &index);
 
         model->voxel_count = getu32le(buff, &index);
 
@@ -127,27 +129,26 @@ void kv6_load(kv6 * model, const char * name, uint8_t * buff, float scale) {
 
         for (size_t k = 0; k < model->voxel_count; k++) {
             model->voxels[k].color    = getbgra(buff, &index); // for whatever reason .kv6 seems to be stored in BGRA
-            model->voxels[k].z        = (model->zsiz - 1) - getu16le(buff, &index);
+            model->voxels[k].z        = (box->zsiz - 1) - getu16le(buff, &index);
             model->voxels[k].visfaces = getu8le(buff, &index); // 0x00zZyYxX
             model->voxels[k].color.a  = getu8le(buff, &index); // compressed normal vector (also referred to as lighting)
         }
 
-        index += sizeof(uint32_t) * model->xsiz;
+        index += sizeof(uint32_t) * box->xsiz;
 
         Voxel * voxel = model->voxels;
-        for (size_t x = 0; x < model->xsiz; x++) {
-            for (size_t y = 0; y < model->ysiz; y++) {
-                uint16_t size = getu16le(buff, &index);
+        for (size_t x = 0; x < box->xsiz; x++)
+        for (size_t y = 0; y < box->ysiz; y++) {
+            uint16_t size = getu16le(buff, &index);
 
-                for (size_t z = 0; z < size; z++, voxel++) {
-                    voxel->x = x;
-                    voxel->y = y;
-                }
+            for (size_t z = 0; z < size; z++, voxel++) {
+                voxel->x = x;
+                voxel->y = y;
             }
         }
     } else {
         log_error("%s: data not in kv6 format", name);
-        model->xsiz = model->ysiz = model->zsiz = 0;
+        box->xsiz = box->ysiz = box->zsiz = 0;
         model->voxel_count = 0;
     }
 }
@@ -193,21 +194,23 @@ static void greedy_mesh(kv6 * model, Voxel * voxel, uint8_t * marked, size_t * m
         *max_a = 1;
         *max_b = 1;
     } else {
+        Box * const box = &model->box;
+
         switch (face) {
             case KV6_VIS_POS_X:
             case KV6_VIS_NEG_X:
-                *max_a = model->ysiz;
-                *max_b = model->zsiz;
+                *max_a = box->ysiz;
+                *max_b = box->zsiz;
                 break;
             case KV6_VIS_POS_Y:
             case KV6_VIS_NEG_Y:
-                *max_a = model->xsiz;
-                *max_b = model->ysiz;
+                *max_a = box->xsiz;
+                *max_b = box->ysiz;
                 break;
             case KV6_VIS_POS_Z:
             case KV6_VIS_NEG_Z:
-                *max_a = model->xsiz;
-                *max_b = model->zsiz;
+                *max_a = box->xsiz;
+                *max_b = box->zsiz;
                 break;
         }
 
@@ -387,8 +390,8 @@ void kv6_render(kv6 * model, unsigned char team) {
             }
 
             matrix_push(matrix_model);
-            matrix_scale3(matrix_model, model->scale);
-            matrix_translate(matrix_model, -model->xpiv, -model->zpiv, -model->ypiv);
+            matrix_scale3(matrix_model, model->box.scale);
+            matrix_translate(matrix_model, -model->box.xpiv, -model->box.zpiv, -model->box.ypiv);
             matrix_upload();
 
             glx_displaylist_draw(model->display_list + 0, GLX_DISPLAYLIST_NORMAL);
@@ -461,9 +464,9 @@ void kv6_render(kv6 * model, unsigned char team) {
                 normals[ind][cnt[ind] * 3 + 1] = -kv6_normals[a][2] * 128;
                 normals[ind][cnt[ind] * 3 + 2] = kv6_normals[a][1] * 128;
 
-                vertices[ind][cnt[ind] * 3 + 0] = (model->voxels[i].x - model->xpiv + 0.5F) * model->scale;
-                vertices[ind][cnt[ind] * 3 + 1] = (model->voxels[i].z - model->zpiv + 0.5F) * model->scale;
-                vertices[ind][cnt[ind] * 3 + 2] = (model->voxels[i].y - model->ypiv + 0.5F) * model->scale;
+                vertices[ind][cnt[ind] * 3 + 0] = (model->voxels[i].x - model->box.xpiv + 0.5F) * model->box.scale;
+                vertices[ind][cnt[ind] * 3 + 1] = (model->voxels[i].z - model->box.zpiv + 0.5F) * model->box.scale;
+                vertices[ind][cnt[ind] * 3 + 2] = (model->voxels[i].y - model->box.ypiv + 0.5F) * model->box.scale;
 
                 cnt[ind]++;
             }
@@ -508,7 +511,7 @@ void kv6_render(kv6 * model, unsigned char team) {
 #endif
         {
             glPointParameterfv(GL_POINT_DISTANCE_ATTENUATION, (float[]) {0.0F, 0.0F, 1.0F});
-            glPointSize(1.414F * near_plane_height * model->scale * (len_x + len_y + len_z) / 3.0F);
+            glPointSize(1.414F * near_plane_height * model->box.scale * (len_x + len_y + len_z) / 3.0F);
             glEnable(GL_LIGHTING);
             glEnable(GL_LIGHT0);
             glEnable(GL_COLOR_MATERIAL);
@@ -525,7 +528,7 @@ void kv6_render(kv6 * model, unsigned char team) {
             glUniform1f(glGetUniformLocation(kv6_program, "dist_factor"),
                         glx_fog ? 1.0F / settings.render_distance : 0.0F);
             glUniform1f(glGetUniformLocation(kv6_program, "size"),
-                        1.414F * near_plane_height * model->scale * (len_x + len_y + len_z) / 3.0F);
+                        1.414F * near_plane_height * model->box.scale * (len_x + len_y + len_z) / 3.0F);
             glUniform3f(glGetUniformLocation(kv6_program, "fog"), fog_color[0], fog_color[1], fog_color[2]);
             glUniform3f(glGetUniformLocation(kv6_program, "camera"), camera.pos.x, camera.pos.y, camera.pos.z);
             glUniformMatrix4fv(glGetUniformLocation(kv6_program, "model"), 1, 0, (float*) matrix_model);

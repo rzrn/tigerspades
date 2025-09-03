@@ -225,6 +225,12 @@ Setting config_settings[] = {
         .help     = "Restore block color after respawn"
     },
     {
+        .value   = &settings_tmp.spectator_esp,
+        .type    = CONFIG_TYPE_BOOLEAN,
+        .name    = "spectator_esp",
+        .display = "Spectator ESP"
+    },
+    {
         .value    = &settings_tmp.left_handed,
         .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "left_handed",
@@ -636,6 +642,7 @@ Options settings = {
     .free_crosshair         = false,
     .render_player          = false,
     .play_intro             = true,
+    .spectator_esp          = false,
 };
 
 char * config_filepath = "config.ini";

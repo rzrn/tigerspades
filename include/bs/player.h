@@ -150,6 +150,7 @@ void player_update_position(float);
 void player_update_orientation(float);
 void player_render_all(void);
 void player_render(Player *, int id);
+void player_draw_box(Player *);
 void player_collision(const Player *, Ray *, Hit *);
 void player_reset(Player *);
 int player_move(Player *, float fsynctics, int id);

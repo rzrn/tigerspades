@@ -147,6 +147,7 @@ WAV * weapon_sound_reload(Weapon weapon) {
 }
 
 Vector3f weapon_spread(Player * p, const Vector3f d) {
+#if !(HACKS_ENABLED && HACK_NOSPREAD)
     float spread;
     switch (p->weapon) {
         case WEAPON_RIFLE:   spread = 0.006F; break;
@@ -154,7 +155,6 @@ Vector3f weapon_spread(Player * p, const Vector3f d) {
         case WEAPON_SHOTGUN: spread = 0.024F; break;
     }
 
-#if !(HACKS_ENABLED && HACK_NOSPREAD)
     float scope  = HASBIT(p->input.buttons, BUTTON_SECONDARY) ? 0.5F : 1.0F;
     float crouch = (HASBIT(p->input.keys, INPUT_CROUCH) && p->weapon != WEAPON_SHOTGUN) ? 0.5F : 1.0F;
 
@@ -165,8 +165,8 @@ Vector3f weapon_spread(Player * p, const Vector3f d) {
         .y = d.y + n * (ms_rand() - ms_rand()),
         .z = d.z + n * (ms_rand() - ms_rand())
     };
-#elif
-    return (Vector3f) {0, 0, 0};
+#else
+    return (Vector3f) {d.x, d.y, d.z};
 #endif
 }
 

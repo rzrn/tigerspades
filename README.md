@@ -6,7 +6,7 @@
 * Runs on very old systems back to OpenGL 1.1 (OpenGL ES support too).
 * Shares similar if not even better performance to voxlap.
 
-#### Why should I use this instead of ...?
+#### Why should I use this instead of […]?
 
 * Free of any Jagex code, they can’t shut it down.
 * Open for future expansion.
@@ -15,11 +15,13 @@
 
 ## Differences in this fork
 
-* Support of big-endian systems (e.g. PowerPC).
+* Support of big-endian systems e.g. PowerPC (but *not limited to,* that is, support of little-endian systems is available as well).
 * Unicode & UTF-8.
 * Customizable key bindings.
 * Cleaned up user interface.
 * Makefiles instead of CMake (now obsolete version of CMake takes ≈2 hours to build on G4 CPU but still cannot be used to build BetterSpades).
+* A couple of small features that you can find in “Settings”.
+* Imported from other forks & unmerged PRs bugfixes (as well as original ones) for several chronic bugs.
 
 ## System requirements
 

@@ -88,3 +88,21 @@ On the buggy drivers (like “mesa” under PowerPC Macs) it may be neccessary
 #### macOS
 
 The development headers for OpenAL and OpenGL don’t have to be installed since they come with macOS by default.
+
+## License
+
+For any copyright year range specified as YYYY–ZZZZ in this package note
+that the range specifies every single year in that closed interval.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.

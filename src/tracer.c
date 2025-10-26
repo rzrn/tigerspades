@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2017-2020 ByteBit
+    Copyright © 2017–2021 ByteBit
+    Copyright © 2018 vuolen
 
     This file is part of BetterSpades.
 

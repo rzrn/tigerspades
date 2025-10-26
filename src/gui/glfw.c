@@ -1,3 +1,24 @@
+/*
+    Copyright © 2017–2020, 2022 ByteBit
+    Copyright © 2019 teodor6140
+    Copyright © 2022 Fran6nd
+    Copyright © 2022 Julius C. Enriquez
+    Copyright © 2021, 2023–2025 rzrn
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #ifdef USE_GLFW
 
 #define _XOPEN_SOURCE 600
@@ -29,6 +50,8 @@
     #include <kernel/OS.h>
 #endif
 
+// See: https://github.com/glfw/glfw/blob/master/tests/events.c
+// Copyright © 2010–2024 Camilla Löwy <elmindreda@glfw.org>
 const char * glfw_get_fnkey_name(int keycode) {
     switch (keycode) {
         case GLFW_KEY_A:             return "A";

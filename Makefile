@@ -1,4 +1,4 @@
-# Copyright © 2024–2025 rzrn
+# Copyright © 2024–2026 rzrn
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,12 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-all clean nuke game depend download chksum:
-	@case `uname -s` in\
-		Linux) PLATFORM=Linux ;;\
-		FreeBSD) PLATFORM=FreeBSD ;;\
-		MINGW32_NT*|MINGW64_NT*|MSYS_NT*|CYGWIN_NT*) PLATFORM=NT ;;\
-		Darwin) PLATFORM=Mac ;;\
-		Haiku) PLATFORM=Haiku ;;\
-		*) echo 'Unknown platform: you can try `PLATFORM=Linux make -fbuild/Makefile` manually.'; exit 1 ;;\
-	esac; export PLATFORM; $(MAKE) -fbuild/Makefile $@
+all clean nuke download game chksum depend:
+	@touch build/prerequisites.mk
+	@. build/configure.sh && $(MAKE) -f build/prerequisites.mk -f build/flags.mk -f build/rules.mk $@

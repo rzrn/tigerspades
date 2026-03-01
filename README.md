@@ -64,7 +64,7 @@ Use MinGW-w64 from MSYS2:
 
 ```bash
 $ pacman -S mingw-w64-x86_64-glfw mingw-w64-x86_64-openal unzip
-$ make TOOLKIT=GLFW game
+$ TOOLKIT=GLFW make game
 ```
 
 If everything went well, the client should be in the `dist/` subfolder.
@@ -85,7 +85,7 @@ Or connect directly to localhost:
 ./betterspades -aos://16777343:32887
 ```
 
-On the buggy drivers (like “mesa” under PowerPC Macs) it may be neccessary to `export MESA_GL_VERSION_OVERRIDE=1.5` before starting the game to avoid (weird) graphics glitches. Also try build with `EXTRAFLAGS="-DUSE_SOUND -DUSE_GL_FLOAT"` if fonts are not rendering.
+On the buggy drivers (like “mesa” under PowerPC Macs) it may be neccessary to `export MESA_GL_VERSION_OVERRIDE=1.5` before starting the game to avoid (weird) graphics glitches. Also try build with `CFLAGS1="-DUSE_SOUND -DUSE_GL_FLOAT" make <...>` if fonts are not rendering.
 
 #### macOS
 

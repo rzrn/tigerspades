@@ -21,7 +21,7 @@ clean:
 
 nuke: clean
 	echo > $(PREREQFILE)
-	@find deps/ -name '*.2' -exec echo rm -f {} \; -exec rm -f {} \;
+	@find vendor/ -name '*.2' -exec echo rm -f {} \; -exec rm -f {} \;
 
 download: $(PACKFILE)
 
@@ -65,7 +65,7 @@ $(PACKFILE):
 build/betterspades.a: $(OFILES1)
 	ar rcs $@ $?
 
-build/bsdeps.a: $(OFILES2)
+build/vendor.a: $(OFILES2)
 	ar rcs $@ $?
 
 $(EXEFILE): $(AFILES)

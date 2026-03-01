@@ -33,37 +33,37 @@ CFILES1 = src/ace/protocol.c src/gui/glfw.c src/gui/sdl.c src/gui/glut.c\
           src/model.c src/network.c src/particle.c src/ping.c src/player.c src/rpc.c src/sound.c\
           src/tesselator.c src/texture.c src/tracer.c src/unicode.c src/utils.c src/weapon.c src/window.c
 
-CFILES2 = deps/libdeflate/gzip_decompress.c\
-          deps/libdeflate/deflate_decompress.c\
-          deps/libdeflate/x86/cpu_features.c\
-          deps/libdeflate/crc32.c\
-          deps/libdeflate/utils.c\
-          deps/libdeflate/zlib_compress.c\
-          deps/libdeflate/gzip_compress.c\
-          deps/libdeflate/zlib_decompress.c\
-          deps/libdeflate/deflate_compress.c\
-          deps/libdeflate/arm/cpu_features.c\
-          deps/libdeflate/adler32.c\
-          deps/GLEW/glew.c\
-          deps/libvxl/libvxl.c\
-          deps/dr_libs/dr_wav.c\
-          deps/log/log.c\
-          deps/enet/list.c\
-          deps/enet/host.c\
-          deps/enet/unix.c\
-          deps/enet/packet.c\
-          deps/enet/callbacks.c\
-          deps/enet/compress.c\
-          deps/enet/peer.c\
-          deps/enet/win32.c\
-          deps/enet/protocol.c\
-          deps/parson/parson.c\
-          deps/http/http.c\
-          deps/hashtable/hashtable.c\
-          deps/ini/ini.c\
-          deps/microui/microui.c
+CFILES2 = vendor/libdeflate/gzip_decompress.c\
+          vendor/libdeflate/deflate_decompress.c\
+          vendor/libdeflate/x86/cpu_features.c\
+          vendor/libdeflate/crc32.c\
+          vendor/libdeflate/utils.c\
+          vendor/libdeflate/zlib_compress.c\
+          vendor/libdeflate/gzip_compress.c\
+          vendor/libdeflate/zlib_decompress.c\
+          vendor/libdeflate/deflate_compress.c\
+          vendor/libdeflate/arm/cpu_features.c\
+          vendor/libdeflate/adler32.c\
+          vendor/GLEW/glew.c\
+          vendor/libvxl/libvxl.c\
+          vendor/dr_libs/dr_wav.c\
+          vendor/log/log.c\
+          vendor/enet/list.c\
+          vendor/enet/host.c\
+          vendor/enet/unix.c\
+          vendor/enet/packet.c\
+          vendor/enet/callbacks.c\
+          vendor/enet/compress.c\
+          vendor/enet/peer.c\
+          vendor/enet/win32.c\
+          vendor/enet/protocol.c\
+          vendor/parson/parson.c\
+          vendor/http/http.c\
+          vendor/hashtable/hashtable.c\
+          vendor/ini/ini.c\
+          vendor/microui/microui.c
 
 OFILES1 = $(CFILES1:.c=.1) $(NSFILES:.m=.1)
 OFILES2 = $(CFILES2:.c=.2)
 
-AFILES = build/bsdeps.a build/betterspades.a
+AFILES = build/vendor.a build/betterspades.a

@@ -66,4 +66,4 @@ CFILES2 = vendor/libdeflate/gzip_decompress.c\
 OFILES1 = $(CFILES1:.c=.1) $(NSFILES:.m=.1)
 OFILES2 = $(CFILES2:.c=.2)
 
-AFILES = build/vendor.a build/betterspades.a
+AFILES = build/betterspades.a build/vendor.a

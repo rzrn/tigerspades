@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+.PHONY: all clean nuke download game chksum depend printenv
+
 all: $(EXEFILE)
 
 clean:

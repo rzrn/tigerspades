@@ -2,7 +2,7 @@
     Copyright © 2017–2023 ByteBit
     Copyright © 2018 vuolen
     Copyright © 2018 NotAFile
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -1306,14 +1306,20 @@ static void hud_draw_scoreboard(float scale) {
     glColorRGB3i(gamestate.team1.color);
     switch (gamestate.mode) {
         case GAMEMODE_CTF:
-            sprintf(score_str, "%i/%i", gamestate.ctf.team1_score, gamestate.ctf.capture_limit);
+            if (gamestate.ctf.capture_limit > 0)
+                sprintf(score_str, "%i/%i", gamestate.ctf.team1_score, gamestate.ctf.capture_limit);
+            else
+                sprintf(score_str, "%i", gamestate.ctf.team1_score);
+
             break;
+
         case GAMEMODE_TC: {
             int t = 0;
             for (size_t k = 0; k < gamestate.tc.territory_count; k++)
                 if (gamestate.tc.territory[k].team == TEAM1)
                     t++;
             sprintf(score_str, "%i/%i", t, gamestate.tc.territory_count);
+
             break;
         }
     }
@@ -1324,14 +1330,20 @@ static void hud_draw_scoreboard(float scale) {
     glColorRGB3i(gamestate.team2.color);
     switch (gamestate.mode) {
         case GAMEMODE_CTF:
-            sprintf(score_str, "%i/%i", gamestate.ctf.team2_score, gamestate.ctf.capture_limit);
+            if (gamestate.ctf.capture_limit > 0)
+                sprintf(score_str, "%i/%i", gamestate.ctf.team2_score, gamestate.ctf.capture_limit);
+            else
+                sprintf(score_str, "%i", gamestate.ctf.team2_score);
+
             break;
+
         case GAMEMODE_TC: {
             int t = 0;
             for (size_t k = 0; k < gamestate.tc.territory_count; k++)
                 if (gamestate.tc.territory[k].team == TEAM2)
                     t++;
             sprintf(score_str, "%i/%i", t, gamestate.tc.territory_count);
+
             break;
         }
     }

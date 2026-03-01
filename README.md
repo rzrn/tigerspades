@@ -90,6 +90,7 @@ On the buggy drivers (like “mesa” under PowerPC Macs) it may be neccessary
 #### macOS
 
 The development headers for OpenAL and OpenGL don’t have to be installed since they come with macOS by default.
+On the old Macs don’t forget to use `<...> make CC=c99 <...>` since the old GCC defaults to C89.
 
 ## License
 

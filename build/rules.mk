@@ -20,6 +20,7 @@ clean:
 	@find src/ -name '*.1' -exec echo rm -f {} \; -exec rm -f {} \;
 
 nuke: clean
+	echo > $(PREREQFILE)
 	@find deps/ -name '*.2' -exec echo rm -f {} \; -exec rm -f {} \;
 
 download: $(PACKFILE)

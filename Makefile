@@ -13,6 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-all clean nuke download game chksum depend:
+all clean nuke download game chksum depend printenv:
 	@touch build/prerequisites.mk
 	@. build/configure.sh && $(MAKE) -f build/prerequisites.mk -f build/flags.mk -f build/rules.mk $@

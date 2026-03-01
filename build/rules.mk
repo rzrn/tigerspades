@@ -39,6 +39,15 @@ depend:
 	makedepend -o.1 -s '### (1) ###' -I`$(CC) --print-file-name=include` -Iinclude/ -f $(PREREQFILE) -- $(CFLAGS1) $(CFILES1)
 	makedepend -o.2 -s '### (2) ###' -I`$(CC) --print-file-name=include` -Iinclude/ -f $(PREREQFILE) -- $(CFLAGS2) $(CFILES2)
 
+printenv:
+	@echo COMMITHASH=$(COMMITHASH)
+
+	@echo NSFILES=$(NSFILES)
+	@echo CFLAGS1=$(CFLAGS1)
+	@echo CFLAGS2=$(CFLAGS2)
+	@echo NSFLAGS=$(NSFLAGS)
+	@echo LDFLAGS=$(LDFLAGS)
+
 .SUFFIXES: .h .c .m .o .1 .2 .3 .4 .5 .6 .7 .8 .9
 
 $(PACKFILE):

@@ -1,7 +1,7 @@
 /*
     Copyright © 2017–2020, 2022 ByteBit
     Copyright © 2022 Julius C. Enriquez
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -307,6 +307,10 @@ void window_eventloop(Idle func1, Render func2) {
     glutIdleFunc(window_idle);
     glutDisplayFunc(window_display);
     glutMainLoop();
+}
+
+int main(int argc, char * argv[]) {
+    return game_main(argc, argv);
 }
 
 #else

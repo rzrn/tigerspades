@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2020, 2022 ByteBit
-    Copyright © 2024 rzrn
+    Copyright © 2024, 2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -474,6 +474,10 @@ void window_eventloop(Idle idle, Render render) {
 
         [[view openGLContext] flushBuffer];
     }
+}
+
+int main(int argc, char * argv[]) {
+    return game_main(argc, argv);
 }
 
 #else

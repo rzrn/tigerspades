@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2020 ByteBit
-    Copyright © 2023–2024 rzrn
+    Copyright © 2023–2024, 2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -34,5 +34,7 @@ void mouse_scroll(double xoffset, double yoffset);
 void mouse_focus(bool);
 void mouse_hover(bool);
 void on_error(int i, const char * s);
+
+int game_main(int argc, char ** argv);
 
 #endif

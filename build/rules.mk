@@ -19,11 +19,11 @@ all: $(EXEFILE)
 
 clean:
 	rm -f $(EXEFILE) $(AFILES)
-	@find src/ -name '*.1' -exec echo rm -f {} \; -exec rm -f {} \;
+	@find src/ -name '*.[o12]' -exec echo rm -f {} \; -exec rm -f {} \;
 
 nuke: clean
 	echo > $(PREREQFILE)
-	@find vendor/ -name '*.2' -exec echo rm -f {} \; -exec rm -f {} \;
+	@find vendor/ -name '*.[o12]' -exec echo rm -f {} \; -exec rm -f {} \;
 
 download: $(PACKFILE)
 
@@ -55,7 +55,7 @@ printenv:
 $(PACKFILE):
 	curl -o $(PACKFILE) $(PACKURL)
 
-.m.1:
+.m.o:
 	$(CC) -x objective-c $(CFLAGS1) $(NSFLAGS) -DGIT_COMMIT_HASH=\"$(COMMITHASH)\" -Iinclude/ -c $< -o $@
 
 .c.1:
@@ -70,5 +70,5 @@ build/betterspades.a: $(OFILES1)
 build/vendor.a: $(OFILES2)
 	ar rcs $@ $?
 
-$(EXEFILE): $(AFILES)
-	$(LD) -o $(EXEFILE) $(AFILES) $(LDFLAGS)
+$(EXEFILE): $(LINKFILES)
+	$(LD) -o $(EXEFILE) $(LINKFILES) $(LDFLAGS)

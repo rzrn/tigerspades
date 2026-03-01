@@ -5,7 +5,7 @@
     Copyright © 2018 yvt
     Copyright © 2022 Haxk20
     Copyright © 2025 Ashy
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -777,7 +777,7 @@ static inline bool startswith(const char * prefix, const char * str)
 #define MATCH(x, y) if (!strcmp((x), (y)))
 #define THROW(retcode, ...) { printf(__VA_ARGS__); return retcode; }
 
-int main(int argc, char ** argv) {
+int game_main(int argc, char ** argv) {
     const char * vxl_file = NULL, * default_server = NULL;
 
     for (int i = 1; i < argc; i++) {
@@ -893,4 +893,6 @@ int main(int argc, char ** argv) {
     }
 
     window_eventloop(idle, display);
+
+    return 0;
 }

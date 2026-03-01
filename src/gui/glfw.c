@@ -3,7 +3,7 @@
     Copyright © 2019 teodor6140
     Copyright © 2022 Fran6nd
     Copyright © 2022 Julius C. Enriquez
-    Copyright © 2021, 2023–2025 rzrn
+    Copyright © 2021, 2023–2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -484,6 +484,10 @@ void window_eventloop(Idle idle, Render render) {
 
         fps = 1.0F / dt;
     }
+}
+
+int main(int argc, char * argv[]) {
+    return game_main(argc, argv);
 }
 
 #else

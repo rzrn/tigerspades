@@ -63,7 +63,7 @@ CFILES2 = vendor/libdeflate/gzip_decompress.c\
           vendor/ini/ini.c\
           vendor/microui/microui.c
 
-OFILES1 = $(CFILES1:.c=.1) $(NSFILES:.m=.1)
+OFILES1 = $(CFILES1:.c=.1)
 OFILES2 = $(CFILES2:.c=.2)
 
-AFILES = build/betterspades.a build/vendor.a
+LINKFILES = $(NSFILES:.m=.o) build/betterspades.a build/vendor.a

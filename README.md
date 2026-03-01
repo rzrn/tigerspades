@@ -23,6 +23,17 @@
 * A couple of small features that you can find in “Settings”.
 * Imported from other forks & unmerged PRs bugfixes (as well as original ones) for several chronic bugs.
 
+## Loading custom resources
+
+You might want to use custom textures or models, but `make game` overwrites them with standard ones.
+In this case, if you want to recompile the game without having to copy the custom resources manually each time,
+you can place them in the `build/` directory inside the archive named `pak-XYZ.zip` or `pak-XYZ-suffix.zip`.
+This way, such archives will be automatically unpacked into your distribution directory with the `make game` command,
+with priority given to archives with a higher index `XYZ`.
+
+No special structure is required in such an archive, that is, for example, if you need to install a custom SMG model,
+the file `kv6/smg.kv6` should be placed in the root of the archive.
+
 ## System requirements
 
 | Type    | min. requirement                                     |

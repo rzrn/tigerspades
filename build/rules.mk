@@ -29,9 +29,14 @@ download: $(PACKFILE)
 
 game: $(EXEFILE) $(PACKFILE)
 	mkdir -p $(GAMEDIR)
+
 	cp -r $(RESDIR)/* $(GAMEDIR)
 	cp $(EXEFILE) $(GAMEDIR)
+
 	unzip -o $(PACKFILE) -d $(GAMEDIR) -x $(IGNORERES) || true
+
+	@for file in `find build/ -name 'pak-[0-9][0-9][0-9].zip' -o -name 'pak-[0-9][0-9][0-9]-*.zip'`;\
+	do unzip -o $$file -d $(GAMEDIR); echo unzip -o $$file -d $(GAMEDIR); done
 
 chksum:
 	$(HASHPROG) -c $(PACKHASH)

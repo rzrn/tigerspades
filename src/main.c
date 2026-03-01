@@ -200,7 +200,7 @@ static inline void drawCubeEdges(int x, int y, int z) {
     glDrawArrays(GL_LINES, 0, lengthof(vertices) / 3);
 }
 
-void display(void) {
+void game_display(void) {
     if (hud_active->render_world)
         glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
     else
@@ -740,7 +740,7 @@ void on_error(int i, const char * s) {
     getchar();
 }
 
-void idle(double dt) {
+void game_idle(double dt) {
     static double physics_time_fixed = 0.0F;
     static double physics_time_fast  = 0.0F;
 
@@ -891,8 +891,6 @@ int game_main(int argc, char ** argv) {
             hud_change(&hud_mapload);
         }
     }
-
-    window_eventloop(idle, display);
 
     return 0;
 }

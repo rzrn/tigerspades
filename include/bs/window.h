@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2022 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -152,10 +152,6 @@ void window_sendkey(int action, int keycode, int mod);
 
 int window_get_mousemode(void);
 
-typedef void (*Idle)(double);
-typedef void (*Render)(void);
-
 void window_init(const char * title, int *, char **);
-void window_eventloop(Idle, Render);
 
 #endif

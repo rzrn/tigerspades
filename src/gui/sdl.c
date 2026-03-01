@@ -288,15 +288,18 @@ void window_update(void) {
     }
 }
 
-void window_eventloop(Idle idle, Render render) {
+int main(int argc, char * argv[]) {
+    int errval = game_main(argc, argv);
+    if (errval != 0) return errval;
+
     double last_frame_start = 0.0F;
 
     while (!quit) {
         double dt = window_time() - last_frame_start;
         last_frame_start = window_time();
 
-        idle(dt);
-        render();
+        game_idle(dt);
+        game_display();
         window_update();
 
         if (settings.vsync > 1 && (window_time() - last_frame_start) < (1.0 / settings.vsync)) {
@@ -309,10 +312,8 @@ void window_eventloop(Idle idle, Render render) {
 
         fps = 1.0F / dt;
     }
-}
 
-int main(int argc, char * argv[]) {
-    return game_main(argc, argv);
+    return 0;
 }
 
 #else

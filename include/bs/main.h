@@ -35,6 +35,9 @@ void mouse_focus(bool);
 void mouse_hover(bool);
 void on_error(int i, const char * s);
 
+void game_idle(double);
+void game_display(void);
+
 int game_main(int argc, char ** argv);
 
 #endif

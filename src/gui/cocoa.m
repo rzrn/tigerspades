@@ -446,14 +446,17 @@ void window_init(const char * title, int * argc, char ** argv) {
     [app finishLaunching];
 }
 
-void window_eventloop(Idle idle, Render render) {
+int main(int argc, char * argv[]) {
+    int errval = game_main(argc, argv);
+    if (errval != 0) return errval;
+
     double t = window_time();
 
     while (isRunning) {
         double dt = window_time() - t; t += dt; fps = 1.0F / dt;
 
-        idle(dt);
-        render();
+        game_idle(dt);
+        game_display();
 
         NSAutoreleasePool * pool = [NSAutoreleasePool new];
 
@@ -474,10 +477,8 @@ void window_eventloop(Idle idle, Render render) {
 
         [[view openGLContext] flushBuffer];
     }
-}
 
-int main(int argc, char * argv[]) {
-    return game_main(argc, argv);
+    return 0;
 }
 
 #else

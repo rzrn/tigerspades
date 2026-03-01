@@ -273,11 +273,8 @@ void window_init(const char * title, int * argc, char ** argv) {
     glutEntryFunc(window_entry);
 }
 
-static Idle idle     = NULL;
-static Render render = NULL;
-
 void window_display(void) {
-    render();
+    game_display();
     glutSwapBuffers();
 }
 
@@ -286,7 +283,7 @@ void window_idle(void) {
 
     double dt = window_time() - last_frame_start;
     last_frame_start = window_time();
-    idle(dt);
+    game_idle(dt);
 
     if (settings.vsync > 1 && (window_time() - last_frame_start) < (1.0 / settings.vsync)) {
         double sleep_s = 1.0 / settings.vsync - (window_time() - last_frame_start);
@@ -301,16 +298,15 @@ void window_idle(void) {
     glutPostRedisplay();
 }
 
-void window_eventloop(Idle func1, Render func2) {
-    idle = func1; render = func2;
+int main(int argc, char * argv[]) {
+    int errval = game_main(argc, argv);
+    if (errval != 0) return errval;
 
     glutIdleFunc(window_idle);
     glutDisplayFunc(window_display);
     glutMainLoop();
-}
 
-int main(int argc, char * argv[]) {
-    return game_main(argc, argv);
+    return 0;
 }
 
 #else

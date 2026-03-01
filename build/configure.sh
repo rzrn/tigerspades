@@ -96,8 +96,8 @@ case ${PLATFORM}-${TOOLKIT} in
     LDFLAGS="${LDFLAGS} -lglfw"
     ;;
   Mac-SDL)
-    CFLAGS1="${CFLAGS1} -DUSE_SDL"
-    LDFLAGS="${LDFLAGS} /usr/local/Cellar/sdl2/2.0.3/lib/libSDL2.a"
+    CFLAGS1="${CFLAGS1} -DUSE_SDL -I$(brew --prefix)/include"
+    LDFLAGS="${LDFLAGS} -lSDL2 -L$(brew --prefix)/lib"
     ;;
   NT-SDL | Linux-SDL | FreeBSD-SDL | Haiku-SDL)
     CFLAGS1="${CFLAGS1} -DUSE_SDL"

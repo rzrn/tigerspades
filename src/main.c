@@ -880,17 +880,17 @@ int game_main(int argc, char ** argv) {
             load_map(vxl_file);
         else {
             log_error("Error: file not found: %s", vxl_file);
-            exit(1);
+            return -4;
         }
     } else if (default_server != NULL) {
         if (!network_connect_string(default_server, VER07X)) {
             log_error("Error: connection failed (use --help for instructions)");
-            exit(1);
+            return -4;
         } else {
             log_info("Connection to %s successful", default_server);
             hud_change(&hud_mapload);
         }
     }
 
-    return 0;
+    return 1;
 }

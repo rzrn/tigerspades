@@ -299,8 +299,8 @@ void window_idle(void) {
 }
 
 int main(int argc, char * argv[]) {
-    int errval = game_main(argc, argv);
-    if (errval != 0) return errval;
+    int retcode = game_main(argc, argv);
+    if (retcode <= 0) return retcode;
 
     glutIdleFunc(window_idle);
     glutDisplayFunc(window_display);

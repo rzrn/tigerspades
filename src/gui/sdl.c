@@ -289,8 +289,8 @@ void window_update(void) {
 }
 
 int main(int argc, char * argv[]) {
-    int errval = game_main(argc, argv);
-    if (errval != 0) return errval;
+    int retcode = game_main(argc, argv);
+    if (retcode <= 0) return retcode;
 
     double last_frame_start = 0.0F;
 

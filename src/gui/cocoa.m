@@ -447,8 +447,8 @@ void window_init(const char * title, int * argc, char ** argv) {
 }
 
 int main(int argc, char * argv[]) {
-    int errval = game_main(argc, argv);
-    if (errval != 0) return errval;
+    int retcode = game_main(argc, argv);
+    if (retcode <= 0) return retcode;
 
     double t = window_time();
 

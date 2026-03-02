@@ -35,7 +35,7 @@ game: $(EXEFILE) $(PACKFILE)
 
 	unzip -o $(PACKFILE) -d $(GAMEDIR) -x $(IGNORERES) || true
 
-	@for file in `find build/ -name 'pak-[0-9][0-9][0-9].zip' -o -name 'pak-[0-9][0-9][0-9]-*.zip'`;\
+	@for file in `find build/ -name 'pak-[0-9][0-9][0-9].zip' -o -name 'pak-[0-9][0-9][0-9]-*.zip' | sort`;\
 	do unzip -o $$file -d $(GAMEDIR); echo unzip -o $$file -d $(GAMEDIR); done
 
 chksum:

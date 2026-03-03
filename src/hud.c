@@ -1667,8 +1667,7 @@ static void hud_ingame_scroll(double yoffset) {
             camera.speed + yoffset * 1.0F
         );
 
-        sprintf(hud_popup, "Camera speed: %.0f %%", camera.speed / CAMERA_DEFAULT_SPEED * 100.0F);
-        hud_popup_timer = window_time();
+        hud_show_popup("Camera speed: %.0f %%", camera.speed / CAMERA_DEFAULT_SPEED * 100.0F);
     }
 }
 
@@ -1763,8 +1762,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
     if (camera.mode == CAMERAMODE_SPECTATOR && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS) {
         camera.noclip = !camera.noclip;
 
-        sprintf(hud_popup, "Noclip mode is now %s", camera.noclip ? "enabled" : "disabled");
-        hud_popup_timer = window_time();
+        hud_show_popup("Noclip mode is now %s", camera.noclip ? "enabled" : "disabled");
     }
 
     if (camera.mode == CAMERAMODE_BODYVIEW && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS) {
@@ -1974,8 +1972,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             if (key == WINDOW_KEY_VOLUME_UP || key == WINDOW_KEY_VOLUME_DOWN) {
                 sound_volume(settings.volume / 10.0F);
 
-                sprintf(hud_popup, "Volume: %i", settings.volume);
-                hud_popup_timer = window_time();
+                hud_show_popup("Volume: %i", settings.volume);
             }
 
             if ((key == WINDOW_KEY_CURSOR_UP || key == WINDOW_KEY_CURSOR_DOWN || key == WINDOW_KEY_CURSOR_LEFT || key == WINDOW_KEY_CURSOR_RIGHT)
@@ -2030,8 +2027,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                 key == WINDOW_KEY_FIREMODE && !button_map.lmb) {
                 weapon_firemode = weapon_firemode_cycle(weapon_firemode);
 
-                sprintf(hud_popup, "%s", weapon_firemode_label(weapon_firemode));
-                hud_popup_timer = window_time();
+                hud_show_popup("%s", weapon_firemode_label(weapon_firemode));
             }
 
             if (camera.mode == CAMERAMODE_FPS && key == WINDOW_KEY_RELOAD &&

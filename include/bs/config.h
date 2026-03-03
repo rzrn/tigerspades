@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2021 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 

@@ -90,6 +90,16 @@ static inline void mu_text_color_default(mu_Context * ctx)
 /*static inline mu_Layout * mu_get_layout(mu_Context * ctx)
 { return &ctx->layout_stack.items[ctx->layout_stack.idx - 1]; }*/
 
+void hud_show_popup(const char * format, ...) {
+    va_list argv;
+
+    va_start(argv, format);
+    vsnprintf(hud_popup, sizeof(hud_popup), format, argv);
+    va_end(argv);
+
+    hud_popup_timer = window_time();
+}
+
 void hud_init(void) {
     mu_Context * ctx = malloc(sizeof(mu_Context)); mu_init(ctx);
     hud_serverlist.ctx = hud_settings.ctx = hud_controls.ctx = ctx;

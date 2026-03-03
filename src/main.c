@@ -669,8 +669,7 @@ void keys(int key, int action, int mods) {
                               settings.window_width, settings.window_height);
         free(pic_data);
 
-        sprintf(pic_name, "Saved screenshot as screenshots/%ld.png", (long) pic_time);
-        chat_add(0, Red, pic_name, sizeof(pic_name), UTF8);
+        hud_show_popup("Saved screenshot as %s", pic_name);
     }
 
     if (key == WINDOW_KEY_SAVE_MAP && action == WINDOW_PRESS) { // save map
@@ -681,8 +680,7 @@ void keys(int key, int action, int mods) {
 
         map_save_file(save_name);
 
-        sprintf(save_name, "Saved map as vxl/%ld.vxl", (long) save_time);
-        chat_add(0, Red, save_name, sizeof(save_name), UTF8);
+        hud_show_popup("Saved map as %s", save_name);
     }
 }
 

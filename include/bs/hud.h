@@ -60,6 +60,8 @@ extern char serverlist_url[2048], newslist_url[2048];
 
 #define HUD_FLAG_INDEX_START 64
 
+void hud_show_popup(const char * format, ...);
+
 void hud_change(HUD *);
 void hud_init(void);
 void hud_mousemode(int mode);

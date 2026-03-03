@@ -1577,9 +1577,13 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     }
 
     if (window_time() - chat_popup_timer < chat_popup_duration) {
+        float height = settings.chat_popup_centered ? 3.0F * scale : 2.0F * scale;
+
+        float x = settings.window_width * 0.5F - font_length(height, chat_popup, 0, UTF8) * 0.5F;
+        float y = settings.chat_popup_centered ? settings.window_height * 0.65F : 14 * 18.0F * scale;
+
         glColor3ub(chat_popup_color.r, chat_popup_color.g, chat_popup_color.b);
-        font_render((settings.window_width - font_length(3.0F * scale, chat_popup, 0, UTF8)) / 2.0F,
-                    settings.window_height * 0.65F, 3.0F * scale, chat_popup, UTF8);
+        font_render(x, y, height, chat_popup, UTF8);
     }
 
     glColor3f(1.0F, 1.0F, 1.0F);

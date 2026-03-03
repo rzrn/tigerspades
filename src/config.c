@@ -400,6 +400,12 @@ Setting config_settings[] = {
         .display  = "Display friendly tag",
     },
     {
+        .value    = &settings_tmp.chat_popup_centered,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "chat_popup_centered",
+        .display  = "Center chat popups",
+    },
+    {
         .value    = &settings_tmp.volume,
         .type     = CONFIG_TYPE_INT,
         .mini     = 0,
@@ -644,6 +650,7 @@ Options settings = {
     .render_player          = false,
     .play_intro             = true,
     .spectator_esp          = false,
+    .chat_popup_centered    = true,
 };
 
 char * config_filepath = "config.ini";

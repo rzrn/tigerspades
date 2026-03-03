@@ -24,7 +24,6 @@ PREREQFILE = build/prerequisites.mk
 PACKURL  = https://aos.party/bsresources.zip
 HASHPROG = sha512sum
 PACKFILE = build/bsresources.zip
-PACKHASH = $(PACKFILE).sha512
 
 CFILES1 = src/ace/protocol.c src/gui/glfw.c src/gui/sdl.c src/gui/glut.c\
           src/aabb.c src/camera.c src/cameracontroller.c src/channel.c src/chunk.c\

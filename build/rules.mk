@@ -39,7 +39,7 @@ game: $(EXEFILE) $(PACKFILE)
 	do unzip -o $$file -d $(GAMEDIR); echo unzip -o $$file -d $(GAMEDIR); done
 
 chksum:
-	$(HASHPROG) -c $(PACKHASH)
+	$(HASHPROG) -c $(PACKFILE).$(HASHPROG)
 
 depend:
 	echo > $(PREREQFILE)

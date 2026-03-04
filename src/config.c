@@ -291,9 +291,9 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.invert_y,
         .type     = CONFIG_TYPE_BOOLEAN,
-        .display  = "Invert Y",
+        .display  = "Invert vertical look",
         .name     = "inverty",
-        .help     = "Invert vertical mouse movement"
+        .help     = "Invert mouse movement along the Y axis"
     },
     {
         .value   = &settings_tmp.ads_mode,
@@ -454,8 +454,8 @@ Setting config_settings[] = {
         .minf     = CAMERA_DEFAULT_FOV,
         .maxf     = CAMERA_MAX_FOV,
         .name     = "camera_fov",
-        .display  = "Camera FOV",
-        .help     = "Field of View in degrees",
+        .display  = "Field of view",
+        .help     = "Degrees of arc",
         .category = "Graphics"
     },
     {
@@ -531,7 +531,7 @@ Setting config_settings[] = {
         .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Enable this on buggy drivers",
         .name     = "force_displaylist",
-        .display  = "Force Displaylist"
+        .display  = "Force display lists"
     },
     {
         .value    = &settings_tmp.smooth_fog,
@@ -543,7 +543,7 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.ambient_occlusion,
         .type     = CONFIG_TYPE_BOOLEAN,
-        .help     = "(won't work with greedy mesh)",
+        .help     = "Won't work with greedy mesh",
         .name     = "ambient_occlusion",
         .display  = "Ambient occlusion"
     },
@@ -559,7 +559,7 @@ Setting config_settings[] = {
         .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Requires server support",
         .name     = "tracing_enabled",
-        .display  = "Bullet tracing",
+        .display  = "Enable bullet tracing",
         .category = "Debug"
     },
     {
@@ -581,16 +581,16 @@ Setting config_settings[] = {
     {
         .value    = &settings_tmp.enable_shadows,
         .type     = CONFIG_TYPE_BOOLEAN,
-        .help     = "Useful for map development",
+        .help     = "Disable for map development",
         .name     = "enable_shadows",
-        .display  = "Map shadows"
+        .display  = "Enable map shadows"
     },
     {
         .value    = &settings_tmp.smooth_orientation,
         .type     = CONFIG_TYPE_BOOLEAN,
         .help     = "Disable to spectate cheaters",
         .name     = "smooth_orientation",
-        .display  = "Smooth orientation"
+        .display  = "Enable orientation smoothing"
     }
 };
 

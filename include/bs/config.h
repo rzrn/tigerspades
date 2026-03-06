@@ -113,6 +113,7 @@ typedef struct {
     bool  play_intro;
     bool  spectator_esp;
     bool  chat_popup_centered;
+    bool  unicode_enabled;
 } Options;
 
 extern Options settings, settings_tmp;

@@ -240,6 +240,12 @@ Setting config_settings[] = {
         .label    = config_label_left_handed
     },
     {
+        .value    = &settings_tmp.unicode_enabled,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "unicode_enabled",
+        .display  = "Enable Unicode",
+    },
+    {
         .value    = &settings_tmp.report_client_version,
         .type     = CONFIG_TYPE_BOOLEAN,
         .display  = "Report client version",
@@ -651,6 +657,7 @@ Options settings = {
     .play_intro             = true,
     .spectator_esp          = false,
     .chat_popup_centered    = true,
+    .unicode_enabled        = true,
 };
 
 char * config_filepath = "config.ini";

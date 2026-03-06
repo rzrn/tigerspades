@@ -1,6 +1,6 @@
 # GNU Unifont
 
-This version of [the GNU Unifont font](https://unifoundry.com/unifont/) was converted from the `unifont-17.0.03.bdf` file using the `extra/bdf2bitmap.py` script.
+This version of [the GNU Unifont font](https://unifoundry.com/unifont/) was converted from `unifont-17.0.03.bdf` and `unifont_upper-17.0.03.bdf` files using the `extra/bdf2bitmap.py` script.
 
 Since the original font is distributed under the GPLv2+ license with the GNU Font Embedding Exception,
 we use our right to drop this exception and redistribute it under the GPLv3+ license to be compatible with the rest of the project.

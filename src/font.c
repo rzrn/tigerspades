@@ -1,7 +1,7 @@
 /*
     Copyright © 2017–2021 ByteBit
     Copyright © 2018 vuolen
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -32,6 +32,7 @@
 #include <bs/file.h>
 #include <bs/font.h>
 #include <bs/utils.h>
+#include <bs/config.h>
 
 #define begin(T) typedef struct _##T T; struct _##T {
 #define end() };
@@ -187,17 +188,10 @@ static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t he
     free(buff); free(pagebuff); fclose(file); return font;
 }
 
-Subfont unifont, uvga;
+Font * font_primary, * font_secondary;
 
-Subfont * primarySubfonts[] = {&uvga, &unifont}, * secondarySubfonts[] = {&unifont};
-
-Font _font_primary   = {.replacement = 0xFFFD, .length = 2, .height = 16, .special = &uvga,    .subfonts = primarySubfonts};
-Font _font_secondary = {.replacement = 0xFFFD, .length = 1, .height = 16, .special = &unifont, .subfonts = secondarySubfonts};
-
-Font * const font_primary   = &_font_primary;
-Font * const font_secondary = &_font_secondary;
-
-static Font * font_selected = &_font_primary;
+static Subfont gnuascii, gnubmp, gnusmp, vga, uvga;
+static Font * font_selected;
 
 void font_init(void) {
     GLint max_size = 0; glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
@@ -207,8 +201,34 @@ void font_init(void) {
         exit(1);
     }
 
-    unifont = upload_subfont("fonts/unifont.bitmap", max_size, 16);
-    uvga    = upload_subfont("fonts/uvga.bitmap", max_size, 16);
+    if (settings.unicode_enabled) {
+        gnubmp = upload_subfont("fonts/gnubmp.bitmap", max_size, 16);
+        gnusmp = upload_subfont("fonts/gnusmp.bitmap", max_size, 16);
+        uvga   = upload_subfont("fonts/uvga.bitmap",   max_size, 16);
+
+        static Subfont * primary_subfonts[]   = {&uvga, &gnubmp, &gnusmp};
+        static Subfont * secondary_subfonts[] = {&gnubmp, &gnusmp};
+
+        static Font primary   = {.replacement = 0xFFFD, .length = 3, .height = 16, .special = &uvga,   .subfonts = primary_subfonts};
+        static Font secondary = {.replacement = 0xFFFD, .length = 2, .height = 16, .special = &gnubmp, .subfonts = secondary_subfonts};
+
+        font_primary   = &primary;
+        font_secondary = &secondary;
+    } else {
+        gnuascii = upload_subfont("fonts/gnuascii.bitmap", max_size, 16);
+        vga      = upload_subfont("fonts/vga.bitmap",      max_size, 16);
+
+        static Subfont * primary_subfonts[]   = {&vga, &gnuascii};
+        static Subfont * secondary_subfonts[] = {&gnuascii};
+
+        static Font primary   = {.replacement = 0x3F, .length = 2, .height = 16, .special = &vga,      .subfonts = primary_subfonts};
+        static Font secondary = {.replacement = 0x3F, .length = 1, .height = 16, .special = &gnuascii, .subfonts = secondary_subfonts};
+
+        font_primary   = &primary;
+        font_secondary = &secondary;
+    }
+
+    font_selected = font_primary;
 }
 
 Font * font_select(Font * font) {
@@ -225,6 +245,7 @@ Subfont * get_glyph(Font * font, uint32_t codepoint, Glyph * outglyph) {
 
         if (subfont->high16 == high16) {
             Glyph glyph = subfont->table[codepoint & 0xFFFF];
+
             if (glyph.stride != 0) { *outglyph = glyph; return subfont; }
         }
     }

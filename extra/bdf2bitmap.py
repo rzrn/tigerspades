@@ -48,9 +48,6 @@ for filename in filenames:
 
             continue
 
-        if codepoint > 0x7F:
-            continue
-
         low16 = codepoint & 0xFFFF
 
         bitmap = glyph.draw(2)

@@ -1,7 +1,7 @@
 /*
     Copyright © 2016–2021 ByteBit
     Copyright © 2018 vuolen
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -149,8 +149,9 @@ void chunk_draw_visible(void) {
         chunk_render(chunks_draw + k);
 }
 
-static __attribute__((always_inline)) inline bool solid_array_isair(struct libvxl_chunk_copy * blocks,
-                                                                    uint32_t x, int32_t y, uint32_t z) {
+__attribute__((always_inline))
+static inline bool solid_array_isair(struct libvxl_chunk_copy * blocks,
+                                     uint32_t x, int32_t y, uint32_t z) {
     if (y < 0)
         return false;
     if (y >= map_size_y)
@@ -159,8 +160,8 @@ static __attribute__((always_inline)) inline bool solid_array_isair(struct libvx
     return !libvxl_copy_chunk_is_solid(blocks, x % map_size_x, z % map_size_z, map_size_y - 1 - y);
 }
 
-static __attribute__((always_inline)) inline float solid_sunblock(struct libvxl_chunk_copy * blocks,
-                                                                  uint32_t x, uint32_t y, uint32_t z) {
+__attribute__((always_inline))
+static inline float solid_sunblock(struct libvxl_chunk_copy * blocks, int x, int y, int z) {
     int dec = 18;
     int i = 127;
 

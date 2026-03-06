@@ -1,7 +1,7 @@
 /*
     Copyright © 2016–2021 ByteBit
     Copyright © 2018 vuolen
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -66,6 +66,8 @@ HashTable map_damaged_voxels;
 Tesselator map_damaged_tesselator;
 
 int map_object_visible(float x, float y, float z) {
+    UNUSED(y);
+
     return !(x <= 0.0F && z <= 0.0F);
 }
 
@@ -230,6 +232,8 @@ static bool falling_blocks_meshing(void * key, void * value, void * user) {
 }
 
 static bool falling_blocks_pivot(void * key, void * value, void * user) {
+    UNUSED(value);
+
     float * pivot = (float *) user;
     uint32_t pos = *(uint32_t *) key;
 
@@ -324,6 +328,8 @@ static bool map_update_physics_sub(MapCollapsing * collapsing, int x, int y, int
 }*/
 
 static bool falling_blocks_render(void * obj, void * user) {
+    UNUSED(user);
+
     MapCollapsing * collapsing = (MapCollapsing *) obj;
 
     matrix_identity(matrix_model);
@@ -361,6 +367,8 @@ void map_collapsing_render(void) {
 }
 
 static bool falling_blocks_collision(void * key, void * value, void * user) {
+    UNUSED(value);
+
     uint32_t pos = *(uint32_t *) key;
     MapCollapsing * collapsing = ((MapCollapsing **) user)[0];
     float dt = *(((float **) user)[1]);
@@ -485,6 +493,8 @@ float map_sunblock(int x, int y, int z) {
 }
 
 void * falling_blocks_worker(void * user) {
+    UNUSED(user);
+
     for (;;) {
         MapWorkPacket work;
         channel_await(&map_work_queue, &work);

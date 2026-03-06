@@ -1,7 +1,7 @@
 /*
     Copyright © 2017–2021 ByteBit
     Copyright © 2018 vuolen
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -204,6 +204,8 @@ void sound_position(SoundSource * s, float x, float y, float z) {
 
 #ifdef USE_SOUND
 static bool sound_update_single(void * obj, void * user) {
+    UNUSED(user);
+
     SoundSource * s = (SoundSource *) obj;
 
     int source_state;

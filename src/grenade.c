@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2022 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -131,6 +131,8 @@ static int grenade_inwater(Grenade * g) {
 }
 
 bool grenade_render_single(void * obj, void * user) {
+    UNUSED(user);
+
     static kv6 * const model_grenade = &model[MODEL_GRENADE];
 
     Grenade * g = (Grenade *) obj;

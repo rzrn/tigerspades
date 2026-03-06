@@ -301,9 +301,9 @@ void * ping_update(void * data) {
 
                 for (int k = 0; k < news_entries; k++) {
                     if (current != NULL) {
-                        current->next = calloc(sizeof(News), 1);
+                        current->next = calloc(1, sizeof(News));
                         current = current->next;
-                    } else current = newslist = calloc(sizeof(News), 1);
+                    } else current = newslist = calloc(1, sizeof(News));
 
                     JSON_Object * s = json_array_get_object(news, k);
                     if (json_object_get_string(s, "caption"))

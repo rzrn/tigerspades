@@ -137,6 +137,8 @@ void tracer_add(int type, float x, float y, float z, float dx, float dy, float d
 }
 
 static bool tracer_render_single(void * obj, void * user) {
+    UNUSED(user);
+
     Tracer * t = (Tracer *) obj;
 
     static enum kv6 model_tracer[] = {

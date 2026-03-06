@@ -6,7 +6,7 @@
     Copyright © 2021–2022 Haxk20
     Copyright © 2022 Julius C. Enriquez
     Copyright © 2025 Ashy
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -1352,6 +1352,8 @@ static void getPacketGraphData(uint8_t * data, size_t len) {
 }
 
 static void getPacketGraphDel(uint8_t * data, size_t len) {
+    UNUSED(len);
+
     PacketGraphDel p; readPacketGraphDel(data, &p);
 
     Graph * g = graph_remove(&hud_graph, p.index);

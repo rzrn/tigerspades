@@ -19,6 +19,7 @@
 
 #include <assert.h>
 
+#include <bs/common.h>
 #include <bs/utils.h>
 
 static int base64_map(char c) {
@@ -58,12 +59,16 @@ int base64_decode(char * data, int len) {
 }
 
 int int_cmp(void * first_key, void * second_key, size_t key_size) {
+    UNUSED(key_size);
+
     assert(first_key && second_key);
 
     return (*(uint32_t *) first_key) != (*(uint32_t *) second_key);
 }
 
 size_t int_hash(void * raw_key, size_t key_size) {
+    UNUSED(key_size);
+
     assert(raw_key);
 
     uint32_t x = *(uint32_t *) raw_key;

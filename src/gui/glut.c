@@ -95,6 +95,8 @@ char * glut_special_key_name(int keycode) {
 }
 
 void window_keyboard(unsigned char key, int x, int y) {
+    UNUSED(x); UNUSED(y);
+
     if (isprint(key)) text_input((uint8_t[]) {key, 0});
 
     int mod = glutGetModifiers() & GLUT_ACTIVE_CTRL;
@@ -102,16 +104,22 @@ void window_keyboard(unsigned char key, int x, int y) {
 }
 
 void window_special(int key, int x, int y) {
+    UNUSED(x); UNUSED(y);
+
     int mod = glutGetModifiers() & GLUT_ACTIVE_CTRL;
     window_sendkey(WINDOW_PRESS, key | GLUT_SPECIAL_MASK, mod);
 }
 
 void window_keyboard_up(unsigned char key, int x, int y) {
+    UNUSED(x); UNUSED(y);
+
     int mod = glutGetModifiers() & GLUT_ACTIVE_CTRL;
     window_sendkey(WINDOW_RELEASE, toupper(key), mod);
 }
 
 void window_special_up(int key, int x, int y) {
+    UNUSED(x); UNUSED(y);
+
     int mod = glutGetModifiers() & GLUT_ACTIVE_CTRL;
     window_sendkey(WINDOW_RELEASE, key | GLUT_SPECIAL_MASK, mod);
 }
@@ -124,6 +132,8 @@ void window_reshape(GLint width, GLint height) {
 #define GLUT_WHEEL_DOWN 4
 
 void window_mouse_button(int button, int state, int x, int y) {
+    UNUSED(x); UNUSED(y);
+
     int but;
     switch (button) {
         case GLUT_LEFT_BUTTON:   but = WINDOW_MOUSE_LMB; break;
@@ -212,9 +222,11 @@ const char * window_clipboard(void) {
 }
 
 void window_textinput(int allow) {
+    UNUSED(allow);
 }
 
 void window_swapping(int value) {
+    UNUSED(value);
 }
 
 void window_deinit(void) {

@@ -193,6 +193,8 @@ static void window_impl_joystick(int jid, int event) {
 }
 
 static void window_impl_mouseclick(GLFWwindow * window, int button, int action, int mods) {
+    UNUSED(window);
+
     int b = 0;
     switch (button) {
         case GLFW_MOUSE_BUTTON_LEFT:   b = WINDOW_MOUSE_LMB; break;
@@ -222,6 +224,8 @@ static void window_impl_mouse(GLFWwindow * window, double x, double y) {
 }
 
 static void window_impl_mousescroll(GLFWwindow * window, double xoffset, double yoffset) {
+    UNUSED(window);
+
     mouse_scroll(xoffset, yoffset);
 }
 
@@ -230,16 +234,22 @@ static void window_impl_error(int i, const char * s) {
 }
 
 static void window_impl_reshape(GLFWwindow * window, int width, int height) {
+    UNUSED(window);
+
     reshape(width, height);
 }
 
 static void window_impl_textinput(GLFWwindow * window, unsigned int codepoint) {
+    UNUSED(window);
+
     uint8_t buff[5] = {0};
     encode(UTF8, buff, codepoint);
     text_input(buff);
 }
 
 static void window_impl_keys(GLFWwindow * window, int key, int scancode, int action, int mods) {
+    UNUSED(window); UNUSED(scancode);
+
     int a = -1;
     switch (action) {
         case GLFW_RELEASE: a = WINDOW_RELEASE; break;
@@ -251,10 +261,14 @@ static void window_impl_keys(GLFWwindow * window, int key, int scancode, int act
 }
 
 static void window_cursor_enter_callback(GLFWwindow * window, int entered) {
+    UNUSED(window);
+
     mouse_hover(entered);
 }
 
 static void window_focus_callback(GLFWwindow * window, int focused) {
+    UNUSED(window);
+
     mouse_focus(focused);
 }
 
@@ -317,6 +331,7 @@ const char * window_clipboard(void) {
 }
 
 void window_textinput(int allow) {
+    UNUSED(allow);
 }
 
 void window_swapping(int value) {
@@ -340,6 +355,8 @@ void window_keyname(int keycode, char * output, size_t length) {
 }
 
 void window_init(const char * title, int * argc, char ** argv) {
+    UNUSED(argc); UNUSED(argv);
+
     glfwWindowHint(GLFW_VISIBLE, 0);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 1);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);

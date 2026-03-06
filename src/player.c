@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2023 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -631,6 +631,8 @@ static inline void matrix_head(const Box * box, Vector3f r, Vector3f o, float he
 }
 
 static inline void matrix_torso(const Box * box, Vector3f r, Vector3f o) {
+    UNUSED(box);
+
     matrix_translate(matrix_model, r.x, r.y, r.z);
     matrix_pointAt(matrix_model, o.x, 0.0F, o.z);
     matrix_rotate(matrix_model, 90.0F, 0.0F, 1.0F, 0.0F);

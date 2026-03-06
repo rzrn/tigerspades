@@ -53,6 +53,8 @@ static WindowFinger fingers[8];
 static SDL_Window * window = NULL;
 
 void window_init(const char * title, int * argc, char ** argv) {
+    UNUSED(argc); UNUSED(argv);
+
 #ifdef USE_TOUCH
     SDL_SetHintWithPriority(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1", SDL_HINT_OVERRIDE);
 #endif

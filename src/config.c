@@ -751,6 +751,8 @@ void config_save(void) {
 }
 
 static int config_read_key(void * user, const char * section, const char * name, const char * value) {
+    UNUSED(user);
+
     if (strcmp(section, "keybind") == 0) {
         Keybind * keybind = list_add(&config_keybind, NULL);
         keybind->key = atoi(name);

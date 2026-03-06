@@ -71,6 +71,8 @@ static inline int is_inside_centered(double mx, double my, int x, int y, int w, 
 static void serverlist_refresh(void);
 
 static int mu_text_height(mu_Font font) {
+    UNUSED(font);
+
     float scalex = fmax(1, round(settings.window_width / 800.0F));
     float scaley = fmax(1, round(settings.window_height / 600.0F));
     float scale  = settings.scale == 0 ? fmin(scalex, scaley) : settings.scale;
@@ -1176,6 +1178,8 @@ static void draw_muzzle(mat4 mvp) {
 }
 
 static void hud_draw_weapon(float scale) {
+    UNUSED(scale);
+
     glColor3f(1.0F, 1.0F, 1.0F);
 
     bool is_local = camera.mode == CAMERAMODE_FPS || cameracontroller_bodyview_player == local_player.id;
@@ -1451,6 +1455,8 @@ static void hud_draw_progressbar(float scale) {
 }
 
 static void hud_ingame_render(mu_Context * ctx, float scale) {
+    UNUSED(ctx);
+
     hud_active->render_localplayer = players[local_player.id].team != TEAM_SPECTATOR
         && (screen_current == SCREEN_NONE || camera.mode != CAMERAMODE_FPS);
 
@@ -1698,6 +1704,8 @@ static void hud_ingame_mouselocation(double dx, double dy) {
 }
 
 static void hud_ingame_mouseclick(double x, double y, int button, int action, int mods) {
+    UNUSED(x); UNUSED(y); UNUSED(mods);
+
     if (window_get_mousemode() == WINDOW_CURSOR_ENABLED) {
         if (window_focused && window_hovered && action == WINDOW_RELEASE)
             window_mousemode(WINDOW_CURSOR_DISABLED);
@@ -2371,6 +2379,8 @@ static inline const char * ellipsis(void) {
 }
 
 static void hud_mapload_render(mu_Context * ctx, float scale) {
+    UNUSED(ctx);
+
     glColor3f(1.0F, 1.0F, 1.0F);
     texture_draw(
         texture(TEXTURE_SPLASH), (settings.window_width - settings.window_height * 4.0F / 3.0F * 0.7F) * 0.5F,
@@ -2407,6 +2417,8 @@ static void hud_mapload_render(mu_Context * ctx, float scale) {
 }
 
 static void hud_mapload_keyboard(int key, int action, int mods, int internal) {
+    UNUSED(mods); UNUSED(internal);
+
     if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE) {
         network_disconnect();
         hud_change(&hud_serverlist);
@@ -2492,6 +2504,8 @@ static void server_c(char * address, char * name, GameVersion version) {
 }
 
 static Texture * hud_serverlist_ui_images(int icon_id, bool * resize) {
+    UNUSED(resize);
+
     if (icon_id >= 32) {
         News * current = newslist;
 
@@ -2513,6 +2527,8 @@ static Texture * hud_serverlist_ui_images(int icon_id, bool * resize) {
 }
 
 static int hud_render_tab_button(mu_Context * ctx, float scale, const char * tabname, HUD * tabptr) {
+    UNUSED(scale);
+
     if (hud_active == tabptr) mu_text_color(ctx, 255, 255, 0);
 
     int retval = mu_button_ex(ctx, tabname, 0, MU_OPT_ALIGNCENTER | (hud_active == tabptr ? MU_OPT_NOINTERACT : 0));
@@ -2562,6 +2578,8 @@ static int hud_header_render(mu_Context * ctx, float scale, const char * text) {
 }
 
 static void hud_sort_button_render(mu_Context * ctx, float scale, const char * name, ServerlistComparator cmp) {
+    UNUSED(scale);
+
     if (serverlist_comparator == cmp)
         mu_text_color(ctx, 255, 255, 0);
 
@@ -2772,6 +2790,8 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
 }
 
 static void hud_serverlist_touch(void * finger, int action, float x, float y, float dx, float dy) {
+    UNUSED(finger); UNUSED(action); UNUSED(dx); UNUSED(dy);
+
     window_setmouseloc(x, y);
     /*switch (action) {
         case TOUCH_DOWN: hud_serverlist_mouseclick(x, y, WINDOW_MOUSE_LMB, WINDOW_PRESS, 0); break;
@@ -2781,6 +2801,8 @@ static void hud_serverlist_touch(void * finger, int action, float x, float y, fl
 }
 
 static void hud_serverlist_keyboard(int key, int action, int mods, int internal) {
+    UNUSED(mods); UNUSED(internal);
+
     if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE)
         if (!map_empty()) hud_change(&hud_ingame);
 }
@@ -2924,6 +2946,8 @@ static void hud_enum(mu_Context * ctx, Setting * setting) {
 }
 
 static Texture * hud_settings_ui_images(int icon_id, bool * resize) {
+    UNUSED(resize);
+
     switch (icon_id) {
         case MU_ICON_EXPANDED:  return texture(TEXTURE_UI_EXPANDED);
         case MU_ICON_COLLAPSED: return texture(TEXTURE_UI_COLLAPSED);
@@ -3031,11 +3055,15 @@ static void hud_settings_render(mu_Context * ctx, float scale) {
 }
 
 static void hud_settings_keyboard(int key, int action, int mods, int internal) {
+    UNUSED(mods); UNUSED(internal);
+
     if (action == WINDOW_PRESS && key == WINDOW_KEY_ESCAPE)
         if (!map_empty()) hud_change(&hud_ingame);
 }
 
 static void hud_settings_touch(void * finger, int action, float x, float y, float dx, float dy) {
+    UNUSED(finger); UNUSED(action); UNUSED(dx); UNUSED(dy);
+
     window_setmouseloc(x, y);
 }
 
@@ -3176,10 +3204,14 @@ static void hud_controls_render(mu_Context * ctx, float scale) {
 }
 
 static void hud_controls_touch(void * finger, int action, float x, float y, float dx, float dy) {
+    UNUSED(finger); UNUSED(action); UNUSED(dx); UNUSED(dy);
+
     window_setmouseloc(x, y);
 }
 
 static void hud_controls_keyboard(int key, int action, int mods, int internal) {
+    UNUSED(mods);
+
     if (hud_controls_edit) {
         *hud_controls_edit = internal;
         hud_controls_edit = NULL;

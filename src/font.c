@@ -189,8 +189,6 @@ static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t he
 }
 
 Font * font_primary, * font_secondary;
-
-static Subfont gnuascii, gnubmp, gnusmp, vga, uvga;
 static Font * font_selected;
 
 void font_init(void) {
@@ -202,6 +200,8 @@ void font_init(void) {
     }
 
     if (settings.unicode_enabled) {
+        static Subfont uvga, gnubmp, gnusmp;
+
         gnubmp = upload_subfont("fonts/gnubmp.bitmap", max_size, 16);
         gnusmp = upload_subfont("fonts/gnusmp.bitmap", max_size, 16);
         uvga   = upload_subfont("fonts/uvga.bitmap",   max_size, 16);
@@ -215,6 +215,8 @@ void font_init(void) {
         font_primary   = &primary;
         font_secondary = &secondary;
     } else {
+        static Subfont vga, gnuascii;
+
         gnuascii = upload_subfont("fonts/gnuascii.bitmap", max_size, 16);
         vga      = upload_subfont("fonts/vga.bitmap",      max_size, 16);
 

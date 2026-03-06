@@ -38,7 +38,7 @@ the file `kv6/smg.kv6` should be placed in the root of the archive.
 
 | Type    | min. requirement                                     |
 | ------- | ---------------------------------------------------- |
-| OS      | Windows 98 or Linux                                  |
+| OS      | Windows, Linux, FreeBSD, or macOS                    |
 | CPU     | 1 GHz single core processor                          |
 | GPU     | 64 MiB VRAM, Mobile Intel 945GM or equivalent        |
 | RAM     | 256 MiB                                              |

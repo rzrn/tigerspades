@@ -47,8 +47,6 @@ depend:
 	makedepend -o.2 -s '### (2) ###' -I`$(CC) --print-file-name=include` -Iinclude/ -f $(PREREQFILE) -- $(CFLAGS2) $(CFILES2)
 
 printenv:
-	@echo COMMITHASH=$(COMMITHASH)
-
 	@echo NSFILES=$(NSFILES)
 	@echo CFLAGS1=$(CFLAGS1)
 	@echo CFLAGS2=$(CFLAGS2)
@@ -61,10 +59,10 @@ $(PACKFILE):
 	curl -o $(PACKFILE) $(PACKURL)
 
 .m.o:
-	$(CC) -x objective-c $(CFLAGS1) $(NSFLAGS) -DGIT_COMMIT_HASH=\"$(COMMITHASH)\" -Iinclude/ -c $< -o $@
+	$(CC) -x objective-c $(CFLAGS1) $(NSFLAGS) -Iinclude/ -c $< -o $@
 
 .c.1:
-	$(CC) $(CFLAGS1) -DGIT_COMMIT_HASH=\"$(COMMITHASH)\" -Iinclude/ -c $< -o $@
+	$(CC) $(CFLAGS1) -Iinclude/ -c $< -o $@
 
 .c.2:
 	$(CC) $(CFLAGS2) -Iinclude/ -c $< -o $@

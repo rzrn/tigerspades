@@ -13,58 +13,71 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from argparse import ArgumentParser
 import struct
-import sys
 
 from bdfparser import Font, Bitmap
 
-progname, *filenames = sys.argv
+argparser = ArgumentParser(
+    description = "BDF to the TigerSpades font format conversion tool"
+)
 
-for filename in filenames:
+argparser.add_argument("-h16", "--high-16", type = int, metavar = "HIGH16", dest = "high16", default = 0x0000,
+                       help = "high 16 bytes of the Unicode plane")
+argparser.add_argument("-l16", "--max-low-16", type = int, metavar = "MAXLOW16", dest = "maxlow16", default = 0xFFFF,
+                       help = "low 16 bytes after which glyphs are discarded")
+argparser.add_argument("filename", nargs = '*', help = "BDF font to convert")
+
+params = argparser.parse_args()
+
+for filename in params.filename:
     font = Font(filename)
 
     headers = ", ".join("{} = {}".format(k, v) for k, v in font.headers.items())
-    print("{}: {}: {}".format(progname, filename, headers))
+    print("{}: {}: {}".format(argparser.prog, filename, headers))
 
     fontname = font.headers['fontname']
     height = font.headers['fbby']
-    high16 = 0x00000000
 
     if height > 255:
         raise ValueError(
-            "{}: {}: too big font".format(progname, filename)
+            "{}: {}: too big font".format(argparser.prog, filename)
         )
 
     fout = open(filename + '.out', 'wb')
-    fout.write(struct.pack("<128sHb", fontname.encode('utf-8'), high16, height))
+    fout.write(struct.pack("<128sHb", fontname.encode('utf-8'), params.high16, height))
 
     for glyph in font.iterglyphs():
         codepoint = glyph.cp()
 
-        if (codepoint >> 16) != high16:
+        low16 = codepoint & 0xFFFF
+        high16 = (codepoint >> 16) & 0xFFFF
+
+        if low16 > params.maxlow16:
+            continue
+
+        if high16 != params.high16:
             print(
-                "{}: skipped codepoint {:x}".format(progname, codepoint)
+                "{}: skipped codepoint {:x}".format(argparser.prog, codepoint)
             )
 
             continue
-
-        low16 = codepoint & 0xFFFF
 
         bitmap = glyph.draw(2)
 
         if bitmap.height() != height:
             raise ValueError(
-                "{}: {}: bad glyph height: {:x}".format(progname, filename, codepoint)
+                "{}: {}: bad glyph height: {:x}".format(argparser.prog, filename, codepoint)
             )
 
         if bitmap.width() > 255:
             raise ValueError(
-                "{}: {}: glyph too big: {:x}".format(progname, filename, codepoint)
+                "{}: {}: glyph too big: {:x}".format(argparser.prog, filename, codepoint)
             )
 
         if bitmap.width() % 8 != 0:
             raise ValueError(
-                "{}: {}: invalid glyph width: {:x}".format(progname, filename, codepoint)
+                "{}: {}: invalid glyph width: {:x}".format(argparser.prog, filename, codepoint)
             )
 
         data = bitmap.tobytes('1', {0: 0, 1: 1, 2: 1})

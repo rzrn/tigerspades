@@ -1,5 +1,8 @@
 ![GPL v3](https://www.gnu.org/graphics/gplv3-127x51.png)
 
+For ready-to-use binaries, see [the releases page](https://github.com/rzrn/tigerspades/releases).
+Otherwise, don’t forget to read `make help`.
+
 ## TigerSpades
 
 * Compatible client of *Ace of Spades* (classic voxlap).

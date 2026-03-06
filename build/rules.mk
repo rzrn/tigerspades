@@ -18,7 +18,7 @@
 all: $(EXEFILE)
 
 clean:
-	rm -f $(EXEFILE) $(AFILES)
+	rm -f $(EXEFILE) $(LINKFILES)
 	@find src/ -name '*.[o12]' -exec echo rm -f {} \; -exec rm -f {} \;
 
 nuke: clean
@@ -43,8 +43,8 @@ chksum:
 
 depend:
 	echo > $(PREREQFILE)
-	makedepend -o.1 -s '### (1) ###' -I`$(CC) --print-file-name=include` -Iinclude/ -f $(PREREQFILE) -- $(CFLAGS1) $(CFILES1)
-	makedepend -o.2 -s '### (2) ###' -I`$(CC) --print-file-name=include` -Iinclude/ -f $(PREREQFILE) -- $(CFLAGS2) $(CFILES2)
+	makedepend -f $(PREREQFILE) -o.1 -s '### (1) ###' -- $(CFLAGS1) $(CFILES1)
+	makedepend -f $(PREREQFILE) -o.2 -s '### (2) ###' -- $(CFLAGS2) $(CFILES2)
 
 printenv:
 	@echo NSFILES=$(NSFILES)
@@ -59,13 +59,13 @@ $(PACKFILE):
 	curl -o $(PACKFILE) $(PACKURL)
 
 .m.o:
-	$(CC) -x objective-c $(CFLAGS1) $(NSFLAGS) -Iinclude/ -c $< -o $@
+	$(CC) -x objective-c $(CFLAGS1) $(NSFLAGS) -c $< -o $@
 
 .c.1:
-	$(CC) $(CFLAGS1) -Iinclude/ -c $< -o $@
+	$(CC) $(CFLAGS1) -c $< -o $@
 
 .c.2:
-	$(CC) $(CFLAGS2) -Iinclude/ -c $< -o $@
+	$(CC) $(CFLAGS2) -c $< -o $@
 
 build/betterspades.a: $(OFILES1)
 	ar rcs $@ $?

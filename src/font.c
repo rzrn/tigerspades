@@ -135,9 +135,9 @@ static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t he
     font.table = calloc(65536, sizeof(Glyph));
 
     uint8_t * pagebuff = calloc(texsize * texsize, 1);
-    size_t x0 = 0, y0 = 0, pagenum = 0;
+    size_t x0 = 0, y0 = 0, pagenum = 0, nglyphs;
 
-    for (;;) {
+    for (nglyphs = 0; ; nglyphs++) {
         if (fread(buff, sizeBitmapGlyph, 1, file) < 1) {
             font.textures[pagenum] = upload_page(texsize, pagebuff);
             break;
@@ -183,7 +183,7 @@ static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t he
     font.npages   = pagenum + 1;
     font.buffers  = calloc(font.npages, sizeof(Buffer));
 
-    log_info("%s (0x%04xXXXX): height = %d, npages = %d", filename, font.high16, height, font.npages);
+    log_info("%s (0x%04xXXXX): height = %d, nglyphs = %d, npages = %d", filename, font.high16, height, nglyphs, font.npages);
 
     free(buff); free(pagebuff); fclose(file); return font;
 }

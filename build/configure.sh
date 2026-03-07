@@ -179,8 +179,8 @@ case ${PROFILE} in
     ;;
 esac
 
-CFLAGS1="${CFLAGS1} -D'GIT_COMMIT_HASH=\"${COMMITHASH}\"' -Iinclude/"
-CFLAGS2="${CFLAGS2} -Iinclude/"
+CFLAGS1="-Iinclude/ -D'GIT_COMMIT_HASH=\"${COMMITHASH}\"' ${CFLAGS1}"
+CFLAGS2="-Iinclude/ ${CFLAGS2}"
 
 # (6) Final remarks
 

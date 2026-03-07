@@ -391,12 +391,12 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
     char buff[256];
     switch (p.chat_type) {
         case CHAT_ERROR: sound_create(SOUND_LOCAL, sound(SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
-        case CHAT_BIG:   chat_showpopup(msg, size, codepage, 5.0F, Red); return;
-        case CHAT_INFO:  chat_showpopup(msg, size, codepage, 5.0F, White); return;
+        case CHAT_BIG:   chat_show_popup(msg, size, codepage, 5.0F, Red); return;
+        case CHAT_INFO:  chat_show_popup(msg, size, codepage, 5.0F, White); return;
 
         case CHAT_WARNING: {
             sound_create(SOUND_LOCAL, sound(SOUND_BEEP1), 0.0F, 0.0F, 0.0F);
-            chat_showpopup(msg, size, codepage, 5.0F, Yellow);
+            chat_show_popup(msg, size, codepage, 5.0F, Yellow);
             return;
         }
 
@@ -986,7 +986,7 @@ static void getPacketTerritoryCapture(uint8_t * data, size_t len) {
 
             if (p.winning) {
                 sprintf(capture_str, "%s Team Wins!", team_name);
-                chat_showpopup(capture_str, sizeof(capture_str), UTF8, 5.0F, Red);
+                chat_show_popup(capture_str, sizeof(capture_str), UTF8, 5.0F, Red);
             }
         }
     }
@@ -1038,7 +1038,7 @@ static void getPacketIntelCapture(uint8_t * data, size_t len) {
             }
 
             sprintf(capture_str, "%s Team Wins!", name);
-            chat_showpopup(capture_str, sizeof(capture_str), UTF8, 5.0F, Red);
+            chat_show_popup(capture_str, sizeof(capture_str), UTF8, 5.0F, Red);
 
             gamestate.ctf.team1_score = 0;
             gamestate.ctf.team2_score = 0;

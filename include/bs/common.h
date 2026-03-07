@@ -3,7 +3,7 @@
     Copyright © 2017 yvt
     Copyright © 2018 vuolen
     Copyright © 2022 Julius C. Enriquez
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -206,7 +206,7 @@ extern float chat_popup_timer;
 extern float chat_popup_duration;
 extern RGBA4i chat_popup_color;
 void chat_add(int channel, RGBA4i, const char *, size_t, Codepage);
-void chat_showpopup(const char *, size_t, Codepage, float duration, RGBA4i);
+void chat_show_popup(const char *, size_t, Codepage, float duration, RGBA4i);
 const char * reason_disconnect(int code);
 
 int ms_rand(void);

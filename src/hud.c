@@ -1809,7 +1809,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
                 sound_create(SOUND_LOCAL, sound(SOUND_EMPTY), 0.0F, 0.0F, 0.0F);
 
                 static const char popup[] = "RELOAD";
-                chat_showpopup(popup, sizeof(popup), ASCII, 0.4F, Red);
+                chat_show_popup(popup, sizeof(popup), ASCII, 0.4F, Red);
             }
         }
     }

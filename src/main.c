@@ -99,7 +99,7 @@ RGBA4i chat_popup_color;
 float chat_popup_timer = 0.0F;
 float chat_popup_duration = 0.0F;
 
-void chat_showpopup(const char * msg, size_t size, Codepage codepage, float duration, RGBA4i color) {
+void chat_show_popup(const char * msg, size_t size, Codepage codepage, float duration, RGBA4i color) {
     convert(chat_popup, sizeof(chat_popup), UTF8, msg, size, codepage);
     chat_popup_timer    = window_time();
     chat_popup_duration = duration;

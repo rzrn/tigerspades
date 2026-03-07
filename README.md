@@ -20,6 +20,7 @@ Otherwise, don’t forget to read `make help`.
 
 * Support of big-endian systems e.g. PowerPC (but *not limited to,* that is, support of little-endian systems is available as well).
 * Unicode & UTF-8.
+* Extended chat history size (configure in “Settings”, use the arrow keys to scroll).
 * Customizable key bindings.
 * Cleaned up user interface.
 * Makefiles instead of CMake (now obsolete version of CMake takes ≈2 hours to build on G4 CPU but still cannot be used to build BetterSpades).

@@ -764,10 +764,11 @@ static float hud_draw_killfeed(float top, float scale) {
     glColor3f(1.0F, 1.0F, 1.0F);
 
     for (int k = 0; k < 6; k++) {
-        if (window_time() - chat_timer[1][k + 1] < 10.0F && strlen(chat[1][k + 1]) > 0) {
-            glColor3ub(chat_color[1][k + 1].r, chat_color[1][k + 1].g, chat_color[1][k + 1].b);
+        if (window_time() - game_killfeed[k].timer < 10.0F && strlen(game_killfeed[k].value) > 0) {
+            RGBA4i color = game_killfeed[k].color;
+            glColor3ub(color.r, color.g, color.b);
 
-            font_render(11.0F * scale, top, 1.0F * scale, chat[1][k + 1], UTF8); top -= 18.0F * scale;
+            font_render(11.0F * scale, top, 1.0F * scale, game_killfeed[k].value, UTF8); top -= 18.0F * scale;
         }
     }
 
@@ -784,9 +785,9 @@ static void hud_draw_chat(float scale) {
         int chat_height = 0;
 
         for (int k = 0; k < 6; k++) {
-            if ((window_time() - chat_timer[0][k + 1] < 10.0F || chat_input_mode != CHAT_NO_INPUT)
-               && strlen(chat[0][k + 1]) > 0) {
-                chat_width = fmaxf(font_length(1.0F * scale, chat[0][k + 1], 0, UTF8), chat_width);
+            if ((window_time() - game_chat[k].timer < 10.0F || chat_input_mode != CHAT_NO_INPUT)
+               && strlen(game_chat[k].value) > 0) {
+                chat_width = fmaxf(font_length(1.0F * scale, game_chat[k].value, 0, UTF8), chat_width);
                 chat_height = k + 1;
             }
         }
@@ -794,7 +795,7 @@ static void hud_draw_chat(float scale) {
         if (chat_input_mode != CHAT_NO_INPUT) {
             chat_height += 2;
             chat_width = fmaxf(
-                font_length(1.0F * scale, chat[0][0], 0, UTF8),
+                font_length(1.0F * scale, game_chat_input, 0, UTF8),
                 fmaxf(settings.window_width / 2.0F, chat_width)
             );
         }
@@ -833,15 +834,16 @@ static void hud_draw_chat(float scale) {
             default: break;
         }
 
-        Vector2f caret = font_render(11.0F * scale, chat_y + 18.0F * scale, 1.0F * scale, chat[0][0], UTF8);
+        Vector2f caret = font_render(11.0F * scale, chat_y + 18.0F * scale, 1.0F * scale, game_chat_input, UTF8);
         static char bufcaret[] = "_"; font_render(caret.x, caret.y, 1.0F * scale, bufcaret, UTF8);
     }
 
     for (int k = 0; k < 6; k++) {
-        if (window_time() - chat_timer[0][k + 1] < 10.0F || chat_input_mode != CHAT_NO_INPUT) {
-            glColor3ub(chat_color[0][k + 1].r, chat_color[0][k + 1].g, chat_color[0][k + 1].b);
+        if (window_time() - game_chat[k].timer < 10.0F || chat_input_mode != CHAT_NO_INPUT) {
+            RGBA4i color = game_chat[k].color;
+            glColor3ub(color.r, color.g, color.b);
 
-            font_render(11.0F * scale, chat_y - 18.0F * scale * k, 1.0F * scale, chat[0][k + 1], UTF8);
+            font_render(11.0F * scale, chat_y - 18.0F * scale * k, 1.0F * scale, game_chat[k].value, UTF8);
         }
     }
 }
@@ -1592,14 +1594,14 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         font_select(font_primary);
     }
 
-    if (window_time() - chat_popup_timer < chat_popup_duration) {
+    if (window_time() - chat_popup.timer < chat_popup_duration) {
         float height = settings.chat_popup_centered ? 3.0F * scale : 2.0F * scale;
 
-        float x = settings.window_width * 0.5F - font_length(height, chat_popup, 0, UTF8) * 0.5F;
+        float x = settings.window_width * 0.5F - font_length(height, chat_popup.value, 0, UTF8) * 0.5F;
         float y = settings.chat_popup_centered ? settings.window_height * 0.65F : 14 * 18.0F * scale;
 
-        glColor3ub(chat_popup_color.r, chat_popup_color.g, chat_popup_color.b);
-        font_render(x, y, height, chat_popup, UTF8);
+        glColor3ub(chat_popup.color.r, chat_popup.color.g, chat_popup.color.b);
+        font_render(x, y, height, chat_popup.value, UTF8);
     }
 
     glColor3f(1.0F, 1.0F, 1.0F);
@@ -1921,13 +1923,13 @@ static inline CameraMode cycle_camera_mode(CameraMode mode) {
 }
 
 static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
-    if (chat_input_mode != CHAT_NO_INPUT && action == WINDOW_PRESS && key == WINDOW_KEY_TAB && strlen(chat[0][0]) > 0) {
+    if (chat_input_mode != CHAT_NO_INPUT && action == WINDOW_PRESS && key == WINDOW_KEY_TAB && strlen(game_chat_input) > 0) {
         // autocomplete word
-        char * incomplete = strrchr(chat[0][0], ' ') + 1;
+        char * incomplete = strrchr(game_chat_input, ' ') + 1;
         if (incomplete == (char *) 1)
-            incomplete = chat[0][0];
+            incomplete = game_chat_input;
         const char * match = hud_ingame_completeword(incomplete);
-        if (match && strlen(match) + strlen(chat[0][0]) < 128)
+        if (match && strlen(match) + strlen(game_chat_input) < 128)
             strcpy(incomplete, match);
     }
 
@@ -1936,19 +1938,21 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             if (key == WINDOW_KEY_COMMAND) {
                 window_textinput(1);
                 chat_input_mode = CHAT_ALL_INPUT;
-                strcpy(chat[0][0], "/");
+
+                game_chat_input[0] = '/';
+                game_chat_input[1] = 0;
             }
 
             if (key == WINDOW_KEY_TEAM_CHAT) {
                 window_textinput(1);
                 chat_input_mode = CHAT_TEAM_INPUT;
-                chat[0][0][0] = 0;
+                game_chat_input[0] = 0;
             }
 
             if (key == WINDOW_KEY_CHAT) {
                 window_textinput(1);
                 chat_input_mode = CHAT_ALL_INPUT;
-                chat[0][0][0] = 0;
+                game_chat_input[0] = 0;
             }
         } else if (action == WINDOW_PRESS) {
             if (!network_connected) switch (key) {
@@ -2212,24 +2216,24 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
         if (action != WINDOW_RELEASE) {
             if (key == WINDOW_KEY_V && mods) {
                 const char * clipboard = window_clipboard();
-                if (clipboard != NULL) strcatprint(chat[0][0], sizeof(chat[0][0]), clipboard);
+                if (clipboard != NULL) strcatprint(game_chat_input, sizeof(game_chat_input), clipboard);
             }
 
             if (key == WINDOW_KEY_ESCAPE || key == WINDOW_KEY_ENTER) {
-                size_t size = strsize(chat[0][0], sizeof(chat[0][0]));
+                size_t size = strsize(game_chat_input, sizeof(game_chat_input));
 
                 if (key == WINDOW_KEY_ENTER && size > 1)
-                    broadcast_chat(chat_input_mode == CHAT_ALL_INPUT ? CHAT_ALL : CHAT_TEAM, chat[0][0], size);
+                    broadcast_chat(chat_input_mode == CHAT_ALL_INPUT ? CHAT_ALL : CHAT_TEAM, game_chat_input, size);
 
                 window_textinput(0);
                 chat_input_mode = CHAT_NO_INPUT;
             }
 
             if (key == WINDOW_KEY_BACKSPACE) {
-                size_t len = strlen(chat[0][0]);
+                size_t len = strlen(game_chat_input);
                 if (len > 0) {
-                    while (CONT(chat[0][0][--len]) && len > 0);
-                    chat[0][0][len] = 0;
+                    while (CONT(game_chat_input[--len]) && len > 0);
+                    game_chat_input[len] = 0;
                 }
             }
         }

@@ -198,14 +198,21 @@ extern float last_cy;
 
 extern int fps;
 
-extern char chat[2][10][256];
-extern RGBA4i chat_color[2][10];
-extern float chat_timer[2][10];
-extern char chat_popup[256];
-extern float chat_popup_timer;
+#define CHAT_MESSAGE_SIZE 256
+
+typedef struct {
+    char   value[CHAT_MESSAGE_SIZE];
+    RGBA4i color;
+    float  timer;
+} Message;
+
+extern Message game_killfeed[], game_chat[];
+extern char game_chat_input[CHAT_MESSAGE_SIZE];
+
+extern Message chat_popup;
 extern float chat_popup_duration;
-extern RGBA4i chat_popup_color;
-void chat_add(int channel, RGBA4i, const char *, size_t, Codepage);
+
+void chat_add(Message *, RGBA4i, const char *, size_t, Codepage);
 void chat_show_popup(const char *, size_t, Codepage, float duration, RGBA4i);
 const char * reason_disconnect(int code);
 

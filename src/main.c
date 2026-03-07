@@ -74,36 +74,33 @@ void window_scissor(void) {
 
 ChatInputMode chat_input_mode = CHAT_NO_INPUT;
 
-char chat[2][10][256] = {{{0}}}; // chat[0] is current input
+Message game_killfeed[10], game_chat[10];
+char game_chat_input[CHAT_MESSAGE_SIZE];
 
-RGBA4i chat_color[2][10];
-float chat_timer[2][10];
-
-void chat_add(int channel, RGBA4i color, const char * msg, size_t size, Codepage codepage) {
-    for (int k = 9; k > 1; k--) {
-        strcpy(chat[channel][k], chat[channel][k - 1]);
-        chat_color[channel][k] = chat_color[channel][k - 1];
-        chat_timer[channel][k] = chat_timer[channel][k - 1];
+void chat_add(Message * chan, RGBA4i color, const char * msg, size_t size, Codepage codepage) {
+    for (size_t k = 9; k > 0; k--) {
+        strcpy(chan[k].value, chan[k - 1].value);
+        chan[k].color = chan[k - 1].color;
+        chan[k].timer = chan[k - 1].timer;
     }
 
-    convert(chat[channel][1], sizeof(chat[channel][1]), UTF8, msg, size, codepage);
+    convert(chan[0].value, sizeof(chan[0].value), UTF8, msg, size, codepage);
 
-    chat_color[channel][1] = color;
-    chat_timer[channel][1] = window_time();
+    chan[0].color = color;
+    chan[0].timer = window_time();
 
-    if (channel == 0) log_info("%s", msg);
+    if (chan == game_chat) log_info("%s", msg);
 }
 
-char chat_popup[256] = {0};
-RGBA4i chat_popup_color;
-float chat_popup_timer = 0.0F;
+Message chat_popup;
 float chat_popup_duration = 0.0F;
 
 void chat_show_popup(const char * msg, size_t size, Codepage codepage, float duration, RGBA4i color) {
-    convert(chat_popup, sizeof(chat_popup), UTF8, msg, size, codepage);
-    chat_popup_timer    = window_time();
+    convert(chat_popup.value, sizeof(chat_popup.value), UTF8, msg, size, codepage);
+    chat_popup.timer = window_time();
+    chat_popup.color = color;
+
     chat_popup_duration = duration;
-    chat_popup_color    = color;
 }
 
 void drawEntity(kv6 * model, Vector3f * r, unsigned char team) {
@@ -585,7 +582,7 @@ static int mu_key_translate(int key) {
 void text_input(const uint8_t * text) {
     const uint8_t * end = text + strlen((const char *) text);
 
-    size_t destlen = strlen(chat[0][0]);
+    size_t destlen = strlen(game_chat_input);
 
     while (text != end) {
         char buff[5] = {0};
@@ -604,8 +601,8 @@ void text_input(const uint8_t * text) {
         if (hud_active->ctx) mu_input_text(hud_active->ctx, buff);
 
         if (chat_input_mode != CHAT_NO_INPUT)
-        if (destlen + size < sizeof(chat[0][0])) {
-            strcpy(&chat[0][0][destlen], buff);
+        if (destlen + size < sizeof(game_chat_input)) {
+            strcpy(&game_chat_input[destlen], buff);
             destlen += size;
         }
 

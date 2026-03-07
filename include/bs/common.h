@@ -200,20 +200,32 @@ extern int fps;
 
 #define CHAT_MESSAGE_SIZE 256
 
-typedef struct {
-    char   value[CHAT_MESSAGE_SIZE];
-    RGBA4i color;
-    float  timer;
-} Message;
+typedef struct _Text Text;
 
-extern Message game_killfeed[], game_chat[];
+struct _Text {
+    char value[CHAT_MESSAGE_SIZE];
+    RGBA4i color; float timer;
+    Text * prev, * next;
+    size_t index;
+};
+
+typedef struct {
+    Text * first, * last;
+    ptrdiff_t maxlen;
+} TextDeque;
+
+void deque_free(TextDeque *);
+
+extern TextDeque game_killfeed, game_chat;
 extern char game_chat_input[CHAT_MESSAGE_SIZE];
 
-extern Message chat_popup;
+extern Text chat_popup;
 extern float chat_popup_duration;
 
-void chat_add(Message *, RGBA4i, const char *, size_t, Codepage);
+void game_killfeed_add(RGBA4i, const char *, size_t);
+void game_chat_add(RGBA4i, const char *, size_t, Codepage);
 void chat_show_popup(const char *, size_t, Codepage, float duration, RGBA4i);
+
 const char * reason_disconnect(int code);
 
 int ms_rand(void);

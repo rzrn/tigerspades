@@ -114,6 +114,7 @@ typedef struct {
     bool  spectator_esp;
     bool  chat_popup_centered;
     bool  unicode_enabled;
+    int   chat_history_size;
 } Options;
 
 extern Options settings, settings_tmp;

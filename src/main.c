@@ -74,26 +74,85 @@ void window_scissor(void) {
 
 ChatInputMode chat_input_mode = CHAT_NO_INPUT;
 
-Message game_killfeed[10], game_chat[10];
+TextDeque game_chat, game_killfeed = {.maxlen = 5};
 char game_chat_input[CHAT_MESSAGE_SIZE];
 
-void chat_add(Message * chan, RGBA4i color, const char * msg, size_t size, Codepage codepage) {
-    for (size_t k = 9; k > 0; k--) {
-        strcpy(chan[k].value, chan[k - 1].value);
-        chan[k].color = chan[k - 1].color;
-        chan[k].timer = chan[k - 1].timer;
+static inline bool is_deque_full(TextDeque * deque)
+{ return deque->last != NULL && deque->maxlen <= deque->first->index - deque->last->index; }
+
+static inline void deque_push(TextDeque * deque, Text * node) {
+    node->prev = NULL;
+    node->next = deque->first;
+
+    if (deque->first == NULL) {
+        node->index = 0;
+        deque->last = node;
+    } else {
+        node->index = deque->first->index + 1;
+        deque->first->prev = node;
     }
 
-    convert(chan[0].value, sizeof(chan[0].value), UTF8, msg, size, codepage);
-
-    chan[0].color = color;
-    chan[0].timer = window_time();
-
-    if (chan == game_chat) log_info("%s", msg);
+    deque->first = node;
 }
 
-Message chat_popup;
-float chat_popup_duration = 0.0F;
+static inline Text * deque_pop(TextDeque * deque) {
+    Text * retval = deque->last;
+
+    if (retval->prev == NULL) {
+        deque->first = NULL;
+        deque->last = NULL;
+    } else {
+        deque->last = retval->prev;
+        deque->last->next = NULL;
+    }
+
+    return retval;
+}
+
+void deque_free(TextDeque * deque) {
+    for (Text * node = deque->first; node != NULL;) {
+        Text * next = node->next;
+        free(node); node = next;
+    }
+
+    deque->first = deque->last = NULL;
+}
+
+void game_killfeed_add(RGBA4i color, const char * mesg, size_t size) {
+    // Instead of free-malloc, we reuse existing memory.
+    Text * node = is_deque_full(&game_killfeed)
+                ? deque_pop(&game_killfeed)
+                : malloc(sizeof(Text));
+
+    strncpy(node->value, mesg, sizeof(node->value));
+    node->timer = window_time();
+    node->color = color;
+
+    deque_push(&game_killfeed, node);
+}
+
+void game_chat_add(RGBA4i color, const char * mesg, size_t size, Codepage codepage) {
+    Text * node;
+
+    if (is_deque_full(&game_chat)) {
+        node = deque_pop(&game_chat);
+
+        if (hud_game_chat_selected == node)
+            hud_game_chat_selected = game_chat.last;
+    } else {
+        node = malloc(sizeof(Text));
+    }
+
+    convert(node->value, sizeof(node->value), UTF8, mesg, size, codepage);
+    node->timer = window_time();
+    node->color = color;
+
+    deque_push(&game_chat, node);
+
+    log_info("%s", mesg);
+}
+
+Text chat_popup; float chat_popup_duration = 0.0F;
 
 void chat_show_popup(const char * msg, size_t size, Codepage codepage, float duration, RGBA4i color) {
     convert(chat_popup.value, sizeof(chat_popup.value), UTF8, msg, size, codepage);
@@ -720,6 +779,9 @@ void mouse_scroll(double xoffset, double yoffset) {
 }
 
 void deinit(void) {
+    deque_free(&game_chat);
+    deque_free(&game_killfeed);
+
     rpc_deinit();
     ping_deinit();
 

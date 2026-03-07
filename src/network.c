@@ -113,7 +113,7 @@ static void printJoinMsg(int team, char * name) {
     }
 
     char buff[64]; sprintf(buff, "%s joined the %s team", name, t);
-    chat_add(game_chat, Red, buff, sizeof(buff), UTF8);
+    game_chat_add(Red, buff, sizeof(buff), UTF8);
 
     if (network_logged_in && settings.connect_beep) beep();
 }
@@ -448,7 +448,7 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
         }
     }
 
-    chat_add(game_chat, color, buff, sizeof(buff), UTF8);
+    game_chat_add(color, buff, sizeof(buff), UTF8);
 }
 
 static inline void addExtInfoEntry(uint8_t id, uint8_t version, size_t * dest) {
@@ -860,15 +860,15 @@ static void getPacketKillAction(uint8_t * data, size_t len) {
 
         if (p.killer_id == local_player.id || p.player_id == local_player.id) {
             local_player.last_kill_timer = window_time();
-            chat_add(game_killfeed, Red, buff, sizeof(buff), UTF8);
+            game_killfeed_add(Red, buff, sizeof(buff));
 
             if (settings.kill_indicator) {
                 if (p.kill_type == KILLTYPE_WEAPON || p.kill_type == KILLTYPE_HEADSHOT)
                     sound_create(SOUND_LOCAL, sound(SOUND_SPADE_WHACK), 0.0F, 0.0F, 0.0F);
             }
         } else switch (players[p.killer_id].team) {
-            case TEAM1: chat_add(game_killfeed, RGB3iAs4i(gamestate.team1.color), buff, sizeof(buff), UTF8); break;
-            case TEAM2: chat_add(game_killfeed, RGB3iAs4i(gamestate.team2.color), buff, sizeof(buff), UTF8); break;
+            case TEAM1: game_killfeed_add(RGB3iAs4i(gamestate.team1.color), buff, sizeof(buff)); break;
+            case TEAM2: game_killfeed_add(RGB3iAs4i(gamestate.team2.color), buff, sizeof(buff)); break;
 
             case TEAM_SPECTATOR: break;
         }
@@ -955,7 +955,7 @@ static void getPacketPlayerLeft(uint8_t * data, size_t len) {
         players[p.player_id].score     = 0;
 
         char buff[32]; sprintf(buff, "%s disconnected", players[p.player_id].name);
-        chat_add(game_chat, Red, buff, sizeof(buff), UTF8);
+        game_chat_add(Red, buff, sizeof(buff), UTF8);
 
         if (network_logged_in && settings.disconnect_beep) beep();
     }
@@ -982,7 +982,7 @@ static void getPacketTerritoryCapture(uint8_t * data, size_t len) {
             char y = sector2f(gamestate.tc.territory[p.tent].pos.z);
 
             sprintf(capture_str, "%s have captured %c%c", team_name, x, y);
-            chat_add(game_chat, Red, capture_str, sizeof(capture_str), UTF8);
+            game_chat_add(Red, capture_str, sizeof(capture_str), UTF8);
 
             if (p.winning) {
                 sprintf(capture_str, "%s Team Wins!", team_name);
@@ -1025,7 +1025,7 @@ static void getPacketIntelCapture(uint8_t * data, size_t len) {
 
         sound_create(SOUND_LOCAL, sound(p.winning ? SOUND_HORN : SOUND_PICKUP), 0.0F, 0.0F, 0.0F);
         players[p.player_id].score += 10;
-        chat_add(game_chat, Red, capture_str, sizeof(capture_str), UTF8);
+        game_chat_add(Red, capture_str, sizeof(capture_str), UTF8);
 
         if (p.winning) {
             char * name = NULL;
@@ -1070,7 +1070,7 @@ static void getPacketIntelPickup(uint8_t * data, size_t len) {
                 break;
         }
 
-        chat_add(game_chat, Red, pickup_str, sizeof(pickup_str), UTF8);
+        game_chat_add(Red, pickup_str, sizeof(pickup_str), UTF8);
         sound_create(SOUND_LOCAL, sound(SOUND_PICKUP), 0.0F, 0.0F, 0.0F);
     }
 }
@@ -1095,7 +1095,7 @@ static void getPacketIntelDrop(uint8_t * data, size_t len) {
                 break;
         }
 
-        chat_add(game_chat, Red, drop_str, sizeof(drop_str), UTF8);
+        game_chat_add(Red, drop_str, sizeof(drop_str), UTF8);
     }
 }
 

@@ -110,54 +110,55 @@ static void config_label_ads_mode(char * buffer, size_t length, void * voidptr) 
 }
 
 ConfigKey _config_key[] = {
-    [WINDOW_KEY_UP]            = {.keycode = TOOLKIT_KEY_W,            .name = "move_forward",      .display = "Forward", .category = "Movement"},
-    [WINDOW_KEY_LEFT]          = {.keycode = TOOLKIT_KEY_A,            .name = "move_left",         .display = "Left"},
-    [WINDOW_KEY_DOWN]          = {.keycode = TOOLKIT_KEY_S,            .name = "move_backward",     .display = "Backward"},
-    [WINDOW_KEY_RIGHT]         = {.keycode = TOOLKIT_KEY_D,            .name = "move_right",        .display = "Right"},
-    [WINDOW_KEY_SPACE]         = {.keycode = TOOLKIT_KEY_SPACE,        .name = "jump",              .display = "Jump"},
-    [WINDOW_KEY_SPRINT]        = {.keycode = TOOLKIT_KEY_SHIFT,        .name = "sprint",            .display = "Sprint"},
-    [WINDOW_KEY_CROUCH]        = {.keycode = TOOLKIT_KEY_CONTROL,      .name = "crouch",            .display = "Crouch"},
-    [WINDOW_KEY_SNEAK]         = {.keycode = TOOLKIT_KEY_V,            .name = "sneak",             .display = "Sneak"},
+    [WINDOW_KEY_UP]            = {.keycode = TOOLKIT_KEY_W,            .name = "move_forward",       .display = "Forward", .category = "Movement"},
+    [WINDOW_KEY_LEFT]          = {.keycode = TOOLKIT_KEY_A,            .name = "move_left",          .display = "Left"},
+    [WINDOW_KEY_DOWN]          = {.keycode = TOOLKIT_KEY_S,            .name = "move_backward",      .display = "Backward"},
+    [WINDOW_KEY_RIGHT]         = {.keycode = TOOLKIT_KEY_D,            .name = "move_right",         .display = "Right"},
+    [WINDOW_KEY_SPACE]         = {.keycode = TOOLKIT_KEY_SPACE,        .name = "jump",               .display = "Jump"},
+    [WINDOW_KEY_SPRINT]        = {.keycode = TOOLKIT_KEY_SHIFT,        .name = "sprint",             .display = "Sprint"},
+    [WINDOW_KEY_CROUCH]        = {.keycode = TOOLKIT_KEY_CONTROL,      .name = "crouch",             .display = "Crouch"},
+    [WINDOW_KEY_SNEAK]         = {.keycode = TOOLKIT_KEY_V,            .name = "sneak",              .display = "Sneak"},
 
-    [WINDOW_KEY_CURSOR_UP]     = {.keycode = TOOLKIT_KEY_CURSOR_UP,    .name = "cube_color_up",     .display = "Color up", .category = "Block"},
-    [WINDOW_KEY_CURSOR_DOWN]   = {.keycode = TOOLKIT_KEY_CURSOR_DOWN,  .name = "cube_color_down",   .display = "Color down"},
-    [WINDOW_KEY_CURSOR_LEFT]   = {.keycode = TOOLKIT_KEY_CURSOR_LEFT,  .name = "cube_color_left",   .display = "Color left"},
-    [WINDOW_KEY_CURSOR_RIGHT]  = {.keycode = TOOLKIT_KEY_CURSOR_RIGHT, .name = "cube_color_right",  .display = "Color right"},
-    [WINDOW_KEY_PICKCOLOR]     = {.keycode = TOOLKIT_KEY_E,            .name = "cube_color_sample", .display = "Pick color"},
+    [WINDOW_KEY_CURSOR_UP]     = {.keycode = TOOLKIT_KEY_CURSOR_UP,    .name = "cube_color_up",      .display = "Color up", .category = "Block"},
+    [WINDOW_KEY_CURSOR_DOWN]   = {.keycode = TOOLKIT_KEY_CURSOR_DOWN,  .name = "cube_color_down",    .display = "Color down"},
+    [WINDOW_KEY_CURSOR_LEFT]   = {.keycode = TOOLKIT_KEY_CURSOR_LEFT,  .name = "cube_color_left",    .display = "Color left"},
+    [WINDOW_KEY_CURSOR_RIGHT]  = {.keycode = TOOLKIT_KEY_CURSOR_RIGHT, .name = "cube_color_right",   .display = "Color right"},
+    [WINDOW_KEY_PICKCOLOR]     = {.keycode = TOOLKIT_KEY_E,            .name = "cube_color_sample",  .display = "Pick color"},
 
-    [WINDOW_KEY_TOOL1]         = {.keycode = TOOLKIT_KEY_1,            .name = "tool_spade",        .display = "Select spade", .category = "Tools & Weapons"},
-    [WINDOW_KEY_TOOL2]         = {.keycode = TOOLKIT_KEY_2,            .name = "tool_block",        .display = "Select block"},
-    [WINDOW_KEY_TOOL3]         = {.keycode = TOOLKIT_KEY_3,            .name = "tool_gun",          .display = "Select gun"},
-    [WINDOW_KEY_TOOL4]         = {.keycode = TOOLKIT_KEY_4,            .name = "tool_grenade",      .display = "Select grenade"},
-    [WINDOW_KEY_RELOAD]        = {.keycode = TOOLKIT_KEY_R,            .name = "reload",            .display = "Reload"},
-    [WINDOW_KEY_CHANGEWEAPON]  = {.keycode = TOOLKIT_KEY_PERIOD,       .name = "change_weapon",     .display = "Gun select"},
-    [WINDOW_KEY_LASTTOOL]      = {.keycode = TOOLKIT_KEY_Q,            .name = "last_tool",         .display = "Last tool"},
-    [WINDOW_KEY_FIREMODE]      = {.keycode = TOOLKIT_KEY_F,            .name = "fire_mode",         .display = "Change fire mode"},
+    [WINDOW_KEY_TOOL1]         = {.keycode = TOOLKIT_KEY_1,            .name = "tool_spade",         .display = "Select spade", .category = "Tools & Weapons"},
+    [WINDOW_KEY_TOOL2]         = {.keycode = TOOLKIT_KEY_2,            .name = "tool_block",         .display = "Select block"},
+    [WINDOW_KEY_TOOL3]         = {.keycode = TOOLKIT_KEY_3,            .name = "tool_gun",           .display = "Select gun"},
+    [WINDOW_KEY_TOOL4]         = {.keycode = TOOLKIT_KEY_4,            .name = "tool_grenade",       .display = "Select grenade"},
+    [WINDOW_KEY_RELOAD]        = {.keycode = TOOLKIT_KEY_R,            .name = "reload",             .display = "Reload"},
+    [WINDOW_KEY_CHANGEWEAPON]  = {.keycode = TOOLKIT_KEY_PERIOD,       .name = "change_weapon",      .display = "Gun select"},
+    [WINDOW_KEY_LASTTOOL]      = {.keycode = TOOLKIT_KEY_Q,            .name = "last_tool",          .display = "Last tool"},
+    [WINDOW_KEY_FIREMODE]      = {.keycode = TOOLKIT_KEY_F,            .name = "fire_mode",          .display = "Change fire mode"},
 
-    [WINDOW_KEY_ESCAPE]        = {.keycode = TOOLKIT_KEY_ESCAPE,       .name = "quit_game",         .display = "Main menu & return to game", .category = "Game"},
-    [WINDOW_KEY_VOLUME_UP]     = {.keycode = TOOLKIT_KEY_ADD,          .name = "volume_up",         .display = "Volume up"},
-    [WINDOW_KEY_VOLUME_DOWN]   = {.keycode = TOOLKIT_KEY_SUBTRACT,     .name = "volume_down",       .display = "Volume down"},
-    [WINDOW_KEY_CHAT]          = {.keycode = TOOLKIT_KEY_T,            .name = "chat_global",       .display = "Chat"},
-    [WINDOW_KEY_TEAM_CHAT]     = {.keycode = TOOLKIT_KEY_Y,            .name = "chat_team",         .display = "Team chat"},
-    [WINDOW_KEY_FULLSCREEN]    = {.keycode = TOOLKIT_KEY_F11,          .name = "fullscreen",        .display = "Fullscreen"},
-    [WINDOW_KEY_SCREENSHOT]    = {.keycode = TOOLKIT_KEY_F5,           .name = "screenshot",        .display = "Screenshot"},
-    [WINDOW_KEY_CHANGETEAM]    = {.keycode = TOOLKIT_KEY_COMMA,        .name = "change_team",       .display = "Team select"},
-    [WINDOW_KEY_COMMAND]       = {.keycode = TOOLKIT_KEY_SLASH,        .name = "chat_command",      .display = "Command"},
-    [WINDOW_KEY_HIDEHUD]       = {.keycode = TOOLKIT_KEY_F6,           .name = "hide_hud",          .display = "Hide HUD", .toggle = true},
-    [WINDOW_KEY_SAVE_MAP]      = {.keycode = TOOLKIT_KEY_F9,           .name = "save_map",          .display = "Save map"},
-    [WINDOW_KEY_RELEASE_MOUSE] = {.keycode = TOOLKIT_KEY_BACKSLASH,    .name = "release_mouse",     .display = "Release mouse"},
+    [WINDOW_KEY_ESCAPE]        = {.keycode = TOOLKIT_KEY_ESCAPE,       .name = "quit_game",          .display = "Main menu & return to game", .category = "Game"},
+    [WINDOW_KEY_VOLUME_UP]     = {.keycode = TOOLKIT_KEY_ADD,          .name = "volume_up",          .display = "Volume up"},
+    [WINDOW_KEY_VOLUME_DOWN]   = {.keycode = TOOLKIT_KEY_SUBTRACT,     .name = "volume_down",        .display = "Volume down"},
+    [WINDOW_KEY_CHAT]          = {.keycode = TOOLKIT_KEY_T,            .name = "chat_global",        .display = "Chat"},
+    [WINDOW_KEY_TEAM_CHAT]     = {.keycode = TOOLKIT_KEY_Y,            .name = "chat_team",          .display = "Team chat"},
+    [WINDOW_KEY_FULLSCREEN]    = {.keycode = TOOLKIT_KEY_F11,          .name = "fullscreen",         .display = "Fullscreen"},
+    [WINDOW_KEY_SCREENSHOT]    = {.keycode = TOOLKIT_KEY_F5,           .name = "screenshot",         .display = "Screenshot"},
+    [WINDOW_KEY_CHANGETEAM]    = {.keycode = TOOLKIT_KEY_COMMA,        .name = "change_team",        .display = "Team select"},
+    [WINDOW_KEY_COMMAND]       = {.keycode = TOOLKIT_KEY_SLASH,        .name = "chat_command",       .display = "Command"},
+    [WINDOW_KEY_HIDEHUD]       = {.keycode = TOOLKIT_KEY_F6,           .name = "hide_hud",           .display = "Hide HUD", .toggle = true},
+    [WINDOW_KEY_SAVE_MAP]      = {.keycode = TOOLKIT_KEY_F9,           .name = "save_map",           .display = "Save map"},
+    [WINDOW_KEY_RELEASE_MOUSE] = {.keycode = TOOLKIT_KEY_BACKSLASH,    .name = "release_mouse",      .display = "Release mouse"},
 
-    [WINDOW_KEY_TAB]           = {.keycode = TOOLKIT_KEY_TAB,          .name = "view_score",        .display = "Score", .category = "Information"},
-    [WINDOW_KEY_MAP]           = {.keycode = TOOLKIT_KEY_M,            .name = "view_map",          .display = "Map", .toggle = true},
-    [WINDOW_KEY_NETWORKSTATS]  = {.keycode = TOOLKIT_KEY_F12,          .name = "network_stats",     .display = "Network stats", .toggle = true},
-    [WINDOW_KEY_DEBUG]         = {.keycode = TOOLKIT_KEY_F3,           .name = "debug",             .display = "Debug screen", .toggle = true},
-    [WINDOW_KEY_TRACE_CLEAN]   = {.keycode = TOOLKIT_KEY_F4,           .name = "trace_clean",       .display = "Clean up bullets"},
+    [WINDOW_KEY_TAB]           = {.keycode = TOOLKIT_KEY_TAB,          .name = "view_score",         .display = "Score", .category = "Information"},
+    [WINDOW_KEY_MAP]           = {.keycode = TOOLKIT_KEY_M,            .name = "view_map",           .display = "Map", .toggle = true},
+    [WINDOW_KEY_NETWORKSTATS]  = {.keycode = TOOLKIT_KEY_F12,          .name = "network_stats",      .display = "Network stats", .toggle = true},
+    [WINDOW_KEY_DEBUG]         = {.keycode = TOOLKIT_KEY_F3,           .name = "debug",              .display = "Debug screen", .toggle = true},
+    [WINDOW_KEY_TRACE_CLEAR]   = {.keycode = TOOLKIT_KEY_F4,           .name = "trace_clear",        .display = "Clean up bullets"},
+    [WINDOW_KEY_CHAT_CLEAR]    = {.keycode = TOOLKIT_KEY_F2,           .name = "chat_clear_history", .display = "Clear chat history"},
 
-    [WINDOW_KEY_CYCLE_CAMERA]  = {.keycode = TOOLKIT_KEY_F2,           .name = "cycle_camera",      .display = "Change camera mode", .category = "Local game"},
-    [WINDOW_KEY_TOGGLE_ALIVE]  = {.keycode = TOOLKIT_KEY_F4,           .name = "toggle_alive",      .display = "Toggle aliveness"},
-    [WINDOW_KEY_RESPAWN]       = {.keycode = TOOLKIT_KEY_F7,           .name = "respawn",           .display = "Respawn"},
-    [WINDOW_KEY_RESTOCK]       = {.keycode = TOOLKIT_KEY_F8,           .name = "restock",           .display = "Restock"},
-    [WINDOW_KEY_TEAM_COLOR]    = {.keycode = TOOLKIT_KEY_F10,          .name = "team_color",        .display = "Change team color"},
+    [WINDOW_KEY_CYCLE_CAMERA]  = {.keycode = TOOLKIT_KEY_F2,           .name = "cycle_camera",       .display = "Change camera mode", .category = "Local game"},
+    [WINDOW_KEY_TOGGLE_ALIVE]  = {.keycode = TOOLKIT_KEY_F4,           .name = "toggle_alive",       .display = "Toggle aliveness"},
+    [WINDOW_KEY_RESPAWN]       = {.keycode = TOOLKIT_KEY_F7,           .name = "respawn",            .display = "Respawn"},
+    [WINDOW_KEY_RESTOCK]       = {.keycode = TOOLKIT_KEY_F8,           .name = "restock",            .display = "Restock"},
+    [WINDOW_KEY_TEAM_COLOR]    = {.keycode = TOOLKIT_KEY_F10,          .name = "team_color",         .display = "Change team color"},
 
     [WINDOW_KEY_SHIFT]         = {.keycode = TOOLKIT_KEY_SHIFT,        .display = NULL},
     [WINDOW_KEY_BACKSPACE]     = {.keycode = TOOLKIT_KEY_BACKSPACE,    .display = NULL},
@@ -244,6 +245,14 @@ Setting config_settings[] = {
         .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "unicode_enabled",
         .display  = "Enable Unicode",
+    },
+    {
+        .value    = &settings_tmp.chat_history_size,
+        .mini     = 9,
+        .maxi     = 4999,
+        .type     = CONFIG_TYPE_INT,
+        .name     = "chat_history_size",
+        .display  = "Chat history size"
     },
     {
         .value    = &settings_tmp.report_client_version,
@@ -658,6 +667,7 @@ Options settings = {
     .spectator_esp          = false,
     .chat_popup_centered    = true,
     .unicode_enabled        = true,
+    .chat_history_size      = 9,
 };
 
 char * config_filepath = "config.ini";
@@ -834,6 +844,8 @@ void config_reload(void) {
     sound_volume(settings.volume / 10.0F);
 
     camera.fov = settings.camera_fov = clamp(CAMERA_DEFAULT_FOV, CAMERA_MAX_FOV, settings.camera_fov);
+
+    game_chat.maxlen = settings.chat_history_size;
 }
 
 void config_init(void) {

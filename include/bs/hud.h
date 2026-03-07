@@ -55,6 +55,8 @@ extern HUD * hud_active;
 
 extern const char * hud_serverlist_popup;
 
+extern Text * hud_game_chat_selected;
+
 extern bool offline;
 extern char serverlist_url[2048], newslist_url[2048];
 

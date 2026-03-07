@@ -52,20 +52,20 @@ the file `kv6/smg.kv6` should be placed in the root of the archive.
 
 This project uses the following libraries and files (their code is *included* in the repository):
 
-| Name         | License         | Usage                  | GitHub                                             |
-| ------------ | --------------- | ---------------------- | :------------------------------------------------: |
-| inih         | *BSD-3.Clause*  | .INI file parser       | [Link](https://github.com/benhoyt/inih)            |
-| dr_wav       | *Public domain* | wav support            | [Link](https://github.com/mackron/dr_libs/)        |
-| http         | *Public domain* | http client library    | [Link](https://github.com/mattiasgustavsson/libs)  |
-| LodePNG      | *MIT*           | png support            | [Link](https://github.com/lvandeve/lodepng)        |
-| libdeflate   | *MIT*           | decompression of maps  | [Link](https://github.com/ebiggers/libdeflate)     |
-| enet         | *MIT*           | networking library     | [Link](https://github.com/lsalzman/enet)           |
-| parson       | *MIT*           | JSON parser            | [Link](https://github.com/kgabis/parson)           |
-| log.c        | *MIT*           | logger                 | [Link](https://github.com/xtreme8000/log.c)        |
-| GLEW         | *MIT*           | OpenGL extensions      | [Link](https://github.com/nigels-com/glew)         |
-| hashtable    | *MIT*           | hashtable              | [Link](https://github.com/goldsborough/hashtable/) |
-| libvxl       | *MIT*           | access VXL format      | [Link](https://github.com/xtreme8000/libvxl/)      |
-| microui      | *MIT*           | user interface         | [Link](https://github.com/rxi/microui)             |
+| Name         | License                | Usage                  | GitHub                                                              |
+| ------------ | ---------------------- | ---------------------- | ------------------------------------------------------------------- |
+| inih         | *BSD 3-Clause*         | INI file parser        | [benhoyt/inih](https://github.com/benhoyt/inih)                     |
+| dr_wav       | *Public domain*        | wav support            | [mackron/dr_libs](https://github.com/mackron/dr_libs)               |
+| http         | *Public domain*        | HTTP client library    | [mattiasgustavsson/libs](https://github.com/mattiasgustavsson/libs) |
+| LodePNG      | *zlib*                 | PNG support            | [lvandeve/lodepng](https://github.com/lvandeve/lodepng)             |
+| libdeflate   | *MIT*                  | Decompression of maps  | [ebiggers/libdeflate](https://github.com/ebiggers/libdeflate)       |
+| enet         | *MIT*                  | Networking library     | [lsalzman/enet](https://github.com/lsalzman/enet)                   |
+| parson       | *MIT*                  | JSON parser            | [kgabis/parson](https://github.com/kgabis/parson)                   |
+| log.c        | *MIT*                  | Logger                 | [xtreme8000/log.c](https://github.com/xtreme8000/log.c)             |
+| GLEW         | *BSD 3-Clause* + *MIT* | OpenGL extensions      | [nigels-com/glew](https://github.com/nigels-com/glew)               |
+| hashtable    | *MIT*                  | Hash table             | [goldsborough/hashtable](https://github.com/goldsborough/hashtable) |
+| libvxl       | *MIT*                  | Access VXL format      | [xtreme8000/libvxl](https://github.com/xtreme8000/libvxl)           |
+| microui      | *MIT*                  | User interface         | [rxi/microui](https://github.com/rxi/microui)                       |
 
 You will need to compile the following by yourself, or get hold of precompiled binaries:
 

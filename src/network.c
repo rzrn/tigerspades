@@ -101,8 +101,9 @@ const char * network_reason_disconnect(ErrorCode code) {
 
 static inline void beep(void) { sound_create(SOUND_LOCAL, sound(SOUND_CHAT), 0.0F, 0.0F, 0.0F); }
 
-static void printJoinMsg(int team, char * name) {
-    if (network_map_transfer) return;
+static inline void printJoinMsg(int team, char * name) {
+    if (network_map_transfer || camera.mode == CAMERAMODE_SELECTION)
+        return;
 
     char * t;
     switch (team) {
@@ -115,7 +116,17 @@ static void printJoinMsg(int team, char * name) {
     char buff[64]; sprintf(buff, "%s joined the %s team", name, t);
     game_chat_add(Red, buff, sizeof(buff), UTF8);
 
-    if (network_logged_in && settings.connect_beep) beep();
+    if (settings.connect_beep) beep();
+}
+
+static inline void printLeaveMsg(char * name) {
+    if (network_map_transfer || camera.mode == CAMERAMODE_SELECTION)
+        return;
+
+    char buff[32]; sprintf(buff, "%s disconnected", name);
+    game_chat_add(Red, buff, sizeof(buff), UTF8);
+
+    if (settings.disconnect_beep) beep();
 }
 
 bool isdestructible(int x, int y, int z) {
@@ -954,10 +965,7 @@ static void getPacketPlayerLeft(uint8_t * data, size_t len) {
         players[p.player_id].alive     = false;
         players[p.player_id].score     = 0;
 
-        char buff[32]; sprintf(buff, "%s disconnected", players[p.player_id].name);
-        game_chat_add(Red, buff, sizeof(buff), UTF8);
-
-        if (network_logged_in && settings.disconnect_beep) beep();
+        printLeaveMsg(players[p.player_id].name);
     }
 }
 

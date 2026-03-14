@@ -422,7 +422,7 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
 
         case CHAT_ALL: case CHAT_TEAM: {
             if (IDVALID(p.player_id) && players[p.player_id].connected) {
-                if (settings.chat_beep) beep();
+                if (settings.chat_beep && camera.mode != CAMERAMODE_SELECTION) beep();
 
                 char prefix[32] = {0};
 
@@ -863,7 +863,7 @@ static void getPacketKillAction(uint8_t * data, size_t len) {
             case KILLTYPE_CLASSCHANGE: sprintf(buff, "%s changed weapons", players[p.player_id].name); break;
             case KILLTYPE_TEAMCHANGE: {
                 sprintf(buff, "%s changed teams", players[p.player_id].name);
-                if (settings.team_change_beep) beep();
+                if (settings.team_change_beep && camera.mode != CAMERAMODE_SELECTION) beep();
 
                 break;
             }

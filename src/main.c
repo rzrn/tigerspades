@@ -854,10 +854,10 @@ int game_main(int argc, char ** argv) {
                      "There is NO WARRANTY, to the extent permitted by law.\n", BSVERSION, GIT_COMMIT_HASH);
         } else MATCH(argv[i], "--serverlist") {
             if (argc <= ++i) THROW(-1, "The “--serverlist” option requires an argument.\n")
-            else strnzcpy(serverlist_url, argv[i], sizeof(serverlist_url));
+            else serverlist_url = argv[i];
         } else MATCH(argv[i], "--newslist") {
             if (argc <= ++i) THROW(-1, "The “--newslist” option requires an argument.\n")
-            else strnzcpy(newslist_url, argv[i], sizeof(newslist_url));
+            else newslist_url = argv[i];
         } else MATCH(argv[i], "--team") {
             if (argc <= ++i) THROW(-1, "The “--team” option requires an argument.\n")
             else MATCH(argv[i], "1") default_team = TEAM1;

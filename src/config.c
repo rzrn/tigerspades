@@ -37,6 +37,10 @@
 
 #include <ini.h>
 
+char * serverlist_url = NULL;
+char * newslist_url = NULL;
+bool offline = false;
+
 static void config_label_ads_scale(char * buffer, size_t length, void * voidptr) {
     float value = *((float *) voidptr);
 
@@ -284,6 +288,20 @@ Setting config_settings[] = {
         .display  = "Use map cache (0.76)",
         .name     = "map_cache",
         .help     = "Can use a lot of disk space"
+    },
+    {
+        .value    = settings_tmp.serverlist_url,
+        .type     = CONFIG_TYPE_STRING,
+        .size     = sizeof(settings.serverlist_url),
+        .name     = "serverlist_url",
+        .display  = "Master server URL",
+    },
+    {
+        .value    = settings_tmp.newslist_url,
+        .type     = CONFIG_TYPE_STRING,
+        .size     = sizeof(settings.newslist_url),
+        .name     = "newslist_url",
+        .display  = "News server URL",
     },
     {
         .value    = &settings_tmp.mouse_sensitivity,
@@ -668,6 +686,8 @@ Options settings = {
     .chat_popup_centered    = true,
     .unicode_enabled        = true,
     .chat_history_size      = 9,
+    .serverlist_url         = "http://services.buildandshoot.com/serverlist.json",
+    .newslist_url           = "http://aos.party/bs/news/",
 };
 
 char * config_filepath = "config.ini";
@@ -846,6 +866,9 @@ void config_reload(void) {
     camera.fov = settings.camera_fov = clamp(CAMERA_DEFAULT_FOV, CAMERA_MAX_FOV, settings.camera_fov);
 
     game_chat.maxlen = settings.chat_history_size;
+
+    if (serverlist_url == NULL) serverlist_url = settings.serverlist_url;
+    if (newslist_url == NULL) newslist_url = settings.newslist_url;
 }
 
 void config_init(void) {

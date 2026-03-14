@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2020 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -195,8 +195,11 @@ void * ping_update(void * data) {
     http_t * request_serverlist = NULL, * request_news = NULL;
 
     if (!offline) {
-        request_serverlist = http_get(serverlist_url, NULL);
-        request_news = http_get(newslist_url, NULL);
+        if (serverlist_url != NULL)
+            request_serverlist = http_get(serverlist_url, NULL);
+
+        if (newslist_url != NULL)
+            request_news = http_get(newslist_url, NULL);
     }
 
     // Step 3: shout loudly into the local network.

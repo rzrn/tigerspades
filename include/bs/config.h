@@ -45,7 +45,7 @@
 typedef struct {
     char section[32];
     char name[32];
-    char value[32];
+    char value[128];
 } ConfigFileEntry;
 
 enum {
@@ -115,7 +115,13 @@ typedef struct {
     bool  chat_popup_centered;
     bool  unicode_enabled;
     int   chat_history_size;
+    char  serverlist_url[128];
+    char  newslist_url[128];
 } Options;
+
+extern char * serverlist_url;
+extern char * newslist_url;
+extern bool offline;
 
 extern Options settings, settings_tmp;
 

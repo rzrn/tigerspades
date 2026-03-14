@@ -57,9 +57,6 @@ extern const char * hud_serverlist_popup;
 
 extern Text * hud_game_chat_selected;
 
-extern bool offline;
-extern char serverlist_url[2048], newslist_url[2048];
-
 #define HUD_FLAG_INDEX_START 64
 
 void hud_show_popup(const char * format, ...);

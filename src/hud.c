@@ -2493,10 +2493,6 @@ HUD hud_mapload = {
 /*         HUD_SERVERLIST START        */
 static char serverlist_input[128];
 
-bool offline = false;
-
-char serverlist_url[] = "http://services.buildandshoot.com/serverlist.json", newslist_url[] = "http://aos.party/bs/news/";
-
 static void serverlist_refresh(void) {
     rpc_seti(RPC_VALUE_SLOTS, 0);
 

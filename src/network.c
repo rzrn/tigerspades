@@ -1179,7 +1179,7 @@ static void getPacketVersionGet(uint8_t * data, size_t len) {
     reply.operatingsystem = operatingsystem;
 
     if (settings.report_client_version || HACKS_ENABLED)
-        sendPacketVersionSend(&reply, sizeof(operatingsystem));
+        sendPacketVersionSend(&reply, sizeof(operatingsystem)-1);
 }
 
 static void getPacketPlayerProperties(uint8_t * data, size_t len) {

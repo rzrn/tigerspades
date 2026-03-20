@@ -40,7 +40,7 @@ the file `kv6/smg.kv6` should be placed in the root of the archive.
 
 ## System requirements
 
-| Type    | min. requirement                                     |
+| Type    | Minimum requirements                                 |
 | ------- | ---------------------------------------------------- |
 | OS      | Windows, Linux, FreeBSD, or macOS                    |
 | CPU     | 1 GHz single core processor                          |

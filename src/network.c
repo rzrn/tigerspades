@@ -1178,8 +1178,15 @@ static void getPacketVersionGet(uint8_t * data, size_t len) {
     reply.revision        = BSPATCH;
     reply.operatingsystem = operatingsystem;
 
+    /*
+      OpenSpades documentation states that ‘Operating System Name contains a human-readable ASCII
+      encoded string, and does NOT end with a null character’, so we skip the final NULL simply
+      by subtracting 1 from the `sizeof(...)`.
+
+      https://github.com/rzrn/tigerspades/pull/2
+    */
     if (settings.report_client_version || HACKS_ENABLED)
-        sendPacketVersionSend(&reply, sizeof(operatingsystem)-1);
+        sendPacketVersionSend(&reply, sizeof(operatingsystem) - 1);
 }
 
 static void getPacketPlayerProperties(uint8_t * data, size_t len) {

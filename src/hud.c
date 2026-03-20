@@ -396,9 +396,9 @@ static int hud_ingame_onscreencontrol(int index, char * str, int activate) {
                     if (str)
                         strcpy(str, "Score");
                     if (activate == 0)
-                        keys(WINDOW_KEY_TAB, WINDOW_RELEASE, 0);
+                        keys(WINDOW_KEY_SCOREBOARD, WINDOW_RELEASE, 0);
                     if (activate == 1)
-                        keys(WINDOW_KEY_TAB, WINDOW_PRESS, 0);
+                        keys(WINDOW_KEY_SCOREBOARD, WINDOW_PRESS, 0);
                     return 1;
                 case 3:
                     if (str)
@@ -1516,7 +1516,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         glColor3f(1.0F, 1.0F, 1.0F);
     }
 
-    if ((network_connected && window_key_down(WINDOW_KEY_TAB) && chat_input_mode == CHAT_NO_INPUT) || camera.mode == CAMERAMODE_SELECTION)
+    if ((network_connected && window_key_down(WINDOW_KEY_SCOREBOARD) && chat_input_mode == CHAT_NO_INPUT) || camera.mode == CAMERAMODE_SELECTION)
         hud_draw_scoreboard(scale);
 
     if (camera.mode == CAMERAMODE_BODYVIEW
@@ -1957,7 +1957,7 @@ static inline void hud_game_chat_scroll_down(void) {
 }
 
 static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
-    if (chat_input_mode != CHAT_NO_INPUT && action == WINDOW_PRESS && key == WINDOW_KEY_TAB && strlen(game_chat_input) > 0) {
+    if (chat_input_mode != CHAT_NO_INPUT && action == WINDOW_PRESS && key == WINDOW_KEY_AUTOCOMPLETE && strlen(game_chat_input) > 0) {
         // autocomplete word
         char * incomplete = strrchr(game_chat_input, ' ') + 1;
         if (incomplete == (char *) 1)

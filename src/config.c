@@ -143,6 +143,7 @@ ConfigKey _config_key[] = {
     [WINDOW_KEY_VOLUME_DOWN]   = {.keycode = TOOLKIT_KEY_SUBTRACT,     .name = "volume_down",        .display = "Volume down"},
     [WINDOW_KEY_CHAT]          = {.keycode = TOOLKIT_KEY_T,            .name = "chat_global",        .display = "Chat"},
     [WINDOW_KEY_TEAM_CHAT]     = {.keycode = TOOLKIT_KEY_Y,            .name = "chat_team",          .display = "Team chat"},
+    [WINDOW_KEY_AUTOCOMPLETE]  = {.keycode = TOOLKIT_KEY_TAB,          .name = "chat_autocomplete",  .display = "Chat autocomplete"},
     [WINDOW_KEY_FULLSCREEN]    = {.keycode = TOOLKIT_KEY_F11,          .name = "fullscreen",         .display = "Fullscreen"},
     [WINDOW_KEY_SCREENSHOT]    = {.keycode = TOOLKIT_KEY_F5,           .name = "screenshot",         .display = "Screenshot"},
     [WINDOW_KEY_CHANGETEAM]    = {.keycode = TOOLKIT_KEY_COMMA,        .name = "change_team",        .display = "Team select"},
@@ -151,7 +152,7 @@ ConfigKey _config_key[] = {
     [WINDOW_KEY_SAVE_MAP]      = {.keycode = TOOLKIT_KEY_F9,           .name = "save_map",           .display = "Save map"},
     [WINDOW_KEY_RELEASE_MOUSE] = {.keycode = TOOLKIT_KEY_BACKSLASH,    .name = "release_mouse",      .display = "Release mouse"},
 
-    [WINDOW_KEY_TAB]           = {.keycode = TOOLKIT_KEY_TAB,          .name = "view_score",         .display = "Score", .category = "Information"},
+    [WINDOW_KEY_SCOREBOARD]    = {.keycode = TOOLKIT_KEY_TAB,          .name = "view_score",         .display = "Scoreboard", .category = "Information"},
     [WINDOW_KEY_MAP]           = {.keycode = TOOLKIT_KEY_M,            .name = "view_map",           .display = "Map", .toggle = true},
     [WINDOW_KEY_NETWORKSTATS]  = {.keycode = TOOLKIT_KEY_F12,          .name = "network_stats",      .display = "Network stats", .toggle = true},
     [WINDOW_KEY_DEBUG]         = {.keycode = TOOLKIT_KEY_F3,           .name = "debug",              .display = "Debug screen", .toggle = true},

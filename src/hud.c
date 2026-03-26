@@ -890,60 +890,64 @@ static void hud_draw_map(float scale) {
     tracer_map(scale, minimap_x, minimap_y);
 
     if (gamestate.mode == GAMEMODE_CTF) {
-        if (!gamestate.ctf.team2_has_intel) {
-            float x = clamp(0.0F, 512.0F, gamestate.ctf.team1_flag.x);
-            float y = clamp(0.0F, 512.0F, gamestate.ctf.team1_flag.z);
+        {
+            float x = gamestate.ctf.team1_flag.x;
+            float y = gamestate.ctf.team1_flag.z;
 
-            glColorRGB3i(gamestate.team1.color);
-            texture_draw_rotated(
-                texture(TEXTURE_INTEL),
-                minimap_x + x * scale,
-                minimap_y - y * scale,
-                16 * scale, 16 * scale,
-                0.0F
-            );
+            if (!gamestate.ctf.team2_has_intel && isfinite(x) && isfinite(y)) {
+                glColorRGB3i(gamestate.team1.color);
+                texture_draw_rotated(
+                    texture(TEXTURE_INTEL),
+                    minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                    minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                    16 * scale, 16 * scale, 0.0F
+                );
+            }
         }
 
-        if (map_object_visible(gamestate.ctf.team1_base.x, 0.0F, gamestate.ctf.team1_base.z)) {
-            float x = clamp(0.0F, 512.0F, gamestate.ctf.team1_base.x);
-            float y = clamp(0.0F, 512.0F, gamestate.ctf.team1_base.z);
+        {
+            float x = gamestate.ctf.team1_base.x;
+            float y = gamestate.ctf.team1_base.z;
 
-            glColorRGB3ib(gamestate.team1.color, 0.94F);
-            texture_draw_rotated(
-                texture(TEXTURE_MEDICAL),
-                minimap_x + x * scale,
-                minimap_y - y * scale,
-                16 * scale, 16 * scale,
-                0.0F
-            );
+            if (map_object_visible(x, 0.0F, y) && isfinite(x) && isfinite(y)) {
+                glColorRGB3ib(gamestate.team1.color, 0.94F);
+                texture_draw_rotated(
+                    texture(TEXTURE_MEDICAL),
+                    minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                    minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                    16 * scale, 16 * scale, 0.0F
+                );
+            }
         }
 
-        if (!gamestate.ctf.team1_has_intel) {
-            float x = clamp(0.0F, 512.0F, gamestate.ctf.team2_flag.x);
-            float y = clamp(0.0F, 512.0F, gamestate.ctf.team2_flag.z);
+        {
+            float x = gamestate.ctf.team2_flag.x;
+            float y = gamestate.ctf.team2_flag.z;
 
-            glColorRGB3i(gamestate.team2.color);
-            texture_draw_rotated(
-                texture(TEXTURE_INTEL),
-                minimap_x + x * scale,
-                minimap_y - y * scale,
-                16 * scale, 16 * scale,
-                0.0F
-            );
+            if (!gamestate.ctf.team1_has_intel && isfinite(x) && isfinite(y)) {
+                glColorRGB3i(gamestate.team2.color);
+                texture_draw_rotated(
+                    texture(TEXTURE_INTEL),
+                    minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                    minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                    16 * scale, 16 * scale, 0.0F
+                );
+            }
         }
 
-        if (map_object_visible(gamestate.ctf.team2_base.x, 0.0F, gamestate.ctf.team2_base.z)) {
-            float x = clamp(0.0F, 512.0F, gamestate.ctf.team2_base.x);
-            float y = clamp(0.0F, 512.0F, gamestate.ctf.team2_base.z);
+        {
+            float x = gamestate.ctf.team2_base.x;
+            float y = gamestate.ctf.team2_base.z;
 
-            glColorRGB3ib(gamestate.team2.color, 0.94F);
-            texture_draw_rotated(
-                texture(TEXTURE_MEDICAL),
-                minimap_x + x * scale,
-                minimap_y - y * scale,
-                16 * scale, 16 * scale,
-                0.0F
-            );
+            if (map_object_visible(x, 0.0F, y) && isfinite(x) && isfinite(y)) {
+                glColorRGB3ib(gamestate.team2.color, 0.94F);
+                texture_draw_rotated(
+                    texture(TEXTURE_MEDICAL),
+                    minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                    minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                    16 * scale, 16 * scale, 0.0F
+                );
+            }
         }
     }
 
@@ -955,15 +959,16 @@ static void hud_draw_map(float scale) {
                 default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
             }
 
-            float x = clamp(0.0F, 512.0F, gamestate.tc.territory[k].pos.x);
-            float y = clamp(0.0F, 512.0F, gamestate.tc.territory[k].pos.z);
+            float x = gamestate.tc.territory[k].pos.x;
+            float y = gamestate.tc.territory[k].pos.z;
+
+            if (!isfinite(x) || !isfinite(y)) continue;
 
             texture_draw_rotated(
                 texture(TEXTURE_COMMAND),
-                minimap_x + x * scale,
-                minimap_y - y * scale,
-                12 * scale, 12 * scale,
-                0.0F
+                minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                12 * scale, 12 * scale, 0.0F
             );
         }
     }

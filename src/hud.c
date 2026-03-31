@@ -2002,7 +2002,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             strcpy(incomplete, match);
     }
 
-    if (action == WINDOW_PRESS && key == WINDOW_KEY_CHAT_CLEAR)
+    if (network_connected && action == WINDOW_PRESS && key == WINDOW_KEY_CHAT_CLEAR)
     { hud_game_chat_selected = NULL; deque_free(&game_chat);
       hud_show_popup("Chat history cleared"); }
 

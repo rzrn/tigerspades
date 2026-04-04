@@ -22,6 +22,8 @@ then
       PLATFORM=Linux ;;
     FreeBSD)
       PLATFORM=FreeBSD ;;
+    OpenBSD)
+      PLATFORM=OpenBSD ;;
     MINGW32_NT*|MINGW64_NT*|MSYS_NT*|CYGWIN_NT*)
       PLATFORM=NT ;;
     Darwin)
@@ -91,7 +93,7 @@ case ${PLATFORM}-${TOOLKIT} in
     CFLAGS1="${CFLAGS1} -DUSE_GLFW"
     LDFLAGS="${LDFLAGS} -lglfw3"
     ;;
-  Linux-GLFW | FreeBSD-GLFW | Mac-GLFW | Haiku-GLFW)
+  Linux-GLFW | FreeBSD-GLFW | OpenBSD-GLFW | Mac-GLFW | Haiku-GLFW)
     CFLAGS1="${CFLAGS1} -DUSE_GLFW"
     LDFLAGS="${LDFLAGS} -lglfw"
     ;;
@@ -99,7 +101,7 @@ case ${PLATFORM}-${TOOLKIT} in
     CFLAGS1="${CFLAGS1} -DUSE_SDL -I$(brew --prefix)/include"
     LDFLAGS="${LDFLAGS} -lSDL2 -L$(brew --prefix)/lib"
     ;;
-  NT-SDL | Linux-SDL | FreeBSD-SDL | Haiku-SDL)
+  NT-SDL | Linux-SDL | FreeBSD-SDL | OpenBSD-SDL | Haiku-SDL)
     CFLAGS1="${CFLAGS1} -DUSE_SDL"
     LDFLAGS="${LDFLAGS} -lSDL2"
     ;;
@@ -111,7 +113,7 @@ case ${PLATFORM}-${TOOLKIT} in
     CFLAGS1="${CFLAGS1} -DUSE_GLUT"
     LDFLAGS="${LDFLAGS} -framework GLUT"
     ;;
-  Linux-GLUT | FreeBSD-GLUT | Haiku-GLUT)
+  Linux-GLUT | FreeBSD-GLUT | OpenBSD-GLUT | Haiku-GLUT)
     CFLAGS1="${CFLAGS1} -DUSE_GLUT"
     LDFLAGS="${LDFLAGS} -lglut"
     ;;
@@ -119,7 +121,7 @@ case ${PLATFORM}-${TOOLKIT} in
     CFLAGS1="${CFLAGS1} -DUSE_COCOA -DUSE_QUARTZ"
     NSFILES=src/gui/cocoa.m
     ;;
-  NT-Cocoa | Linux-Cocoa | FreeBSD-Cocoa)
+  NT-Cocoa | Linux-Cocoa | FreeBSD-Cocoa | OpenBSD-Cocoa)
     CFLAGS1="${CFLAGS1} -DUSE_COCOA -DUSE_GNUSTEP"
     LDFLAGS="${LDFLAGS} $(gnustep-config --gui-libs)"
     NSFLAGS="${OBJCFLAGS} $(gnustep-config --objc-flags)"
@@ -147,6 +149,11 @@ case ${PLATFORM} in
     LDFLAGS="${LDFLAGS} -lm -lGL -pthread -L/usr/local/lib"
     CFLAGS1="${CFLAGS1} -I/usr/local/include"
     CFLAGS2="${CFLAGS2} -I/usr/local/include -DHAS_SOCKLEN_T"
+    ;;
+  OpenBSD)
+    LDFLAGS="${LDFLAGS} -lm -lGL -pthread -L/usr/local/lib -L/usr/X11R6/lib"
+    CFLAGS1="${CFLAGS1} -I/usr/local/include -I/usr/X11R6/include"
+    CFLAGS2="${CFLAGS2} -I/usr/local/include -I/usr/X11R6/include -DHAS_SOCKLEN_T"
     ;;
   Haiku)
     LDFLAGS="${LDFLAGS} -lm -lGL -lnetwork -pthread"

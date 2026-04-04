@@ -31,4 +31,8 @@
 #include <netinet/in.h>
 #endif
 
+#ifdef __OpenBSD__
+#include <sys/select.h>
+#endif
+
 #include <http.h>

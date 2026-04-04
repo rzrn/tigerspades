@@ -2242,6 +2242,13 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
                     screen_current = SCREEN_NONE;
                     return;
                 }
+
+                if (camera.mode == CAMERAMODE_SELECTION && key == WINDOW_KEY_CHANGETEAM) {
+                    screen_current = SCREEN_TEAM_SELECT;
+                    new_team = -1;
+
+                    return;
+                }
             }
 
             if (key == WINDOW_KEY_ESCAPE) {

@@ -240,8 +240,10 @@ void cameracontroller_fps(float dt) {
     if (players[local_player.id].tool != TOOL_WEAPON || settings.ads_mode == ADS_HOLD)
         SETBIT(players[local_player.id].input.buttons, BUTTON_SECONDARY, button_map.rmb);
 
-    if (HASBIT(players[local_player.id].input.keys, INPUT_SPRINT) || players[local_player.id].items_show)
+    if (HASBIT(players[local_player.id].input.keys, INPUT_SPRINT) || players[local_player.id].items_show) {
         players[local_player.id].input.buttons &= MASKOFF(BUTTON_SECONDARY);
+        local_player.drag_active = false;
+    }
 
     if (chat_input_mode != CHAT_NO_INPUT) {
         players[local_player.id].input.keys    &= MASKOFF(INPUT_UP);

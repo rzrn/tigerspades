@@ -253,6 +253,7 @@ static void hud_ingame_render3D(void) {
 
     if (camera.mode == CAMERAMODE_FPS && players[local_player.id].items_show) {
         players[local_player.id].input.buttons &= MASKOFF(BUTTON_SECONDARY);
+        local_player.drag_active = false;
 
         if (settings.show_hotbar) hud_draw_hotbar();
     }

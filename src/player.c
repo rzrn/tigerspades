@@ -104,6 +104,8 @@ void player_on_tool_change(void) {
     SETBIT(p->input.buttons, BUTTON_PRIMARY,   false);
     SETBIT(p->input.buttons, BUTTON_SECONDARY, false);
 
+    local_player.drag_active = false;
+
     p->item_disabled    = window_time();
     p->items_show_start = window_time();
     p->item_showup      = window_time() + 0.3F;

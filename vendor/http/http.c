@@ -35,4 +35,9 @@
 #include <sys/select.h>
 #endif
 
+#ifdef __NetBSD__
+#include <netinet/in.h>
+#include <sys/select.h>
+#endif
+
 #include <http.h>

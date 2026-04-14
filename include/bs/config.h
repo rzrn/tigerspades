@@ -117,6 +117,8 @@ typedef struct {
     int   chat_history_size;
     char  serverlist_url[128];
     char  newslist_url[128];
+    bool  scroll_camera_speed;
+    bool  mmb_toggle_noclip;
 } Options;
 
 extern char * serverlist_url;

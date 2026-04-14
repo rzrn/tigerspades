@@ -351,6 +351,18 @@ Setting config_settings[] = {
         .display  = "Toggle sprint"
     },
     {
+        .value    = &settings_tmp.scroll_camera_speed,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "scroll_camera_speed",
+        .display  = "Scroll camera fly speed"
+    },
+    {
+        .value    = &settings_tmp.mmb_toggle_noclip,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "mmb_toggle_noclip",
+        .display  = "Toggle noclip with MMB"
+    },
+    {
         .value    = &settings_tmp.scale,
         .type     = CONFIG_TYPE_INT,
         .mini     = 0,
@@ -689,6 +701,8 @@ Options settings = {
     .chat_history_size      = 9,
     .serverlist_url         = "http://services.buildandshoot.com/serverlist.json",
     .newslist_url           = "http://aos.party/bs/news/",
+    .scroll_camera_speed    = true,
+    .mmb_toggle_noclip      = true,
 };
 
 char * config_filepath = "config.ini";

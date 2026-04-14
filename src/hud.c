@@ -1725,7 +1725,7 @@ static void hud_ingame_scroll(double yoffset) {
         players[local_player.id].tool = h;
         sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
         player_on_tool_change();
-    } else if (camera.mode == CAMERAMODE_SPECTATOR) {
+    } else if (camera.mode == CAMERAMODE_SPECTATOR && settings.scroll_camera_speed) {
         camera.speed = clamp(
             CAMERA_MINIMUM_SPEED, CAMERA_MAXIMUM_SPEED,
             camera.speed + yoffset * 1.0F
@@ -1825,7 +1825,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
 
     if (button == WINDOW_MOUSE_MMB) button_map.mmb = (action == WINDOW_PRESS);
 
-    if (camera.mode == CAMERAMODE_SPECTATOR && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS) {
+    if (camera.mode == CAMERAMODE_SPECTATOR && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS && settings.mmb_toggle_noclip) {
         camera.noclip = !camera.noclip;
 
         hud_show_popup("Noclip mode is now %s", camera.noclip ? "enabled" : "disabled");

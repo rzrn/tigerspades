@@ -256,6 +256,29 @@ static inline void drawCubeEdges(int x, int y, int z) {
     glDrawArrays(GL_LINES, 0, lengthof(vertices) / 3);
 }
 
+/* Tests if a position (px,px,pz) plus an offset is within a given block (bx,by,bz) */
+#define SCLIP2(xoff, yoff, zoff) ( \
+    floorf(px+(xoff)) == bx && \
+    floorf(py+(yoff)) == by && \
+    floorf(pz+(zoff)) == bz \
+)
+
+/* Tests if a 0.9-wide plane xz-centered on a player (px,pz), plus a Y offset, is within a given voxel (bx,by,bz) */
+#define SCLIPB2(yoff) ( \
+    SCLIP2(-0.45, yoff, -0.45) || \
+    SCLIP2(-0.45, yoff,  0.45) || \
+    SCLIP2( 0.45, yoff, -0.45) || \
+    SCLIP2( 0.45, yoff,  0.45) \
+)
+
+static inline int player_in_block(int crouching, float px, float py, float pz, float bx, float by, float bz) {
+    return
+        (!crouching && SCLIPB2(-2.25)) || \
+        SCLIPB2(-1.35) || \
+        SCLIPB2(-0.45) || \
+        SCLIPB2( 0.45);
+}
+
 void game_display(void) {
     if (hud_active->render_world)
         glClearColor(fog_color[0], fog_color[1], fog_color[2], fog_color[3]);
@@ -323,8 +346,7 @@ void game_display(void) {
                 int * pos = camera_terrain_pick(0);
                 if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z])
                    && norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[X], pos[Y], pos[Z]) < 25.0F
-                   && !(pos[X] == (int) camera.pos.x && pos[Y] == (int) camera.pos.y + 0 && pos[Z] == (int) camera.pos.z)
-                   && !(pos[X] == (int) camera.pos.x && pos[Y] == (int) camera.pos.y - 1 && pos[Z] == (int) camera.pos.z)) {
+                   && !player_in_block(HASBIT(players[local_player.id].input.keys, INPUT_CROUCH), camera.pos.x, camera.pos.y, camera.pos.z, pos[X], pos[Y], pos[Z])) {
                     players[local_player.id].item_showup = window_time();
 
                     PacketBlockAction contained;

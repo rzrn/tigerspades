@@ -268,7 +268,7 @@ static inline void drawCubeEdges(int x, int y, int z) {
                              SCLIP2(p, b,  0.45, yoff, -0.45) || \
                              SCLIP2(p, b,  0.45, yoff,  0.45))
 
-static inline int player_in_block(bool crouching, Vector3f p, int * b) {
+static inline bool player_in_block(bool crouching, Vector3f p, int * b) {
     return !crouching && SCLIPB2(p, b, -2.25)
         || SCLIPB2(p, b, -1.35)
         || SCLIPB2(p, b, -0.45)

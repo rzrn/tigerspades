@@ -913,10 +913,14 @@ int game_main(int argc, char ** argv) {
 
     log_set_level(LOG_INFO);
 
+    FILE *fp;
     time_t t = time(NULL);
     char buf[32];
     strftime(buf, 32, "logs/%m-%d-%Y.log", localtime(&t));
-    log_set_fp(fopen(buf, "a"));
+
+    fp = fopen(buf, "a");
+    setvbuf(fp, NULL, _IOLBF, 0);
+    log_set_fp(fp);
 
     srand(t);
 

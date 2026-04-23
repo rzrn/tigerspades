@@ -1771,7 +1771,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         return;
     }
 
-    if (button == WINDOW_MOUSE_RMB) {
+    if (camera.mode == CAMERAMODE_FPS && button == WINDOW_MOUSE_RMB) {
         button_map.rmb = (action == WINDOW_PRESS);
 
         if (players[local_player.id].tool == TOOL_WEAPON && !players[local_player.id].items_show) {

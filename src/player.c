@@ -1042,7 +1042,7 @@ static void player_render_alive(Player * p, int id) {
         glCullFace(GL_FRONT);
     }
 
-    if (render_body || (settings.render_player && !ISSCOPING(&players[local_player.id]))) {
+    if (render_body || (settings.render_player && !ISSCOPING(&players[id]))) {
         matrix_upload();
         kv6_render(&model[MODEL_PLAYERARMS], p->team);
     }

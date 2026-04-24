@@ -120,16 +120,27 @@ bool player_can_spectate(Player * p) {
          : p->team == players[local_player.id].team;
 }
 
-float player_swing_func(float x) {
+static inline bool in_bodyview_mode() {
+    if (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
+        return cameracontroller_bodyview_mode;
+
+    return false;
+}
+
+static inline bool is_bodyview_player(int player_id) {
+    return in_bodyview_mode() && cameracontroller_bodyview_player == player_id;
+}
+
+static inline float player_swing_func(float x) {
     x -= (int) x;
     return (x < 0.5F) ? (x * 4.0F - 1.0F) : (3.0F - x * 4.0F);
 }
 
-float player_spade_func(float x) {
+static inline float player_spade_func(float x) {
     return 1.0F - (x * 5 - (int) (x * 5));
 }
 
-float * player_tool_func(const Player * p) {
+static float * player_tool_func(const Player * p) {
     static float ret[3];
     ret[0] = ret[1] = ret[2] = 0.0F;
     switch (p->tool) {
@@ -189,7 +200,7 @@ float * player_tool_func(const Player * p) {
     return ret;
 }
 
-float * player_tool_translate_func(Player * p) {
+static float * player_tool_translate_func(Player * p) {
     static float ret[3];
     ret[0] = ret[1] = ret[2] = 0.0F;
     if (p == &players[local_player.id] && camera.mode == CAMERAMODE_FPS) {
@@ -316,8 +327,7 @@ void player_render_all(void) {
     ray.origin[Y] = camera.pos.y;
     ray.origin[Z] = camera.pos.z;
 
-    if (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode &&
-        players[cameracontroller_bodyview_player].alive) {
+    if (in_bodyview_mode() && players[cameracontroller_bodyview_player].alive) {
         Player * p = &players[cameracontroller_bodyview_player];
         Vector3f * o = settings.smooth_orientation ? &p->orientation_smooth : &p->orientation;
 
@@ -448,26 +458,23 @@ void player_render_all(void) {
                && norm2f(players[k].pos.x, players[k].pos.z, camera.pos.x, camera.pos.z) <=
                   sqrf(settings.render_distance + 2.0F)) {
                 Hit intersects = {0};
-                player_render(players + k, k);
-                player_collision(players + k, &ray, &intersects);
+                player_render(&players[k], k);
+                player_collision(&players[k], &ray, &intersects);
 
-                bool is_bodyview_player =
-                   camera.mode == CAMERAMODE_SPECTATOR
-                && cameracontroller_bodyview_mode
-                && cameracontroller_bodyview_player == k;
+                if (!is_bodyview_player(k)) {
+                    if (player_intersection_exists(&intersects)) {
+                        float d; int type = player_intersection_choose(&intersects, &d);
 
-                if (!is_bodyview_player && player_intersection_exists(&intersects)) {
-                    float d; int type = player_intersection_choose(&intersects, &d);
-
-                    if (d < player_intersection_dist) {
-                        player_intersection_dist   = d;
-                        player_intersection_player = k;
-                        player_intersection_type   = type;
+                        if (d < player_intersection_dist) {
+                            player_intersection_dist   = d;
+                            player_intersection_player = k;
+                            player_intersection_type   = type;
+                        }
                     }
-                }
 
-                if (settings.spectator_esp && camera.mode == CAMERAMODE_SPECTATOR && !is_bodyview_player)
-                    player_draw_box(&players[k]);
+                    if (settings.spectator_esp && camera.mode == CAMERAMODE_SPECTATOR)
+                        player_draw_box(&players[k]);
+                }
             }
 
             if (players[k].alive && players[k].tool == TOOL_WEAPON && HASBIT(players[k].input.buttons, BUTTON_PRIMARY)) {
@@ -926,14 +933,9 @@ static void player_render_alive(Player * p, int id) {
         .z = p->physics.eye.z
     };
 
-    int render_body = (id != local_player.id || !p->alive || camera.mode != CAMERAMODE_FPS)
-        && !((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
-             && cameracontroller_bodyview_mode && cameracontroller_bodyview_player == id);
-    int render_fpv = (id == local_player.id && camera.mode == CAMERAMODE_FPS)
-        || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
-            && cameracontroller_bodyview_mode && cameracontroller_bodyview_player == id);
+    bool render_fpv = camera.mode == CAMERAMODE_FPS ? local_player.id == id : is_bodyview_player(id);
 
-    if (render_body) {
+    if (!render_fpv) {
         static kv6 * const model_playerhead = &model[MODEL_PLAYERHEAD];
 
         matrix_push(matrix_model);
@@ -947,7 +949,7 @@ static void player_render_alive(Player * p, int id) {
         matrix_pop(matrix_model);
     }
 
-    if (render_body || settings.render_player) {
+    if (!render_fpv || settings.render_player && !ISSCOPING(&players[id])) {
         matrix_push(matrix_model);
         matrix_torso(&torso->box, r, o);
         matrix_upload();
@@ -1019,7 +1021,7 @@ static void player_render_alive(Player * p, int id) {
     if (render_fpv)
         matrix_translate(matrix_model, 0.0F, -2 * 0.1F, -2 * 0.1F);
 
-    if (!(settings.render_player && p->tool == TOOL_SPADE) && render_fpv && p->alive) {
+    if (!(settings.render_player && p->tool == TOOL_SPADE) && render_fpv) {
         float speed = hypot2f(p->physics.velocity.x, p->physics.velocity.z) / 0.25F;
         float * f = player_tool_translate_func(p);
         matrix_translate(matrix_model, f[X], f[Y], 0.1F * player_swing_func(time / 1000.0F) * speed + f[Z]);
@@ -1042,7 +1044,7 @@ static void player_render_alive(Player * p, int id) {
         glCullFace(GL_FRONT);
     }
 
-    if (render_body || (settings.render_player && !ISSCOPING(&players[id]))) {
+    if (!render_fpv || settings.render_player && !ISSCOPING(&players[id])) {
         matrix_upload();
         kv6_render(&model[MODEL_PLAYERARMS], p->team);
     }

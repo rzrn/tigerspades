@@ -108,8 +108,19 @@ void doPacketBlockLine(PacketBlockLine *, int);
 
 bool isdestructible(int, int, int);
 
-static inline char sector1f(float x) { return 'A' + (int) (x / 64.0F); }
-static inline char sector2f(float y) { return '1' + (int) (y / 64.0F); }
+static inline char sector1f(float x) {
+    if (0.0F <= x && x < 512.0F)
+        return 'A' + (int) (x / 64.0F);
+    else
+        return '?';
+}
+
+static inline char sector2f(float y) {
+    if (0.0F <= y && y < 512.0F)
+        return '1' + (int) (y / 64.0F);
+    else
+        return '?';
+}
 
 #define PACKET_INCOMPLETE 0
 #define PACKET_EXTRA      0

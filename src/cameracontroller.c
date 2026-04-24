@@ -366,15 +366,15 @@ void cameracontroller_spectator(float dt) {
 
     aabb_set_center(&aabb, x, camera.r.y - camera.eye_height, camera.r.z);
     if (!noclip && aabb_intersection_terrain(&aabb))
-    { x = camera.r.x; dx = camera.v.x = 0.0F; }
+    { x = camera.r.x; camera.v.x = 0.0F; }
 
     aabb_set_center(&aabb, x, y - camera.eye_height, camera.r.z);
     if (camera.r.y + dy < 0 || (!noclip && aabb_intersection_terrain(&aabb)))
-    { y = camera.r.y; dy = camera.v.y = 0.0F; }
+    { y = camera.r.y; camera.v.y = 0.0F; }
 
     aabb_set_center(&aabb, x, y - camera.eye_height, z);
     if (!noclip && aabb_intersection_terrain(&aabb))
-    { z = camera.r.z; dz = camera.v.z = 0.0F; }
+    { z = camera.r.z; camera.v.z = 0.0F; }
 
     camera.r.x = x;
     camera.r.y = y;

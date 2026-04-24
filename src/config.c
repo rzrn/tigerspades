@@ -44,7 +44,7 @@ bool offline = false;
 static void config_label_ads_scale(char * buffer, size_t length, void * voidptr) {
     float value = *((float *) voidptr);
 
-    snprintf(buffer, length, "%.2f×", value);
+    snprintf(buffer, length, "%.0f %%", value * 100.0F);
 }
 
 static void config_label_degrees(char * buffer, size_t length, void * voidptr) {

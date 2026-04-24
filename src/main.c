@@ -341,8 +341,8 @@ void game_display(void) {
                 local_player.blocks > 0) {
                 int * pos = camera_terrain_pick(0);
                 if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z])
-                   && norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[X], pos[Y], pos[Z]) < 25.0F
-                   && !player_in_block(HASBIT(players[local_player.id].input.keys, INPUT_CROUCH), camera.pos, pos)) {
+                   && norm3f(camera.r.x, camera.r.y, camera.r.z, pos[X], pos[Y], pos[Z]) < 25.0F
+                   && !player_in_block(HASBIT(players[local_player.id].input.keys, INPUT_CROUCH), camera.r, pos)) {
                     players[local_player.id].item_showup = window_time();
 
                     PacketBlockAction contained;
@@ -383,7 +383,7 @@ void game_display(void) {
                         pos = camera_terrain_pick(0);
                     else
                         pos = camera_terrain_pickEx(
-                            0, camera.pos.x, camera.pos.y, camera.pos.z,
+                            0, camera.r.x, camera.r.y, camera.r.z,
                             players[local_id].orientation_smooth.x,
                             players[local_id].orientation_smooth.y,
                             players[local_id].orientation_smooth.z
@@ -396,7 +396,7 @@ void game_display(void) {
         }
 
         if (players[local_id].alive && players[local_id].tool == TOOL_BLOCK)
-        if (pos != NULL && norm3f(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
+        if (pos != NULL && norm3f(pos[X], pos[Y], pos[Z], camera.r.x, camera.r.y, camera.r.z) < 25) {
             matrix_upload();
             glLineWidth(1.0F);
             glDisable(GL_DEPTH_TEST);
@@ -477,10 +477,10 @@ void game_display(void) {
 
 #if !(HACKS_ENABLED && HACK_NOCLIP)
         if (camera.noclip && camera.mode == CAMERAMODE_SPECTATOR) {}
-        else if (!map_isair(camera.pos.x, camera.pos.y, camera.pos.z)) {
+        else if (!map_isair(camera.r.x, camera.r.y, camera.r.z)) {
             const float brightness = 0.15F;
 
-            RGBA4i color = map_get(camera.pos.x, camera.pos.y, camera.pos.z);
+            RGBA4i color = map_get(camera.r.x, camera.r.y, camera.r.z);
             float r = color.r / 255.0F, g = color.g / 255.0F, b = color.b / 255.0F;
 
             glClearColor(brightness * r, brightness * g, brightness * b, 1.0F);

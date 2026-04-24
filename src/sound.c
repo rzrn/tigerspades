@@ -233,7 +233,7 @@ void sound_update(void) {
     if (!sound_enabled)
         return;
 
-    Vector3f r = camera.pos, v = camera.v;
+    Vector3f r = camera.r, v = camera.v;
 
     float sh = sin(camera.rot.h), ch = cos(camera.rot.h);
     float sv = sin(camera.rot.v), cv = cos(camera.rot.v);

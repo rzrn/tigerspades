@@ -95,8 +95,8 @@ void chunk_init(void) {
 static int chunk_sort(const void * a, const void * b) {
     ChunkRenderCall * aa = (ChunkRenderCall *) a;
     ChunkRenderCall * bb = (ChunkRenderCall *) b;
-    return norm2f(aa->chunk->x * CHUNK_SIZE + CHUNK_SIZE / 2, aa->chunk->y * CHUNK_SIZE + CHUNK_SIZE / 2, camera.pos.x, camera.pos.z)
-         - norm2f(bb->chunk->x * CHUNK_SIZE + CHUNK_SIZE / 2, bb->chunk->y * CHUNK_SIZE + CHUNK_SIZE / 2, camera.pos.x, camera.pos.z);
+    return norm2f(aa->chunk->x * CHUNK_SIZE + CHUNK_SIZE / 2, aa->chunk->y * CHUNK_SIZE + CHUNK_SIZE / 2, camera.r.x, camera.r.z)
+         - norm2f(bb->chunk->x * CHUNK_SIZE + CHUNK_SIZE / 2, bb->chunk->y * CHUNK_SIZE + CHUNK_SIZE / 2, camera.r.x, camera.r.z);
 }
 
 void chunk_render(ChunkRenderCall * c) {
@@ -124,7 +124,7 @@ void chunk_draw_visible(void) {
     // go through all possible chunks and store all in range and view
     for (int y = -overshoot; y < CHUNKS_PER_DIM + overshoot; y++) {
         for (int x = -overshoot; x < CHUNKS_PER_DIM + overshoot; x++) {
-            if (norm2f((x + 0.5F) * CHUNK_SIZE, (y + 0.5F) * CHUNK_SIZE, camera.pos.x, camera.pos.z) <=
+            if (norm2f((x + 0.5F) * CHUNK_SIZE, (y + 0.5F) * CHUNK_SIZE, camera.r.x, camera.r.z) <=
                 sqrf(settings.render_distance + 1.414F * CHUNK_SIZE)) {
                 uint32_t tmp_x = ((uint32_t) x) % CHUNKS_PER_DIM;
                 uint32_t tmp_y = ((uint32_t) y) % CHUNKS_PER_DIM;

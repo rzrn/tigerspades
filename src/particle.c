@@ -1,7 +1,7 @@
 /*
     Copyright © 2016–2021 ByteBit
     Copyright © 2018 vuolen
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -176,7 +176,7 @@ static bool particle_render_single(void * obj, void * user) {
     Particle * p = (Particle *) obj;
     Tesselator * tess = (Tesselator *) user;
 
-    if (norm2f(camera.pos.x, camera.pos.z, p->x, p->z) > sqrf(settings.render_distance))
+    if (norm2f(camera.r.x, camera.r.z, p->x, p->z) > sqrf(settings.render_distance))
         return false;
 
     float size = p->size / 2.0F * (1.0F - ((float) (window_time() - p->fade) / 2.0F));

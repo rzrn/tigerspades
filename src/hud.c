@@ -523,7 +523,7 @@ static float hud_draw_debug_screen(float top, float scale) {
     font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
 
     Vector3f r = camera.mode == CAMERAMODE_FPS ? players[local_player.id].pos
-                                               : camera.pos;
+                                               : camera.r;
 
     sprintf(buff, "XYZ: %.02f / %.02f / %.02f", r.x, r.y, r.z);
     font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
@@ -993,8 +993,8 @@ static void hud_draw_map(float scale) {
                 case TEAM_SPECTATOR: break;
             }
 
-            float x = clamp(0.0F, 512.0F, k == local_player.id ? camera.pos.x : players[k].pos.x);
-            float y = clamp(0.0F, 512.0F, k == local_player.id ? camera.pos.z : players[k].pos.z);
+            float x = clamp(0.0F, 512.0F, k == local_player.id ? camera.r.x : players[k].pos.x);
+            float y = clamp(0.0F, 512.0F, k == local_player.id ? camera.r.z : players[k].pos.z);
 
             float ang = k == local_player.id
                       ? camera.rot.h + PI
@@ -1013,8 +1013,8 @@ static void hud_draw_map(float scale) {
 }
 
 static void hud_draw_minimap(float scale) {
-    float x0 = floor(camera.pos.x) + 0.5F;
-    float z0 = floor(camera.pos.z) + 0.5F;
+    float x0 = floor(camera.r.x) + 0.5F;
+    float z0 = floor(camera.r.z) + 0.5F;
 
     switch (players[local_player.id].team) {
         case TEAM1: glColorRGB3i(gamestate.team1.color); break;
@@ -1025,7 +1025,7 @@ static void hud_draw_minimap(float scale) {
     float minimap_x = settings.window_width - 143 * scale;
     float minimap_y = settings.window_height - 15 * scale;
 
-    char buffsect[] = {sector1f(camera.pos.x), sector2f(camera.pos.z), 0};
+    char buffsect[] = {sector1f(camera.r.x), sector2f(camera.r.z), 0};
     font_centered(minimap_x + 64 * scale, minimap_y - 129 * scale, 2.0F * scale, buffsect, ASCII);
 
     glColor3ub(0, 0, 0);
@@ -1163,8 +1163,8 @@ static void hud_draw_minimap(float scale) {
                 case TEAM_SPECTATOR: break;
             }
 
-            float dx = (k == local_player.id ? camera.pos.x : players[k].pos.x) - x0;
-            float dz = (k == local_player.id ? camera.pos.z : players[k].pos.z) - z0;
+            float dx = (k == local_player.id ? camera.r.x : players[k].pos.x) - x0;
+            float dz = (k == local_player.id ? camera.r.z : players[k].pos.z) - z0;
 
             float x = sx + ROTDX(t, dx, dz), y = sz + ROTDZ(t, dx, dz);
 
@@ -1295,7 +1295,7 @@ static void hud_draw_game_ui(float scale) {
 
     if (window_time() - local_player.last_damage_timer <= 0.5F && is_local) {
         float ang = atan2(players[local_player.id].orientation.z, players[local_player.id].orientation.x)
-                  - atan2(camera.pos.z - local_player.last_damage.z, camera.pos.x - local_player.last_damage.x) + PI;
+                  - atan2(camera.r.z - local_player.last_damage.z, camera.r.x - local_player.last_damage.x) + PI;
         texture_draw_rotated(texture(TEXTURE_INDICATOR), settings.window_width / 2.0F, settings.window_height / 2.0F, 200, 200, ang);
     }
 
@@ -1786,7 +1786,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
             int * pos = camera_terrain_pick(0);
 
             if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
-                norm3f(pos[X], pos[Y], pos[Z], camera.pos.x, camera.pos.y, camera.pos.z) < 25) {
+                norm3f(pos[X], pos[Y], pos[Z], camera.r.x, camera.r.y, camera.r.z) < 25) {
                 int amount = cube_line_length(
                     local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
                     pos[X], pos[Z], 63 - pos[Y]
@@ -1814,7 +1814,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
             int * pos = camera_terrain_pick(0);
 
             if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
-                norm3f(camera.pos.x, camera.pos.y, camera.pos.z, pos[X], pos[Y], pos[Z]) < 25.0F) {
+                norm3f(camera.r.x, camera.r.y, camera.r.z, pos[X], pos[Y], pos[Z]) < 25.0F) {
                 local_player.drag_active = 1;
                 local_player.drag.x = pos[X];
                 local_player.drag.y = pos[Y];
@@ -1835,7 +1835,7 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         float nearest_dist = FLT_MAX;
         int nearest_player = -1;
         for (int k = 0; k < PLAYERS_MAX; k++) {
-            float dist = norm3f(camera.pos.x, camera.pos.y, camera.pos.z, players[k].pos.x, players[k].pos.y, players[k].pos.z);
+            float dist = norm3f(camera.r.x, camera.r.y, camera.r.z, players[k].pos.x, players[k].pos.y, players[k].pos.z);
 
             if (player_can_spectate(&players[k]) && players[k].alive && k != cameracontroller_bodyview_player && dist < nearest_dist) {
                 nearest_dist   = dist;

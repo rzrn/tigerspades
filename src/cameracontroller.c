@@ -2,7 +2,7 @@
     Copyright © 2017–2023 ByteBit
     Copyright © 2019 iamgreaser
     Copyright © 2025 Ashy
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -42,10 +42,10 @@ Vector3f cameracontroller_death_velocity;
 void cameracontroller_death_init(int player, Vector3f r) {
     camera.mode = CAMERAMODE_DEATH;
 
-    float len = hypot3f(camera.pos.x - r.x, camera.pos.y - r.y, camera.pos.z - r.z);
-    cameracontroller_death_velocity.x = (camera.pos.x - r.x) / len * 3;
-    cameracontroller_death_velocity.y = (camera.pos.y - r.y) / len * 3;
-    cameracontroller_death_velocity.z = (camera.pos.z - r.z) / len * 3;
+    float len = hypot3f(camera.r.x - r.x, camera.r.y - r.y, camera.r.z - r.z);
+    cameracontroller_death_velocity.x = (camera.r.x - r.x) / len * 3;
+    cameracontroller_death_velocity.y = (camera.r.y - r.y) / len * 3;
+    cameracontroller_death_velocity.z = (camera.r.z - r.z) / len * 3;
 
     cameracontroller_bodyview_player = player;
     cameracontroller_bodyview_zoom   = 0.0F;
@@ -55,16 +55,16 @@ void cameracontroller_death(float dt) {
     AABB box;
     aabb_set_size(&box, camera.size, camera.height, camera.size);
     aabb_set_center(&box,
-        camera.pos.x + cameracontroller_death_velocity.x * dt,
-        camera.pos.y + (cameracontroller_death_velocity.y - dt * 32.0F) * dt,
-        camera.pos.z + cameracontroller_death_velocity.z * dt
+        camera.r.x + cameracontroller_death_velocity.x * dt,
+        camera.r.y + (cameracontroller_death_velocity.y - dt * 32.0F) * dt,
+        camera.r.z + cameracontroller_death_velocity.z * dt
     );
 
     if (!aabb_intersection_terrain(&box)) {
         cameracontroller_death_velocity.y -= dt * 32.0F;
-        camera.pos.x += cameracontroller_death_velocity.x * dt;
-        camera.pos.y += cameracontroller_death_velocity.y * dt;
-        camera.pos.z += cameracontroller_death_velocity.z * dt;
+        camera.r.x += cameracontroller_death_velocity.x * dt;
+        camera.r.y += cameracontroller_death_velocity.y * dt;
+        camera.r.z += cameracontroller_death_velocity.z * dt;
     } else {
         cameracontroller_death_velocity.x *= +0.5F;
         cameracontroller_death_velocity.y *= -0.5F;
@@ -78,9 +78,10 @@ void cameracontroller_death(float dt) {
 }
 
 void cameracontroller_death_render(void) {
-    matrix_lookAt(matrix_view, camera.pos.x, camera.pos.y, camera.pos.z, camera.pos.x + players[local_player.id].orientation.x,
-                  camera.pos.y + players[local_player.id].orientation.y, camera.pos.z + players[local_player.id].orientation.z,
-                  0.0F, 1.0F, 0.0F);
+    float x = camera.r.x, y = camera.r.y, z = camera.r.z;
+    Vector3f o = players[local_player.id].orientation;
+
+    matrix_lookAt(matrix_view, x, y, z, x + o.x, y + o.y, z + o.z, 0.0F, 1.0F, 0.0F);
 }
 
 float last_cy;
@@ -150,9 +151,9 @@ void cameracontroller_fps(float dt) {
         }
     }
 
-    camera.pos.x = players[local_player.id].physics.eye.x;
-    camera.pos.y = players[local_player.id].physics.eye.y + player_height(&players[local_player.id]);
-    camera.pos.z = players[local_player.id].physics.eye.z;
+    camera.r.x = players[local_player.id].physics.eye.x;
+    camera.r.y = players[local_player.id].physics.eye.y + player_height(&players[local_player.id]);
+    camera.r.z = players[local_player.id].physics.eye.z;
 
     if (window_key_down(WINDOW_KEY_SPRINT) && chat_input_mode == CHAT_NO_INPUT) {
         players[local_player.id].item_disabled = window_time();
@@ -265,7 +266,7 @@ void cameracontroller_fps(float dt) {
 }
 
 void cameracontroller_fps_render(void) {
-    float x = camera.pos.x, y = camera.pos.y, z = camera.pos.z;
+    float x = camera.r.x, y = camera.r.y, z = camera.r.z;
     Vector3f o = ISSCOPING(&players[local_player.id]) ? crosshair_direction() : camera_orientation();
 
     matrix_lookAt(matrix_view, x, y, z, x + o.x, y + o.y, z + o.z, 0.0F, 1.0F, 0.0F);
@@ -298,17 +299,17 @@ void cameracontroller_spectator(float dt) {
         cameracontroller_bodyview_next();
 
     if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
-        Player * p    = &players[cameracontroller_bodyview_player];
-        camera.pos    = p->physics.eye;
-        camera.pos.y += player_height(p);
-        camera.v      = p->physics.velocity;
+        Player * p  = &players[cameracontroller_bodyview_player];
+        camera.r    = p->physics.eye;
+        camera.r.y += player_height(p);
+        camera.v    = p->physics.velocity;
 
         return;
     }
 
     AABB aabb = {.min = {0, 0, 0}, .max = {0, 0, 0}};
     aabb_set_size(&aabb, camera.size, camera.height, camera.size);
-    aabb_set_center(&aabb, camera.pos.x, camera.pos.y - camera.eye_height, camera.pos.z);
+    aabb_set_center(&aabb, camera.r.x, camera.r.y - camera.eye_height, camera.r.z);
 
     float xd = 0.0F, yd = 0.0F, zd = 0.0F;
 
@@ -331,11 +332,11 @@ void cameracontroller_spectator(float dt) {
     float absd = hypot3f(xd, yd, zd);
 
     if (absd > 0.0F) {
-        camera.movement.x = (xd / absd) * camera.speed;
-        camera.movement.y = (yd / absd) * camera.speed;
-        camera.movement.z = (zd / absd) * camera.speed;
+        camera.v.x = (xd / absd) * camera.speed;
+        camera.v.y = (yd / absd) * camera.speed;
+        camera.v.z = (zd / absd) * camera.speed;
     } else {
-        float v = hypot3f(camera.movement.x, camera.movement.y, camera.movement.z);
+        float v = hypot3f(camera.v.x, camera.v.y, camera.v.z);
 
         if (v > 0.0F) {
             const float k = 4.5F, d = 0.8F;
@@ -344,48 +345,44 @@ void cameracontroller_spectator(float dt) {
             // We’ll get the finite stopping time when d < 1:
             // https://physics.stackexchange.com/questions/801500/would-an-object-stop-if-the-only-force-acting-against-it-is-air-friction
             float dv = -k * dt / pow(v, 1.0F - d);
-            camera.movement.x += camera.movement.x * dv;
-            camera.movement.y += camera.movement.y * dv;
-            camera.movement.z += camera.movement.z * dv;
+            camera.v.x += camera.v.x * dv;
+            camera.v.y += camera.v.y * dv;
+            camera.v.z += camera.v.z * dv;
         }
     }
 
-    float vx = camera.movement.x, vy = camera.movement.y, vz = camera.movement.z;
+    float vx = camera.v.x, vy = camera.v.y, vz = camera.v.z;
 
     if (window_key_down(WINDOW_KEY_SPRINT))
     { vx *= 2.0F; vy *= 2.0F; vz *= 2.0F; }
 
     float dx = vx * dt, dy = vy * dt, dz = vz * dt;
 
-    float x = modnonnegf(camera.pos.x + dx, map_size_x);
-    float y = camera.pos.y + dy;
-    float z = modnonnegf(camera.pos.z + dz, map_size_z);
+    float x = modnonnegf(camera.r.x + dx, map_size_x);
+    float y = camera.r.y + dy;
+    float z = modnonnegf(camera.r.z + dz, map_size_z);
 
     bool noclip = camera.noclip && camera.mode == CAMERAMODE_SPECTATOR;
 
-    aabb_set_center(&aabb, x, camera.pos.y - camera.eye_height, camera.pos.z);
+    aabb_set_center(&aabb, x, camera.r.y - camera.eye_height, camera.r.z);
     if (!noclip && aabb_intersection_terrain(&aabb))
-    { x = camera.pos.x; dx = camera.movement.x = 0.0F; }
+    { x = camera.r.x; dx = camera.v.x = 0.0F; }
 
-    aabb_set_center(&aabb, x, y - camera.eye_height, camera.pos.z);
-    if (camera.pos.y + dy < 0 || (!noclip && aabb_intersection_terrain(&aabb)))
-    { y = camera.pos.y; dy = camera.movement.y = 0.0F; }
+    aabb_set_center(&aabb, x, y - camera.eye_height, camera.r.z);
+    if (camera.r.y + dy < 0 || (!noclip && aabb_intersection_terrain(&aabb)))
+    { y = camera.r.y; dy = camera.v.y = 0.0F; }
 
     aabb_set_center(&aabb, x, y - camera.eye_height, z);
     if (!noclip && aabb_intersection_terrain(&aabb))
-    { z = camera.pos.z; dz = camera.movement.z = 0.0F; }
+    { z = camera.r.z; dz = camera.v.z = 0.0F; }
 
-    camera.pos.x = x;
-    camera.pos.y = y;
-    camera.pos.z = z;
-
-    camera.v.x = dx;
-    camera.v.y = dy;
-    camera.v.z = dz;
+    camera.r.x = x;
+    camera.r.y = y;
+    camera.r.z = z;
 }
 
 void cameracontroller_spectator_render(void) {
-    float x = camera.pos.x, y = camera.pos.y, z = camera.pos.z;
+    float x = camera.r.x, y = camera.r.y, z = camera.r.z;
 
     float ox, oy, oz;
 
@@ -436,16 +433,16 @@ void cameracontroller_bodyview(float dt) {
                                    ? zoom : fmin(zoom, cameracontroller_bodyview_zoom + dt * 8.0F);
 
     // this is needed to determine which chunks need/can be rendered and for sound, minimap etc...
-    camera.pos.x = r.x - o.x * cameracontroller_bodyview_zoom;
-    camera.pos.y = r.y - o.y * cameracontroller_bodyview_zoom + h;
-    camera.pos.z = r.z - o.z * cameracontroller_bodyview_zoom;
+    camera.r.x = r.x - o.x * cameracontroller_bodyview_zoom;
+    camera.r.y = r.y - o.y * cameracontroller_bodyview_zoom + h;
+    camera.r.z = r.z - o.z * cameracontroller_bodyview_zoom;
 
     camera.v = p->physics.velocity;
 
     if (cameracontroller_bodyview_mode && p->alive) {
-        camera.pos    = p->physics.eye;
-        camera.pos.y += player_height(p);
-        camera.v      = p->physics.velocity;
+        camera.r    = p->physics.eye;
+        camera.r.y += player_height(p);
+        camera.v    = p->physics.velocity;
     }
 }
 
@@ -453,7 +450,7 @@ void cameracontroller_bodyview_render(void) {
     Player * const p = &players[cameracontroller_bodyview_player];
 
     if (cameracontroller_bodyview_mode && players[cameracontroller_bodyview_player].alive) {
-        Vector3f r = camera.pos, o = p->orientation_smooth;
+        Vector3f r = camera.r, o = p->orientation_smooth;
         float n = hypot3f(o.x, o.y, o.z);
 
         matrix_lookAt(matrix_view, r.x, r.y, r.z, r.x + o.x / n, r.y + o.y / n, r.z + o.z / n, 0.0F, 1.0F, 0.0F);
@@ -474,14 +471,14 @@ void cameracontroller_bodyview_render(void) {
 void cameracontroller_selection(float dt) {
     UNUSED(dt);
 
-    camera.pos = (Vector3f) {256.0F, 79.0F, 256.0F};
-    camera.v   = (Vector3f) {0.0F, 0.0F, 0.0F};
+    camera.r = (Vector3f) {256.0F, 79.0F, 256.0F};
+    camera.v = (Vector3f) {0.0F, 0.0F, 0.0F};
 
     matrix_rotate(matrix_view, 90.0F, 1.0F, 0.0F, 0.0F);
-    matrix_translate(matrix_view, -camera.pos.x, -camera.pos.y, -camera.pos.z);
+    matrix_translate(matrix_view, -camera.r.x, -camera.r.y, -camera.r.z);
 }
 
 void cameracontroller_selection_render(void) {
     matrix_rotate(matrix_view, 90.0F, 1.0F, 0.0F, 0.0F);
-    matrix_translate(matrix_view, -camera.pos.x, -camera.pos.y, -camera.pos.z);
+    matrix_translate(matrix_view, -camera.r.x, -camera.r.y, -camera.r.z);
 }

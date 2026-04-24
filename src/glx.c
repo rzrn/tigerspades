@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2021 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -238,10 +238,10 @@ void glx_enable_sphericalfog(void) {
         glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
         glTexGenfv(GL_T, GL_EYE_PLANE,
                    (float[]) {1.0F / settings.render_distance / 2.0F, 0.0F, 0.0F,
-                              -camera.pos.x / settings.render_distance / 2.0F + 0.5F});
+                              -camera.r.x / settings.render_distance / 2.0F + 0.5F});
         glTexGenfv(GL_S, GL_EYE_PLANE,
                    (float[]) {0.0F, 0.0F, 1.0F / settings.render_distance / 2.0F,
-                              -camera.pos.z / settings.render_distance / 2.0F + 0.5F});
+                              -camera.r.z / settings.render_distance / 2.0F + 0.5F});
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_S);
         glActiveTexture(GL_TEXTURE0);
@@ -258,7 +258,7 @@ void glx_enable_sphericalfog(void) {
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (float[]) {fog_color[0], fog_color[1], fog_color[2], 1.0F});
 
         glLightfv(GL_LIGHT1, GL_POSITION,
-                  (float[]) {camera.pos.x, (settings.render_distance * map_size_y) / 16.0F, camera.pos.z, 1.0F});
+                  (float[]) {camera.r.x, (settings.render_distance * map_size_y) / 16.0F, camera.r.z, 1.0F});
         glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, (float[]) {0.0F, -1.0F, 0.0F});
         glLightfv(GL_LIGHT1, GL_DIFFUSE, (float[]) {1.0F, 1.0F, 1.0F, 1.0F});
         glLightfv(GL_LIGHT1, GL_AMBIENT, (float[]) {-fog_color[0], -fog_color[1], -fog_color[2], 1.0F});
@@ -279,7 +279,7 @@ void glx_enable_sphericalfog(void) {
     float amb[4] = {0.0F, 0.0F, 0.0F, 1.0F};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
 
-    float lpos[4] = {camera.pos.x, (settings.render_distance * map_size_y) / 16.0F, camera.pos.z, 1.0F};
+    float lpos[4] = {camera.r.x, (settings.render_distance * map_size_y) / 16.0F, camera.r.z, 1.0F};
     glLightfv(GL_LIGHT1, GL_POSITION, lpos);
     float dir[3] = {0.0F, -1.0F, 0.0F};
     glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, dir);

@@ -1,6 +1,6 @@
 /*
     Copyright © 2016–2021 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -34,9 +34,8 @@ float frustum[6][4];
 
 Camera camera = {
     .mode       = CAMERAMODE_FPS,
-    .pos        = {256.0F, 60.0F, 256.0F},
+    .r          = {256.0F, 60.0F, 256.0F},
     .v          = {0.0F, 0.0F, 0.0F},
-    .movement   = {0.0F, 0.0F, 0.0F},
     .size       = 0.8F,
     .height     = 0.8F,
     .eye_height = 0.0F,
@@ -204,7 +203,7 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
 }
 
 int * camera_terrain_pick(unsigned char mode) {
-    Vector3f r = camera.pos, o = muzzle_direction();
+    Vector3f r = camera.r, o = muzzle_direction();
     return camera_terrain_pickEx(mode, r.x, r.y, r.z, o.x, o.y, o.z);
 }
 

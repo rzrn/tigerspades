@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2020 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -32,7 +32,7 @@ typedef enum {
 } CameraMode;
 
 typedef struct {
-    CameraMode mode; Vector3f pos, v, movement;
+    CameraMode mode; Vector3f r, v;
     float size, height, eye_height, speed, fov;
     Euler2f rot, crosshair, muzzle;
     bool noclip;

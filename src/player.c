@@ -323,9 +323,9 @@ void player_render_all(void) {
     player_intersection_dist = FLT_MAX;
 
     Ray ray;
-    ray.origin[X] = camera.pos.x;
-    ray.origin[Y] = camera.pos.y;
-    ray.origin[Z] = camera.pos.z;
+    ray.origin[X] = camera.r.x;
+    ray.origin[Y] = camera.r.y;
+    ray.origin[Z] = camera.r.z;
 
     if (in_bodyview_mode() && players[cameracontroller_bodyview_player].alive) {
         Player * p = &players[cameracontroller_bodyview_player];
@@ -455,7 +455,7 @@ void player_render_all(void) {
 
         if (k != local_player.id) {
             if (camera_CubeInFrustum(players[k].pos.x, players[k].pos.y, players[k].pos.z, 1.0F, 2.0F)
-               && norm2f(players[k].pos.x, players[k].pos.z, camera.pos.x, camera.pos.z) <=
+               && norm2f(players[k].pos.x, players[k].pos.z, camera.r.x, camera.r.z) <=
                   sqrf(settings.render_distance + 2.0F)) {
                 Hit intersects = {0};
                 player_render(&players[k], k);

@@ -642,7 +642,7 @@ static void getPacketCreatePlayer(uint8_t * data, size_t len) {
 
         if (p.player_id == local_player.id) {
             if (p.team == TEAM_SPECTATOR)
-                camera.pos = ntohv3f(p.pos);
+                camera.r = ntohv3f(p.pos);
 
             local_player.health    = 100;
             local_player.blocks    = 50;
@@ -756,7 +756,7 @@ static void getPacketStateData(uint8_t * data, size_t len) {
         screen_current = SCREEN_NONE;
         camera.mode = CAMERAMODE_SPECTATOR;
 
-        camera.pos       = (Vector3f) {256.0F, 79.0F, 256.0F};
+        camera.r         = (Vector3f) {256.0F, 79.0F, 256.0F};
         camera.v         = (Vector3f) {0.0F, 0.0F, 0.0F};
         camera.rot       = (Euler2f) {M_PI, 3.14F};
         camera.crosshair = (Euler2f) {M_PI, 3.14F};

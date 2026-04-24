@@ -748,8 +748,22 @@ static void getPacketStateData(uint8_t * data, size_t len) {
         screen_current = SCREEN_TEAM_SELECT;
     }
 
+    if (settings.show_welcome_screen) {
+        camera.mode = CAMERAMODE_SELECTION;
+    } else {
+        players[local_player.id].team = TEAM_SPECTATOR;
+
+        screen_current = SCREEN_NONE;
+        camera.mode = CAMERAMODE_SPECTATOR;
+
+        camera.pos       = (Vector3f) {256.0F, 79.0F, 256.0F};
+        camera.v         = (Vector3f) {0.0F, 0.0F, 0.0F};
+        camera.rot       = (Euler2f) {M_PI, 3.14F};
+        camera.crosshair = (Euler2f) {M_PI, 3.14F};
+        camera.muzzle    = (Euler2f) {M_PI, 3.14F};
+    }
+
     network_map_transfer = false;
-    camera.mode          = CAMERAMODE_SELECTION;
     chat_popup_duration  = 0;
 
     hud_change(&hud_ingame);

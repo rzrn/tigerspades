@@ -305,6 +305,12 @@ Setting config_settings[] = {
         .display  = "News server URL",
     },
     {
+        .value    = &settings_tmp.show_welcome_screen,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .display  = "Show welcome screen",
+        .name     = "show_welcome_screen",
+    },
+    {
         .value    = &settings_tmp.mouse_sensitivity,
         .type     = CONFIG_TYPE_FLOAT,
         .minf     = 0.0F,
@@ -703,6 +709,7 @@ Options settings = {
     .newslist_url           = "http://aos.party/bs/news/",
     .scroll_camera_speed    = true,
     .mmb_toggle_noclip      = true,
+    .show_welcome_screen    = true,
 };
 
 char * config_filepath = "config.ini";

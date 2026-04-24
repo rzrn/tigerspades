@@ -119,6 +119,7 @@ typedef struct {
     char  newslist_url[128];
     bool  scroll_camera_speed;
     bool  mmb_toggle_noclip;
+    bool  show_welcome_screen;
 } Options;
 
 extern char * serverlist_url;

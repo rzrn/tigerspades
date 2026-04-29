@@ -226,6 +226,8 @@ void cameracontroller_fps(float dt) {
                     handlePacketGrenade(&contained); // server won’t loop packet back
                     players[local_player.id].item_showup = window_time();
 
+                    sound_create(SOUND_LOCAL, sound(SOUND_SPADE_WOOSH), 0.0F, 0.0F, 0.0F);
+
                     SETBIT(players[local_player.id].input.buttons, BUTTON_PRIMARY, false);
                     break;
                 }

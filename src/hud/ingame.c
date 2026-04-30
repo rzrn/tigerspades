@@ -1,0 +1,2377 @@
+/*
+    Copyright © 2017–2023 ByteBit
+    Copyright © 2018 NotAFile
+    Copyright © 2023–2026 rzrn
+
+    This file is part of BetterSpades.
+
+    BetterSpades is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    BetterSpades is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with BetterSpades.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include <string.h>
+
+#include <bs/main.h>
+#include <bs/matrix.h>
+#include <bs/hud.h>
+#include <bs/map.h>
+#include <bs/cameracontroller.h>
+#include <bs/chunk.h>
+#include <bs/weapon.h>
+#include <bs/tracer.h>
+#include <bs/unicode.h>
+#include <bs/particle.h>
+#include <bs/opengl.h>
+
+static char hud_popup[256];
+static float hud_popup_timer = -INFINITY;
+
+void hud_show_popup(const char * format, ...) {
+    va_list argv;
+
+    va_start(argv, format);
+    vsnprintf(hud_popup, sizeof(hud_popup), format, argv);
+    va_end(argv);
+
+    hud_popup_timer = window_time();
+}
+
+static inline bool in_bodyview_mode(void)
+{ return (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
+       && cameracontroller_bodyview_mode
+       && players[cameracontroller_bodyview_player].alive; }
+
+static inline int is_inside_centered(double mx, double my, int x, int y, int w, int h)
+{ return mx >= x - w / 2 && mx < x + w / 2 && my >= y - h / 2 && my < y + h / 2; }
+
+/*static inline int is_inside(double mx, double my, int x, int y, int w, int h)
+{ return mx >= x && mx < x + w && my >= y && my < y + h; }*/
+
+static float hud_ingame_touch_x = 0.0F;
+static float hud_ingame_touch_y = 0.0F;
+
+int screen_current = SCREEN_NONE;
+
+static void hud_ingame_init(void) {
+    window_textinput(0);
+    window_mousemode(WINDOW_CURSOR_DISABLED);
+
+    chat_input_mode = CHAT_NO_INPUT;
+}
+
+typedef struct {
+    unsigned char id;
+    unsigned int score;
+} PlayerTable;
+
+static int playertable_sort(const void * a, const void * b) {
+    PlayerTable * A = (PlayerTable *) a, * B = (PlayerTable *) b;
+    return B->score - A->score;
+}
+
+static inline void kv6_center(mat4 matrix, kv6 * model) {
+    matrix_translate(
+        matrix,
+        (model->box.xpiv - model->box.xsiz * 0.5F) * model->box.scale,
+        (model->box.zpiv - model->box.zsiz * 0.5F) * model->box.scale,
+        (model->box.ypiv - model->box.ysiz * 0.5F) * model->box.scale
+    );
+}
+
+static void hud_draw_hotbar(void) {
+    const float t = window_time() * 57.4F;
+
+    {
+        static kv6 * const model_spade = &model[MODEL_SPADE];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].tool == TOOL_SPADE) * 0.5F, -6.0F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_spade);
+
+        if (players[local_player.id].tool == TOOL_SPADE)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        matrix_upload();
+        kv6_render(model_spade, players[local_player.id].team);
+    }
+
+    if (local_player.blocks > 0) {
+        static kv6 * const model_block = &model[MODEL_BLOCK];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].tool == TOOL_BLOCK) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, 1.5F, 0.0F, 0.0F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_block);
+
+        if (players[local_player.id].tool == TOOL_BLOCK)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        model_block->red   = players[local_player.id].block.r / 255.0F;
+        model_block->green = players[local_player.id].block.g / 255.0F;
+        model_block->blue  = players[local_player.id].block.b / 255.0F;
+
+        matrix_upload();
+        kv6_render(model_block, players[local_player.id].team);
+    }
+
+    if (local_player.ammo + local_player.ammo_reserved > 0) {
+        kv6 * gun = weapon_model(players[local_player.id].weapon);
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].tool == TOOL_WEAPON) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, 3.0F, 0.0F, 0.0F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, gun);
+
+        if (players[local_player.id].tool == TOOL_WEAPON)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        matrix_upload();
+        kv6_render(gun, players[local_player.id].team);
+    }
+
+    if (local_player.grenades > 0) {
+        static kv6 * const model_grenade = &model[MODEL_GRENADE];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -2.25F, -1.5F - (players[local_player.id].tool == TOOL_GRENADE) * 0.5F, -6.0F);
+        matrix_translate(matrix_model, 4.5F, 0.0F, 0.0F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_grenade);
+
+        if (players[local_player.id].tool == TOOL_GRENADE)
+            matrix_scale(matrix_model, 1.5F, 1.5F, 1.5F);
+
+        matrix_upload();
+        kv6_render(model_grenade, players[local_player.id].team);
+    }
+}
+
+static void hud_ingame_render3D(void) {
+    font_select(font_primary);
+
+    glDepthRange(0.0F, 0.05F);
+
+    const float aspect = window_aspect();
+
+    matrix_identity(matrix_projection);
+    matrix_perspective(matrix_projection, CAMERA_DEFAULT_FOV, aspect, 0.1F, 128.0F);
+    matrix_identity(matrix_view);
+    matrix_upload_p();
+
+    if (camera.mode == CAMERAMODE_FPS && players[local_player.id].items_show) {
+        players[local_player.id].input.buttons &= MASKOFF(BUTTON_SECONDARY);
+        local_player.drag_active = false;
+
+        if (settings.show_hotbar) hud_draw_hotbar();
+    }
+
+    if (screen_current == SCREEN_TEAM_SELECT) {
+        static Player player = {
+            .alive              = true,
+            .spade_use_timer    = FLT_MAX,
+            .input.keys         = 0,
+            .input.buttons      = 0,
+            .tool               = TOOL_SPADE,
+            .pos                = {0, 0, 0},
+            .orientation        = {1, 0, 0},
+            .orientation_smooth = {1, 0, 0},
+            .physics.eye        = {0, 0, 0},
+            .physics.velocity   = {0, 0, 0}
+        };
+
+        {
+            player.team = TEAM1;
+            matrix_identity(matrix_model);
+            matrix_translate(matrix_model, -1.4F, -2.0F, -3.0F);
+            matrix_rotate(matrix_model, -90.0F + 22.5F, 0.0F, 1.0F, 0.0F);
+            matrix_upload();
+
+            player_render(&player, PLAYERS_MAX);
+        }
+
+        {
+            player.team = TEAM2;
+            matrix_identity(matrix_model);
+            matrix_translate(matrix_model, 1.4F, -2.0F, -3.0F);
+            matrix_rotate(matrix_model, -90.0F - 22.5F, 0.0F, 1.0F, 0.0F);
+            matrix_upload();
+
+            player_render(&player, PLAYERS_MAX);
+        }
+    }
+
+    if (screen_current == SCREEN_GUN_SELECT) {
+        const float t = window_time() * 90.0F;
+
+        static kv6 * const model_semi = &model[MODEL_SEMI];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, -1.5F, -1.25F, -3.25F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_semi);
+        matrix_upload();
+        kv6_render(model_semi, TEAM_SPECTATOR);
+
+        static kv6 * const model_smg = &model[MODEL_SMG];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, 0.0F, -1.25F, -3.25F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_smg);
+        matrix_upload();
+        kv6_render(model_smg, TEAM_SPECTATOR);
+
+        static kv6 * const model_shotgun = &model[MODEL_SHOTGUN];
+
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, 1.5F, -1.25F, -3.25F);
+        matrix_rotate(matrix_model, t, 0.0F, 1.0F, 0.0F);
+        kv6_center(matrix_model, model_shotgun);
+        matrix_upload();
+        kv6_render(model_shotgun, TEAM_SPECTATOR);
+    }
+
+    kv6 * rotating_model = NULL; int rotating_model_team = TEAM_SPECTATOR;
+
+    if (gamestate.mode == GAMEMODE_CTF) {
+        switch (players[local_player.id].team) {
+            case TEAM1: {
+                if (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == local_player.id) {
+                    rotating_model      = &model[MODEL_INTEL];
+                    rotating_model_team = TEAM2;
+                }
+                break;
+            }
+
+            case TEAM2: {
+                if (gamestate.ctf.team2_has_intel && gamestate.ctf.team1_carrier == local_player.id) {
+                    rotating_model      = &model[MODEL_INTEL];
+                    rotating_model_team = TEAM1;
+                }
+                break;
+            }
+
+            case TEAM_SPECTATOR: break;
+        }
+    }
+
+    if (gamestate.mode == GAMEMODE_TC) {
+        for (int k = 0; k < gamestate.tc.territory_count; k++) {
+            float n = normv3f(gamestate.tc.territory[k].pos, players[local_player.id].pos);
+
+            if (n <= 400.0F) {
+                rotating_model      = &model[MODEL_TENT];
+                rotating_model_team = gamestate.tc.territory[k].team;
+                break;
+            }
+        }
+    }
+
+    if (rotating_model != NULL) {
+        matrix_identity(matrix_model);
+        matrix_translate(matrix_model, 0.0F, -(rotating_model->box.zsiz * 0.5F + rotating_model->box.zpiv) * rotating_model->box.scale, -10.0F);
+        matrix_rotate(matrix_model, window_time() * 90.0F, 0.0F, 1.0F, 0.0F);
+        matrix_upload();
+        glViewport(-settings.window_width * 0.4F, settings.window_height * 0.2F, settings.window_width, settings.window_height);
+        kv6_render(rotating_model, rotating_model_team);
+        glViewport(0.0F, 0.0F, settings.window_width, settings.window_height);
+    }
+}
+
+static void hud_ingame_keyboard(int key, int action, int mods, int internal);
+
+static int hud_ingame_onscreencontrol(int index, char * str, int activate) {
+    if (chat_input_mode == CHAT_NO_INPUT) {
+        if (camera.mode != CAMERAMODE_SELECTION) {
+            switch (index) {
+                case 0:
+                    if (str)
+                        strcpy(str, "G-Chat");
+                    if (activate == 0)
+                        hud_ingame_keyboard(WINDOW_KEY_CHAT, WINDOW_RELEASE, 0, 0);
+                    if (activate == 1)
+                        hud_ingame_keyboard(WINDOW_KEY_CHAT, WINDOW_PRESS, 0, 0);
+                    return 1;
+                case 1:
+                    if (str)
+                        strcpy(str, "T-Chat");
+                    if (activate == 0)
+                        hud_ingame_keyboard(WINDOW_KEY_TEAM_CHAT, WINDOW_RELEASE, 0, 0);
+                    if (activate == 1)
+                        hud_ingame_keyboard(WINDOW_KEY_TEAM_CHAT, WINDOW_PRESS, 0, 0);
+                    return 1;
+                case 2:
+                    if (str)
+                        strcpy(str, "Score");
+                    if (activate == 0)
+                        keys(WINDOW_KEY_SCOREBOARD, WINDOW_RELEASE, 0);
+                    if (activate == 1)
+                        keys(WINDOW_KEY_SCOREBOARD, WINDOW_PRESS, 0);
+                    return 1;
+                case 3:
+                    if (str)
+                        strcpy(str, "Team");
+                    if (activate == 0)
+                        hud_ingame_keyboard(WINDOW_KEY_CHANGETEAM, WINDOW_RELEASE, 0, 0);
+                    if (activate == 1)
+                        hud_ingame_keyboard(WINDOW_KEY_CHANGETEAM, WINDOW_PRESS, 0, 0);
+                    return 1;
+                case 4:
+                    if (str)
+                        strcpy(str, "Weapon");
+                    if (activate == 0)
+                        hud_ingame_keyboard(WINDOW_KEY_CHANGEWEAPON, WINDOW_RELEASE, 0, 0);
+                    if (activate == 1)
+                        hud_ingame_keyboard(WINDOW_KEY_CHANGEWEAPON, WINDOW_PRESS, 0, 0);
+                    return 1;
+                case 5:
+                    if (str)
+                        strcpy(str, "Network");
+                    if (activate == 0)
+                        keys(WINDOW_KEY_NETWORKSTATS, WINDOW_RELEASE, 0);
+                    if (activate == 1)
+                        keys(WINDOW_KEY_NETWORKSTATS, WINDOW_PRESS, 0);
+                    return 1;
+                case 6:
+                    if (str)
+                        strcpy(str, "Tool");
+                    if (activate == 1)
+                        mouse_scroll(0, -1);
+                    return 1;
+                case 64:
+                    if (str)
+                        strcpy(str, "LMB");
+                    if (activate == 0)
+                        mouse_click(WINDOW_MOUSE_LMB, WINDOW_RELEASE, 0);
+                    if (activate == 1)
+                        mouse_click(WINDOW_MOUSE_LMB, WINDOW_PRESS, 0);
+                    return 1;
+                case 65:
+                    if (str)
+                        strcpy(str, "RMB");
+                    if (activate == 0)
+                        mouse_click(WINDOW_MOUSE_RMB, WINDOW_RELEASE, 0);
+                    if (activate == 1)
+                        mouse_click(WINDOW_MOUSE_RMB, WINDOW_PRESS, 0);
+                    return 1;
+            }
+        }
+    } else {
+        switch (index) {
+            case 0:
+                if (str)
+                    strcpy(str, "Send");
+                if (activate == 0)
+                    hud_ingame_keyboard(WINDOW_KEY_ENTER, WINDOW_RELEASE, 0, 0);
+                if (activate == 1)
+                    hud_ingame_keyboard(WINDOW_KEY_ENTER, WINDOW_PRESS, 0, 0);
+                return 1;
+            case 1:
+                if (str)
+                    strcpy(str, "Close");
+                if (activate == 0)
+                    hud_ingame_keyboard(WINDOW_KEY_ESCAPE, WINDOW_RELEASE, 0, 0);
+                if (activate == 1)
+                    hud_ingame_keyboard(WINDOW_KEY_ESCAPE, WINDOW_PRESS, 0, 0);
+                return 1;
+        }
+    }
+    return 0;
+}
+
+inline static bool visible_on_minimap(Player * p) {
+    if (&players[local_player.id] == p)
+        return true;
+
+    if (!p->connected || p->team == TEAM_SPECTATOR)
+        return false;
+
+    if (players[local_player.id].team == TEAM_SPECTATOR)
+        return true;
+
+    return p->team == players[local_player.id].team;
+}
+
+static void hud_draw_welcome_screen(float scale) {
+    font_select(font_primary);
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    texture_draw(
+        texture(TEXTURE_SPLASH),
+        (settings.window_width - 240 * scale) * 0.5F,
+        settings.window_height - 1 * scale,
+        240 * scale, 180 * scale
+    );
+
+    glColor3f(1.0F, 1.0F, 0.0F);
+    font_centered(settings.window_width / 2.0F, settings.window_height - 180 * scale, 2 * scale, "CONTROLS", ASCII);
+    char help_str[2][12][16] = {{"Movement", "Weapons", "Reload", "Jump", "Crouch", "Sneak",
+                                 "Sprint", "Map", "Change Team", "Change Weapon", "Global Chat",
+                                 "Team Chat"},
+                                {"W S A D", "1-4 / Wheel", "R", "Space", "CTRL", "V",
+                                 "SHIFT", "M", ",", ".", "T", "Y"}};
+
+    for (int k = 0; k < 12; k++) {
+        font_render(settings.window_width / 2.0F - font_length(1.0F * scale, help_str[0][k], 0, ASCII),
+                    settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[0][k], ASCII);
+        font_render(settings.window_width / 2.0F + font_length(1.0F * scale, " ", 0, ASCII),
+                    settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[1][k], ASCII);
+    }
+}
+
+static float hud_draw_debug_screen(float top, float scale) {
+    char buff[64]; Font * font_old = font_select(font_secondary);
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    sprintf(buff, "TigerSpades %s (%s)", BSVERSION, GIT_COMMIT_HASH);
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+    sprintf(buff, "%i ms, %i fps", network_ping(), (int) fps);
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+    Vector3f r = camera.mode == CAMERAMODE_FPS ? players[local_player.id].pos
+                                               : camera.r;
+
+    sprintf(buff, "XYZ: %.02f / %.02f / %.02f", r.x, r.y, r.z);
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+    Vector3f o = camera.mode == CAMERAMODE_FPS ? players[local_player.id].orientation
+                                               : crosshair_direction();
+
+    sprintf(buff, "Facing: %.04f / %.04f / %.04f", o.x, o.y, o.z);
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+    RGB3i rgb = players[local_player.id].block;
+
+    sprintf(
+        buff, "RGB: #%02X%02X%02X (%d, %d, %d)",
+        rgb.r, rgb.g, rgb.b,
+        rgb.r, rgb.g, rgb.b
+    );
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+    int * pick = camera_terrain_pick(1);
+
+    if (pick == NULL) sprintf(buff, "Targeted Block: N/A");
+    else {
+        Vector3i v = hton3i(pick[X], pick[Y], pick[Z]);
+        sprintf(buff, "Targeted Block: (%d, %d, %d)", v.x, v.y, v.z);
+    }
+
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+
+    font_select(font_old);
+
+    return top;
+}
+
+static inline void hud_draw_graph_grid(float alpha) {
+    glEnable(GL_DEPTH_TEST);
+
+    {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+        glBegin(GL_LINES);
+        for (size_t i = 1; i < 10; i++) {
+            float t = (float) i / (float) 10;
+
+            glVertex2f(0.0f, t);
+            glVertex2f(1.0f, t);
+        }
+
+        for (size_t j = 1; j < 20; j++) {
+            float s = (float) j / (float) 20;
+
+            glVertex2f(s, 0.0f);
+            glVertex2f(s, 1.0f);
+        }
+        glEnd();
+    }
+
+    {
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+        glEnable(GL_BLEND);
+
+        glColor4f(1.0F, 1.0F, 1.0F, alpha);
+        glDepthFunc(GL_EQUAL);
+        texture_draw_empty(0.0F, 1.0F, 1.0F, 1.0F);
+
+        glColor4f(0.0F, 0.0F, 0.0F, alpha);
+        glDepthFunc(GL_LESS);
+        texture_draw_empty(0.0F, 1.0F, 1.0F, 1.0F);
+
+        glDisable(GL_BLEND);
+    }
+
+    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_DEPTH_TEST);
+}
+
+static inline void hud_draw_graph_border(float x, float y, float w, float h, float bw) {
+    glEnable(GL_DEPTH_TEST);
+
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    texture_draw_empty(x, y, w, h);
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+    glColor3f(0.0F, 0.0F, 0.0F);
+    glDepthFunc(GL_NOTEQUAL);
+    texture_draw_empty(x - bw, y + bw, w + 2 * bw, h + 2 * bw);
+
+    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_DEPTH_TEST);
+}
+
+static inline float hud_draw_graph_legend(Graph * g, float scale, float x, float y) {
+    for (size_t j = 0; j < g->nrows; j++) {
+        LegendEntry * const legend = &g->legend[j];
+
+        glColor3f(1.0F, 1.0F, 1.0F);
+        font_render(x + 16.0F * scale, y, 1.0F * scale, legend->label, UTF8);
+
+        glColor3f(legend->color.r, legend->color.g, legend->color.b);
+        texture_draw_empty(x, y - 1.0F * scale, 14.0F * scale, 14.0F * scale);
+
+        y -= 16.0F * scale;
+    }
+
+    return y;
+}
+
+static inline float * row(Graph * g, size_t j)
+{ return &g->data[g->ncols * j][0]; }
+
+static Vector2f hud_draw_graph(Graph * g, float x, float y, float scale) {
+    float w = 200.0F * scale, h = 100.0F * scale;
+    float bw = 1.0F * scale, liw = 2.0F * scale;
+
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(x, y - h, w, h);
+
+    glPushMatrix();
+        glLoadIdentity();
+        glTranslatef(x, y - h, 0.0F);
+        glScalef(w, h, 1.0F);
+
+        hud_draw_graph_grid(0.2F);
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glLineWidth(liw);
+
+        for (size_t j = 0; j < g->nrows; j++) {
+            RGB3f color = g->legend[j].color;
+
+            glColor3f(color.r, color.g, color.b);
+            glVertexPointer(2, GL_FLOAT, 0, row(g, j));
+            glDrawArrays(GL_LINE_STRIP, 0, g->ncols);
+        }
+
+        glLineWidth(1);
+        glDisableClientState(GL_VERTEX_ARRAY);
+    glPopMatrix();
+
+    glDisable(GL_SCISSOR_TEST);
+
+    hud_draw_graph_border(x, y, w, h, bw); y -= h;
+    y = hud_draw_graph_legend(g, scale, x, y - 4.0F * scale);
+
+    return (Vector2f) {x + w, y};
+}
+
+Graph * hud_graph = NULL;
+
+static float hud_draw_figure(float top, float scale) {
+    float x = 11.0F * scale, y = top - 8.0F * scale;
+
+    for (Graph * g = hud_graph; g != NULL; g = g->next) {
+        Vector2f c = hud_draw_graph(g, x, y, scale);
+        x = c.x + 11.0F * scale; top = min(top, c.y);
+    }
+
+    return top;
+}
+
+static float hud_draw_network_stats(float top, float scale) {
+    glColor3f(0.0F, 0.0F, 0.0F);
+
+    float w = 160.0F * scale, h = 160.0F * scale;
+    float x = 11.0F * scale, y = top - 8.0F * scale;
+
+    float bw = 1.0F * scale;
+
+    glEnable(GL_DEPTH_TEST);
+
+    glColorMask(0, 0, 0, 0);
+    texture_draw_empty(x, y, w, h);
+
+    glColorMask(1, 1, 1, 1);
+    glDepthFunc(GL_NOTEQUAL);
+    texture_draw_empty(x - bw, y + bw, w + 2.0F * bw, h + 2.0F * bw);
+
+    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_DEPTH_TEST);
+    font_select(font_secondary);
+
+    int max = 0;
+    for (int k = 0; k < 40; k++)
+        max = max(max, network_stats[k].ingoing + network_stats[k].outgoing);
+
+    y -= h;
+
+    for (int k = 0; k < 40; k++) {
+        float dh = h / max;
+
+        float in_h   = network_stats[39 - k].ingoing * dh;
+        float out_h  = in_h + network_stats[39 - k].outgoing * dh;
+        float ping_h = min(network_stats[39 - k].avg_ping * h / (25.0F * 160.0F), h);
+
+        glColor3f(0.0F, 0.0F, 1.0F);
+        texture_draw_empty(x + 4 * k * scale, y + out_h, 4.0F * scale, out_h);
+
+        glColor3f(0.0F, 1.0F, 0.0F);
+        texture_draw_empty(x + 4 * k * scale, y + in_h, 4.0F * scale, in_h);
+
+        glColor3f(1.0F, 0.0F, 0.0F);
+        texture_draw_empty(x + 4 * k * scale, y + ping_h, 4.0F * scale, ping_h);
+    }
+
+    char dbg_str[32]; y -= 4.0F * scale;
+
+    glColor3f(0.0F, 1.0F, 0.0F); sprintf(dbg_str, "in: %i B/s", network_stats[1].ingoing);
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    glColor3f(0.0F, 0.0F, 1.0F); sprintf(dbg_str, "out: %i B/s", network_stats[1].outgoing);
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    glColor3f(1.0F, 0.0F, 0.0F); sprintf(dbg_str, "ping: %i ms", network_stats[1].avg_ping);
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    glColor3f(1.0F, 1.0F, 1.0F); sprintf(dbg_str, "packet loss: %.2f %%", network_packet_loss() * 100.0F);
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+
+    return y;
+}
+
+static float hud_draw_popup(float top, float scale) {
+    float x = 11.0F * scale, y = top;
+
+    if (window_time() - hud_popup_timer < 5.0F) {
+        glColor3f(1.0F, 1.0F, 1.0F);
+        font_render(x, y, 1.0F * scale, hud_popup, ASCII);
+
+        y -= 16.0F * scale;
+    }
+
+    return y;
+}
+
+static float hud_draw_killfeed(float top, float scale) {
+    font_select(font_secondary);
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    Text * node = game_killfeed.first;
+
+    for (size_t k = 0; k < 6 && node != NULL; k++) {
+        if (window_time() - node->timer < 10.0F && strlen(node->value) > 0) {
+            RGBA4i color = node->color;
+            glColor3ub(color.r, color.g, color.b);
+
+            font_render(11.0F * scale, top, 1.0F * scale, node->value, UTF8); top -= 18.0F * scale;
+        }
+
+        node = node->next;
+    }
+
+    return top;
+}
+
+Text * hud_game_chat_selected = NULL;
+
+static void hud_draw_chat(float scale) {
+    font_select(font_secondary);
+
+    int chat_y = 8 * 18.0F * scale;
+
+    Text * game_chat_top = chat_input_mode == CHAT_NO_INPUT || hud_game_chat_selected == NULL
+                         ? game_chat.first : hud_game_chat_selected;
+
+    if (settings.chat_shadow) {
+        float chat_width = 0;
+        int chat_height = 0;
+
+        Text * node = game_chat_top;
+
+        for (size_t k = 0; k < 6 && node != NULL; k++) {
+            if ((window_time() - node->timer < 10.0F || chat_input_mode != CHAT_NO_INPUT) && strlen(node->value) > 0) {
+                chat_width = fmaxf(font_length(1.0F * scale, node->value, 0, UTF8), chat_width);
+                chat_height = k + 1;
+            }
+
+            node = node->next;
+        }
+
+        if (chat_input_mode != CHAT_NO_INPUT) {
+            chat_height += 2;
+            chat_width = fmaxf(
+                font_length(1.0F * scale, game_chat_input, 0, UTF8),
+                fmaxf(settings.window_width / 2.0F, chat_width)
+            );
+        }
+
+        if (chat_height > 0) {
+            glColor4f(0, 0, 0, 0.5F);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            if (chat_input_mode == CHAT_NO_INPUT) {
+                texture_draw_empty(3.0F * scale, chat_y,
+                                   chat_width + 16.0F * scale, 18.0F * scale * chat_height);
+            } else {
+                texture_draw_empty(3.0F * scale, chat_y + 36.0F * scale,
+                                   chat_width + 16.0F * scale, 18.0F * scale * chat_height);
+            }
+            glDisable(GL_BLEND);
+        }
+    }
+
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    if (chat_input_mode != CHAT_NO_INPUT) {
+        {
+            Vector2f caret = {.x = 11.0F * scale, .y = chat_y + 36.0F * scale};
+
+            if (hud_game_chat_selected != NULL) {
+                ptrdiff_t A = game_chat.first->index - hud_game_chat_selected->index;
+                ptrdiff_t B = game_chat.first->index - game_chat.last->index;
+
+                char bufmode[128]; snprintf(bufmode, sizeof(bufmode), "[%ld / %ld] ", A + 1, B + 1);
+                caret = font_render(caret.x, caret.y, 1.0F * scale, bufmode, ASCII);
+            }
+
+            switch (chat_input_mode) {
+                case CHAT_ALL_INPUT:  font_render(caret.x, caret.y, 1.0F * scale, "Global:", ASCII); break;
+                case CHAT_TEAM_INPUT: font_render(caret.x, caret.y, 1.0F * scale, "Team:",   ASCII); break;
+                default:              break;
+            }
+        }
+
+        {
+            Vector2f caret = font_render(11.0F * scale, chat_y + 18.0F * scale, 1.0F * scale, game_chat_input, UTF8);
+            static char bufcaret[] = "_"; font_render(caret.x, caret.y, 1.0F * scale, bufcaret, UTF8);
+        }
+    }
+
+    Text * node = game_chat_top;
+
+    for (size_t k = 0; k < 6 && node != NULL; k++) {
+        if (window_time() - node->timer < 10.0F || chat_input_mode != CHAT_NO_INPUT) {
+            RGBA4i color = node->color;
+            glColor3ub(color.r, color.g, color.b);
+
+            font_render(11.0F * scale, chat_y - 18.0F * scale * k, 1.0F * scale, node->value, UTF8);
+        }
+
+        node = node->next;
+    }
+}
+
+static void hud_draw_map(float scale) {
+    float cx = 0.5F * settings.window_width;
+    float cy = 0.5F * settings.window_height;
+
+    float w = map_size_x * scale, h = map_size_z * scale;
+
+    float minimap_x = floor(cx - 0.5F * w), minimap_y = floor(cy + 0.5F * h);
+
+    texture_draw(texture_minimap, minimap_x, minimap_y, 512 * scale, 512 * scale);
+
+    font_select(font_secondary);
+    char c[2] = {0};
+    for (int k = 0; k < 8; k++) {
+        c[0] = 'A' + k; font_centered(minimap_x + (64 * k + 32) * scale, minimap_y + 16.0F * scale, 1.0F * scale, c, ASCII);
+        c[0] = '1' + k; font_centered(minimap_x - 8 * scale, minimap_y - (64 * k + 32 - 4) * scale, 1.0F * scale, c, ASCII);
+    }
+
+    font_select(font_primary);
+
+    tracer_map(scale, minimap_x, minimap_y);
+
+    if (gamestate.mode == GAMEMODE_CTF) {
+        {
+            float x = gamestate.ctf.team1_flag.x;
+            float y = gamestate.ctf.team1_flag.z;
+
+            if (!gamestate.ctf.team2_has_intel && isfinite(x) && isfinite(y)) {
+                glColorRGB3i(gamestate.team1.color);
+                texture_draw_rotated(
+                    texture(TEXTURE_INTEL),
+                    minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                    minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                    16 * scale, 16 * scale, 0.0F
+                );
+            }
+        }
+
+        {
+            float x = gamestate.ctf.team1_base.x;
+            float y = gamestate.ctf.team1_base.z;
+
+            if (map_object_visible(x, 0.0F, y) && isfinite(x) && isfinite(y)) {
+                glColorRGB3ib(gamestate.team1.color, 0.94F);
+                texture_draw_rotated(
+                    texture(TEXTURE_MEDICAL),
+                    minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                    minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                    16 * scale, 16 * scale, 0.0F
+                );
+            }
+        }
+
+        {
+            float x = gamestate.ctf.team2_flag.x;
+            float y = gamestate.ctf.team2_flag.z;
+
+            if (!gamestate.ctf.team1_has_intel && isfinite(x) && isfinite(y)) {
+                glColorRGB3i(gamestate.team2.color);
+                texture_draw_rotated(
+                    texture(TEXTURE_INTEL),
+                    minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                    minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                    16 * scale, 16 * scale, 0.0F
+                );
+            }
+        }
+
+        {
+            float x = gamestate.ctf.team2_base.x;
+            float y = gamestate.ctf.team2_base.z;
+
+            if (map_object_visible(x, 0.0F, y) && isfinite(x) && isfinite(y)) {
+                glColorRGB3ib(gamestate.team2.color, 0.94F);
+                texture_draw_rotated(
+                    texture(TEXTURE_MEDICAL),
+                    minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                    minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                    16 * scale, 16 * scale, 0.0F
+                );
+            }
+        }
+    }
+
+    if (gamestate.mode == GAMEMODE_TC) {
+        for (int k = 0; k < gamestate.tc.territory_count; k++) {
+            switch (gamestate.tc.territory[k].team) {
+                case TEAM1: glColorRGB3ib(gamestate.team1.color, 0.94F); break;
+                case TEAM2: glColorRGB3ib(gamestate.team2.color, 0.94F); break;
+                default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
+            }
+
+            float x = gamestate.tc.territory[k].pos.x;
+            float y = gamestate.tc.territory[k].pos.z;
+
+            if (!isfinite(x) || !isfinite(y)) continue;
+
+            texture_draw_rotated(
+                texture(TEXTURE_COMMAND),
+                minimap_x + clamp(0.0F, 512.0F, x) * scale,
+                minimap_y - clamp(0.0F, 512.0F, y) * scale,
+                12 * scale, 12 * scale, 0.0F
+            );
+        }
+    }
+
+    for (int k = 0; k < PLAYERS_MAX; k++) {
+    #if HACKS_ENABLED && HACK_MAPHACK
+        if (players[k].connected && players[k].alive && k != local_player.id)
+    #else
+        if (visible_on_minimap(&players[k]))
+    #endif
+        {
+            int local_id = in_bodyview_mode() ? cameracontroller_bodyview_player : local_player.id;
+            if (in_bodyview_mode() && k == local_player.id) continue;
+
+            if (k == local_id)
+                glColor3ub(0, 255, 255);
+            else switch (players[k].team) {
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+
+                case TEAM_SPECTATOR: break;
+            }
+
+            float x = clamp(0.0F, 512.0F, k == local_player.id ? camera.r.x : players[k].pos.x);
+            float y = clamp(0.0F, 512.0F, k == local_player.id ? camera.r.z : players[k].pos.z);
+
+            float ang = k == local_player.id
+                      ? camera.rot.h + PI
+                      : -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
+
+            texture_draw_rotated(
+                texture(TEXTURE_PLAYER),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale, ang
+            );
+        }
+    }
+
+    glColor3f(1.0F, 1.0F, 1.0F);
+}
+
+static void hud_draw_minimap(float scale) {
+    float x0 = floor(camera.r.x) + 0.5F;
+    float z0 = floor(camera.r.z) + 0.5F;
+
+    switch (players[local_player.id].team) {
+        case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+        case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+        case TEAM_SPECTATOR: default: glColor3f(1.0F, 1.0F, 1.0F);
+    }
+
+    float minimap_x = settings.window_width - 143 * scale;
+    float minimap_y = settings.window_height - 15 * scale;
+
+    char buffsect[] = {sector1f(camera.r.x), sector2f(camera.r.z), 0};
+    font_centered(minimap_x + 64 * scale, minimap_y - 129 * scale, 2.0F * scale, buffsect, ASCII);
+
+    glColor3ub(0, 0, 0);
+    texture_draw_empty(minimap_x - 1 * scale, minimap_y + 1 * scale, 130 * scale, 130 * scale);
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    int local_id = in_bodyview_mode() ? cameracontroller_bodyview_player : local_player.id;
+
+    float t = settings.fixed_minimap ? 0.0F :
+                  in_bodyview_mode() ? -atan2(players[cameracontroller_bodyview_player].orientation.z,
+                                              players[cameracontroller_bodyview_player].orientation.x) - HALFPI :
+                                       camera.rot.h + PI;
+
+    float sx = 64.0F, sz = 64.0F;
+
+    texture_draw_quad(
+        texture_minimap, minimap_x, minimap_y, 128 * scale, 128 * scale,
+        ROTXZ(-t, x0, z0, -sx, -sz),
+        ROTXZ(-t, x0, z0, -sx, +sz),
+        ROTXZ(-t, x0, z0, +sx, -sz),
+        ROTXZ(-t, x0, z0, +sx, +sz)
+    );
+
+    tracer_minimap(scale, minimap_x, minimap_y, t, x0, z0);
+
+    if (gamestate.mode == GAMEMODE_CTF) {
+        if (map_object_visible(gamestate.ctf.team1_base.x, 0.0F, gamestate.ctf.team1_base.z)) {
+            float dx = gamestate.ctf.team1_base.x - x0;
+            float dz = gamestate.ctf.team1_base.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
+
+            glColorRGB3ib(gamestate.team1.color, 0.94F);
+            texture_draw_rotated(
+                texture(TEXTURE_MEDICAL),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale,
+                0.0F
+            );
+        }
+
+        if (!gamestate.ctf.team2_has_intel) {
+            float dx = gamestate.ctf.team1_flag.x - x0;
+            float dz = gamestate.ctf.team1_flag.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
+
+            glColorRGB3i(gamestate.team1.color);
+            texture_draw_rotated(
+                texture(TEXTURE_INTEL),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale,
+                0.0F
+            );
+        }
+
+        if (map_object_visible(gamestate.ctf.team2_base.x, 0.0F, gamestate.ctf.team2_base.z)) {
+            float dx = gamestate.ctf.team2_base.x - x0;
+            float dz = gamestate.ctf.team2_base.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
+
+            glColorRGB3ib(gamestate.team2.color, 0.94F);
+            texture_draw_rotated(
+                texture(TEXTURE_MEDICAL),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale,
+                0.0F
+            );
+        }
+
+        if (!gamestate.ctf.team1_has_intel) {
+            float dx = gamestate.ctf.team2_flag.x - x0;
+            float dz = gamestate.ctf.team2_flag.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
+
+            glColorRGB3i(gamestate.team2.color);
+            texture_draw_rotated(
+                texture(TEXTURE_INTEL),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                16 * scale, 16 * scale,
+                0.0F
+            );
+        }
+    }
+
+    if (gamestate.mode == GAMEMODE_TC) {
+        for (int k = 0; k < gamestate.tc.territory_count; k++) {
+            switch (gamestate.tc.territory[k].team) {
+                case TEAM1: glColorRGB3ib(gamestate.team1.color, 0.94F); break;
+                case TEAM2: glColorRGB3ib(gamestate.team2.color, 0.94F); break;
+                default: case TEAM_SPECTATOR: glColor3ub(0, 0, 0);
+            }
+
+            float dx = gamestate.tc.territory[k].pos.x - x0;
+            float dz = gamestate.tc.territory[k].pos.z - z0;
+
+            float x = clamp(0.0F, 128.0F, sx + ROTDX(t, dx, dz));
+            float y = clamp(0.0F, 128.0F, sz + ROTDZ(t, dx, dz));
+
+            texture_draw_rotated(
+                texture(TEXTURE_COMMAND),
+                minimap_x + x * scale,
+                minimap_y - y * scale,
+                12 * scale, 12 * scale,
+                0.0F
+            );
+        }
+    }
+
+    for (int k = 0; k < PLAYERS_MAX; k++) {
+    #if HACKS_ENABLED && HACK_MAPHACK
+        if (players[k].connected && players[k].alive)
+    #else
+        if (visible_on_minimap(&players[k]))
+    #endif
+        {
+            if (in_bodyview_mode() && k == local_player.id) continue;
+
+            if (k == local_id)
+                glColor3ub(0, 255, 255);
+            else switch (players[k].team) {
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+
+                case TEAM_SPECTATOR: break;
+            }
+
+            float dx = (k == local_player.id ? camera.r.x : players[k].pos.x) - x0;
+            float dz = (k == local_player.id ? camera.r.z : players[k].pos.z) - z0;
+
+            float x = sx + ROTDX(t, dx, dz), y = sz + ROTDZ(t, dx, dz);
+
+            if (x > 0.0F && x < 128.0F && y > 0.0F && y < 128.0F) {
+                float ang = k == local_player.id
+                          ? camera.rot.h + PI
+                          : -atan2(players[k].orientation.z, players[k].orientation.x) - HALFPI;
+
+                texture_draw_rotated(
+                    texture(TEXTURE_PLAYER),
+                    minimap_x + x * scale,
+                    minimap_y - y * scale,
+                    16 * scale, 16 * scale,
+                    ang - t
+                );
+            }
+        }
+    }
+}
+
+static void matrix_orientation(mat4 retval) {
+    Vector3f o = camera_orientation();
+    matrix_lookAt(retval, 0.0F, 0.0F, 0.0F, o.x, o.y, o.z, 0.0F, 1.0F, 0.0F);
+    mat4 proj; matrix_perspective(
+        proj, camera_fov_scaled(), window_aspect(), frustum_near(), frustum_far()
+    );
+
+    matrix_multiply(retval, proj);
+}
+
+static inline bool button_primary(void)
+{ return in_bodyview_mode()
+       ? HASBIT(players[cameracontroller_bodyview_player].input.buttons, BUTTON_PRIMARY)
+       : button_map.lmb; }
+
+static void draw_crosshair(mat4 mvp) {
+    vec3 v;
+
+    if (!deadzone_enabled() || in_bodyview_mode()) {
+        v[X] = settings.window_width / 2.0F;
+        v[Y] = settings.window_height / 2.0F;
+    } else {
+        Vector3f o = crosshair_direction();
+        matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
+    }
+
+    Texture * texture_crosshair = texture(
+        settings.free_crosshair ? TEXTURE_FREEAIM3 :
+               button_primary() ? TEXTURE_CROSSHAIR2 : TEXTURE_CROSSHAIR1
+    );
+
+    texture_draw(texture_crosshair, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
+}
+
+static void draw_muzzle(mat4 mvp) {
+    vec3 v;
+
+    if (in_bodyview_mode()) {
+        v[X] = settings.window_width / 2.0F;
+        v[Y] = settings.window_height / 2.0F;
+    } else {
+        Vector3f o = muzzle_direction();
+        matrix_project(mvp, o.x, o.y, o.z, settings.window_width, settings.window_height, v);
+    }
+
+    Texture * texture_muzzle = texture(button_primary() ? TEXTURE_FREEAIM2 : TEXTURE_FREEAIM1);
+
+    texture_draw(texture_muzzle, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
+}
+
+static void hud_draw_weapon(float scale) {
+    UNUSED(scale);
+
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    bool is_local = camera.mode == CAMERAMODE_FPS || cameracontroller_bodyview_player == local_player.id;
+    int local_id = camera.mode == CAMERAMODE_FPS ? local_player.id : cameracontroller_bodyview_player;
+
+    if (settings.show_iron_sight && players[local_id].alive &&
+        players[local_id].tool == TOOL_WEAPON &&
+        HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY)) {
+        Texture * zoom = NULL;
+        switch (players[local_id].weapon) {
+            case WEAPON_RIFLE:   zoom = texture(TEXTURE_ZOOM_SEMI);    break;
+            case WEAPON_SMG:     zoom = texture(TEXTURE_ZOOM_SMG);     break;
+            case WEAPON_SHOTGUN: zoom = texture(TEXTURE_ZOOM_SHOTGUN); break;
+        }
+
+        float last_shot = is_local ? weapon_last_shot : players[local_id].gun_shoot_timer;
+        float zoom_factor = fmax(0.25F * (1.0F - ((window_time() - last_shot) / weapon_delay(players[local_id].weapon))) + 1.0F, 1.0F);
+        float aspect_ratio = texture_width(zoom) / texture_height(zoom);
+
+        texture_draw(zoom, (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+                     settings.window_height * (zoom_factor * 0.5F + 0.5F),
+                     settings.window_height * aspect_ratio * zoom_factor, settings.window_height * zoom_factor);
+        texture_draw_sector(zoom, 0, settings.window_height * (zoom_factor * 0.5F + 0.5F),
+                            (settings.window_width - settings.window_height * aspect_ratio * zoom_factor)
+                                / 2.0F,
+                            settings.window_height * zoom_factor, 0.0F, 0.0F, 1.0F / texture_width(zoom), 1.0F);
+        texture_draw_sector(
+            zoom, (settings.window_width + settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+            settings.window_height * (zoom_factor * 0.5F + 0.5F),
+            (settings.window_width - settings.window_height * aspect_ratio * zoom_factor) / 2.0F,
+            settings.window_height * zoom_factor, (texture_width(zoom) - 1) / texture_width(zoom), 0.0F,
+            1.0F / texture_width(zoom), 1.0F
+        );
+    } else if (settings.show_crosshair && !window_key_down(WINDOW_KEY_HIDEHUD)) {
+        if (settings.kill_indicator && window_time() - local_player.last_kill_timer < 0.3F)
+            glColor3f(1.0, 0.0, 0.0);
+
+        mat4 mvp;
+
+        if (deadzone_enabled() || settings.free_crosshair)
+            matrix_orientation(mvp);
+
+        draw_crosshair(mvp);
+
+        if (settings.free_crosshair)
+            draw_muzzle(mvp);
+    }
+}
+
+static void hud_draw_game_ui(float scale) {
+    bool is_local = camera.mode == CAMERAMODE_FPS || cameracontroller_bodyview_player == local_player.id;
+    int local_id = camera.mode == CAMERAMODE_FPS ? local_player.id : cameracontroller_bodyview_player;
+
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    if (window_time() - local_player.last_damage_timer <= 0.5F && is_local) {
+        float ang = atan2(players[local_player.id].orientation.z, players[local_player.id].orientation.x)
+                  - atan2(camera.r.z - local_player.last_damage.z, camera.r.x - local_player.last_damage.x) + PI;
+        texture_draw_rotated(texture(TEXTURE_INDICATOR), settings.window_width / 2.0F, settings.window_height / 2.0F, 200, 200, ang);
+    }
+
+    if (local_id == local_player.id) {
+        if (network_connected && settings.show_health) {
+            int health = is_local ? (players[local_id].alive ? local_player.health : 0) : (players[local_id].alive ? 100 : 0);
+
+            if (health <= 30)
+                glColor3f(1.0F, 0.0F, 0.0F);
+            else
+                glColor3f(1.0F, 1.0F, 1.0F);
+
+            char hp[4]; sprintf(hp, "%i", health);
+            font_render(8.0F * scale, 32.0F * scale, 2.0F * scale, hp, ASCII);
+        }
+
+        char item_mini_str[32]; int off = 0;
+        glColor3f(1.0F, 1.0F, 1.0F);
+
+        switch (players[local_id].tool) {
+            default:
+            case TOOL_BLOCK: off = 64 * scale;
+            case TOOL_SPADE:
+                sprintf(item_mini_str, "%i", is_local ? local_player.blocks : 50);
+                break;
+            case TOOL_GRENADE:
+                sprintf(item_mini_str, "%i", is_local ? local_player.grenades : 3);
+                break;
+            case TOOL_WEAPON: {
+                int ammo = is_local ? local_player.ammo : players[local_id].ammo;
+                int ammo_reserve = is_local ? local_player.ammo_reserved : players[local_id].ammo_reserved;
+                sprintf(item_mini_str, "%02i/%02i", ammo, ammo_reserve);
+
+                if (ammo == 0) glColor3f(1.0F, 0.0F, 0.0F);
+                break;
+            }
+        }
+
+        if (settings.show_ammo) {
+            font_render(
+                settings.window_width - font_length(2.0F * scale, item_mini_str, 0, ASCII) - 8.0F * scale - off,
+                32.0F * scale, 2.0F * scale, item_mini_str, ASCII
+            );
+        }
+
+        if (players[local_id].tool == TOOL_BLOCK) {
+            if (0 <= local_player.color[X] && 0 <= local_player.color[Y]) {
+                static float T = 0.25F;
+
+                unsigned char b = fmodf(window_time(), 2 * T) > T ? 0x00 : 0xFF;
+                glColor3ub(b, b, b);
+
+                texture_draw_empty(
+                    settings.window_width + (local_player.color[X] * 8 - 65) * scale,
+                    (65 - local_player.color[Y] * 8) * scale, 8 * scale, 8 * scale
+                );
+            }
+
+            glColor3f(1.0F, 1.0F, 1.0F);
+
+            texture_draw(texture_color_selection, settings.window_width - 64 * scale, 64 * scale, 64 * scale, 64 * scale);
+        }
+
+        glColor3f(1.0F, 1.0F, 1.0F);
+    }
+}
+
+static void hud_draw_scoreboard(float scale) {
+    if (network_connected && camera.mode != CAMERAMODE_SELECTION) {
+        char ping_str[16];
+        sprintf(ping_str, "Ping: %i ms", network_ping());
+        font_select(font_secondary);
+        glColor3f(1.0F, 0.0F, 0.0F);
+        font_centered(settings.window_width / 2.0F, settings.window_height * 0.92F, 1.0F * scale, ping_str, ASCII);
+        font_select(font_primary);
+    }
+
+    char score_str[8];
+
+    glColorRGB3i(gamestate.team1.color);
+    switch (gamestate.mode) {
+        case GAMEMODE_CTF:
+            if (gamestate.ctf.capture_limit > 0)
+                sprintf(score_str, "%i/%i", gamestate.ctf.team1_score, gamestate.ctf.capture_limit);
+            else
+                sprintf(score_str, "%i", gamestate.ctf.team1_score);
+
+            break;
+
+        case GAMEMODE_TC: {
+            int t = 0;
+            for (size_t k = 0; k < gamestate.tc.territory_count; k++)
+                if (gamestate.tc.territory[k].team == TEAM1)
+                    t++;
+            sprintf(score_str, "%i/%i", t, gamestate.tc.territory_count);
+
+            break;
+        }
+    }
+
+    font_centered(settings.window_width * 0.25F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team1.name, UTF8);
+    font_centered(settings.window_width * 0.25F, settings.window_height - 47 * scale, 3.0F * scale, score_str, ASCII);
+
+    glColorRGB3i(gamestate.team2.color);
+    switch (gamestate.mode) {
+        case GAMEMODE_CTF:
+            if (gamestate.ctf.capture_limit > 0)
+                sprintf(score_str, "%i/%i", gamestate.ctf.team2_score, gamestate.ctf.capture_limit);
+            else
+                sprintf(score_str, "%i", gamestate.ctf.team2_score);
+
+            break;
+
+        case GAMEMODE_TC: {
+            int t = 0;
+            for (size_t k = 0; k < gamestate.tc.territory_count; k++)
+                if (gamestate.tc.territory[k].team == TEAM2)
+                    t++;
+            sprintf(score_str, "%i/%i", t, gamestate.tc.territory_count);
+
+            break;
+        }
+    }
+
+    font_centered(settings.window_width * 0.75F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team2.name, UTF8);
+    font_centered(settings.window_width * 0.75F, settings.window_height - 47 * scale, 3.0F * scale, score_str, ASCII);
+
+    PlayerTable pt[PLAYERS_MAX];
+    int connected = 0;
+    for (int k = 0; k < PLAYERS_MAX; k++) {
+        if (players[k].connected) {
+            pt[connected].id = k;
+            pt[connected++].score = players[k].score;
+        }
+    }
+    qsort(pt, connected, sizeof(PlayerTable), playertable_sort);
+
+    int cntt[3] = {0};
+    for (int k = 0; k < connected; k++) {
+        int mul = 0;
+        switch (players[pt[k].id].team) {
+            case TEAM1: mul = 1; break;
+            case TEAM2: mul = 3; break;
+            default:
+            case TEAM_SPECTATOR: mul = 2; break;
+        }
+
+        if (pt[k].id == local_player.id)
+            glColor3f(1.0F, 1.0F, 0.0F);
+        else if (!players[pt[k].id].alive && players[pt[k].id].team != TEAM_SPECTATOR)
+            glColor3f(0.6F, 0.6F, 0.6F);
+        else
+            glColor3f(1.0F, 1.0F, 1.0F);
+
+        char id_str[16];
+        sprintf(id_str, "#%i", pt[k].id);
+        if (gamestate.mode == GAMEMODE_CTF &&
+            ((gamestate.ctf.team2_has_intel && gamestate.ctf.team1_carrier == pt[k].id) ||
+             (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == pt[k].id))) {
+            texture_draw(texture(TEXTURE_INTEL),
+                         settings.window_width / 4.0F * mul
+                             - font_length(1.0F * scale, players[pt[k].id].name, 0, UTF8) - 27.0F * scale,
+                         (427 - 16 * cntt[mul - 1]) * scale, 16.0F * scale, 16.0F * scale);
+        }
+
+        font_render(settings.window_width / 4.0F * mul - font_length(1.0F * scale, players[pt[k].id].name, 0, UTF8),
+                    (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, players[pt[k].id].name, UTF8);
+        font_render(settings.window_width / 4.0F * mul + 8.82F * scale, (427 - 16 * cntt[mul - 1]) * scale,
+                    1.0F * scale, id_str, ASCII);
+
+        if (mul != 2) {
+            sprintf(id_str, "%i", pt[k].score);
+            font_render(settings.window_width / 4.0F * mul + 44.1F * scale,
+                        (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, id_str, ASCII);
+        }
+        cntt[mul - 1]++;
+    }
+}
+
+static void hud_draw_progressbar(float scale) {
+    if (gamestate.tc.territory_count <= gamestate.tc.tent)
+        return;
+
+    Territory * territory = &gamestate.tc.territory[gamestate.tc.tent];
+
+    if (territory->team != gamestate.tc.team_capturing) {
+        float dt = window_time() - gamestate.tc.last_update;
+        float p  = clamp(0.0F, 1.0F, gamestate.tc.progress + 0.05F * gamestate.tc.rate * dt);
+        float l  = normv3f(territory->pos, players[local_player.id].pos);
+
+        if (p < 1.0F && l < 20.0F * 20.0F) {
+            switch (territory->team) {
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+                default: glColor3ub(0, 0, 0);
+            }
+
+            texture_draw(
+                texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F + 440.0F * scale * p,
+                settings.window_height * 0.25F, 440.0F * scale * (1.0F - p), 20.0F * scale
+            );
+
+            switch (gamestate.tc.team_capturing) {
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+                default: glColor3ub(0, 0, 0);
+            }
+
+            texture_draw(
+                texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F,
+                settings.window_height * 0.25F, 440.0F * scale * p, 20.0F * scale
+            );
+        }
+    }
+}
+
+static void hud_ingame_render(mu_Context * ctx, float scale) {
+    UNUSED(ctx);
+
+    hud_active->render_localplayer = players[local_player.id].team != TEAM_SPECTATOR
+        && (screen_current == SCREEN_NONE || camera.mode != CAMERAMODE_FPS);
+
+    font_select(font_primary);
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    if (window_key_down(WINDOW_KEY_TRACE_CLEAR))
+        trajectories_reset();
+
+    if (camera.mode == CAMERAMODE_FPS || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) && cameracontroller_bodyview_mode))
+        hud_draw_weapon(scale);
+
+    if (window_key_down(WINDOW_KEY_HIDEHUD))
+        return;
+
+    if (screen_current == SCREEN_TEAM_SELECT) {
+        glColor3f(1.0F, 0.0F, 0.0F);
+        char join_str[48];
+
+        sprintf(join_str, "Press 1 to join %s", gamestate.team1.name);
+        font_centered(settings.window_width / 4.0F, 61 * scale, 1.0F * scale, join_str, ASCII);
+
+        font_centered(settings.window_width / 2.0F, 61 * scale, 1.0F * scale, "Press 2 to spectate", ASCII);
+
+        sprintf(join_str, "Press 3 to join %s", gamestate.team2.name);
+        font_centered(settings.window_width / 4.0F * 3.0F, 61 * scale, 1.0F * scale, join_str, ASCII);
+        glColor3f(1.0F, 1.0F, 1.0F);
+    }
+
+    if (screen_current == SCREEN_GUN_SELECT) {
+        glColor3f(1.0F, 0.0F, 0.0F);
+        font_centered(settings.window_width / 4.0F * 1.0F, 61 * scale, 1.0F * scale, "Press 1 to select", ASCII);
+        font_centered(settings.window_width / 4.0F * 2.0F, 61 * scale, 1.0F * scale, "Press 2 to select", ASCII);
+        font_centered(settings.window_width / 4.0F * 3.0F, 61 * scale, 1.0F * scale, "Press 3 to select", ASCII);
+        glColor3f(1.0F, 1.0F, 1.0F);
+    }
+
+    if ((network_connected && window_key_down(WINDOW_KEY_SCOREBOARD) && chat_input_mode == CHAT_NO_INPUT) || camera.mode == CAMERAMODE_SELECTION)
+        hud_draw_scoreboard(scale);
+
+    if (camera.mode == CAMERAMODE_BODYVIEW
+       || (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode)) {
+        if (cameracontroller_bodyview_player != local_player.id) {
+            font_select(font_secondary);
+            switch (players[cameracontroller_bodyview_player].team) {
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+
+                case TEAM_SPECTATOR: break;
+            }
+
+            font_centered(
+                settings.window_width / 2.0F, 13 * 18.0F * scale, 1.0F * scale,
+                players[cameracontroller_bodyview_player].name, UTF8
+            );
+        }
+
+        font_select(font_primary);
+        glColor3f(1.0F, 1.0F, 0.0F);
+        font_centered(settings.window_width / 2.0F, settings.window_height, 1.0F * scale,
+                      "Click to switch players", ASCII);
+
+        if (window_time() - local_player.death_time <= local_player.respawn_time) {
+            glColor3f(1.0F, 0.0F, 0.0F);
+            int cnt = local_player.respawn_time - (int)(window_time() - local_player.death_time);
+            char coin[25];
+            sprintf(coin, "Respawn in %i s", cnt);
+            font_centered(settings.window_width / 2.0F,
+                          48.0F * scale * (cameracontroller_bodyview_mode ? 2.0F : 1.0F), 3.0F * scale, coin, ASCII);
+            if (local_player.respawn_cnt_last != cnt) {
+                if (cnt < 4)
+                    sound_create(SOUND_LOCAL, sound(cnt == 1 ? SOUND_BEEP1 : SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
+
+                local_player.respawn_cnt_last = cnt;
+            }
+        }
+
+        glColor3f(1.0F, 1.0F, 1.0F);
+    }
+
+    if (camera.mode == CAMERAMODE_FPS || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) && cameracontroller_bodyview_mode))
+        hud_draw_game_ui(scale);
+
+    if (camera.mode != CAMERAMODE_SELECTION) {
+        hud_draw_chat(scale);
+
+        float top = settings.window_height - 11.0F * scale;
+
+        if (window_key_down(WINDOW_KEY_DEBUG))
+            top = hud_draw_debug_screen(top, scale);
+
+        top = hud_draw_killfeed(top, scale);
+
+        top = hud_draw_popup(top, scale);
+
+        top = hud_draw_figure(top, scale);
+
+        if (window_key_down(WINDOW_KEY_NETWORKSTATS))
+            top = hud_draw_network_stats(top, scale);
+    } else hud_draw_welcome_screen(scale);
+
+    font_select(font_primary);
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+    if (gamestate.mode == GAMEMODE_TC)
+        hud_draw_progressbar(scale);
+
+    // draw the minimap
+    if (camera.mode != CAMERAMODE_SELECTION) {
+        glColor3f(1.0F, 1.0F, 1.0F);
+
+        if (window_key_down(WINDOW_KEY_MAP))
+            hud_draw_map(scale); // large
+        else if (settings.show_minimap)
+            hud_draw_minimap(scale); // minimized, top right
+    }
+
+    bool is_tag_visible = players[local_player.id].team == TEAM_SPECTATOR ||
+                          players[player_intersection_player].team == players[local_player.id].team;
+
+    if (settings.show_friendly_tag && player_intersection_type >= 0 && is_tag_visible) {
+        font_select(font_secondary);
+
+        char * th[4] = {"torso", "head", "arms", "legs"}; char str[32];
+        switch (players[player_intersection_player].team) {
+            case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+            case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+            default: glColor3f(1.0F, 1.0F, 1.0F);
+        }
+
+        sprintf(str, "%s (%s)", players[player_intersection_player].name, th[player_intersection_type]);
+        font_centered(settings.window_width / 2.0F, 11 * 18.0F * scale, 1.0F * scale, str, UTF8);
+        font_select(font_primary);
+    }
+
+    if (window_time() - chat_popup.timer < chat_popup_duration) {
+        float height = settings.chat_popup_centered ? 3.0F * scale : 2.0F * scale;
+
+        float x = settings.window_width * 0.5F - font_length(height, chat_popup.value, 0, UTF8) * 0.5F;
+        float y = settings.chat_popup_centered ? settings.window_height * 0.65F : 14 * 18.0F * scale;
+
+        glColor3ub(chat_popup.color.r, chat_popup.color.g, chat_popup.color.b);
+        font_render(x, y, height, chat_popup.value, UTF8);
+    }
+
+    glColor3f(1.0F, 1.0F, 1.0F);
+
+#ifdef USE_TOUCH
+    glColor3f(1.0F, 1.0F, 1.0F);
+    if (camera.mode == CAMERAMODE_FPS || camera.mode == CAMERAMODE_SPECTATOR) {
+        texture_draw_rotated(texture(TEXTURE_UI_JOYSTICK), settings.window_height * 0.3F, settings.window_height * 0.3F,
+                             settings.window_height * 0.4F, settings.window_height * 0.4F, 0.0F);
+        texture_draw_rotated(texture(TEXTURE_UI_KNOB), settings.window_height * 0.3F, settings.window_height * 0.3F,
+                             settings.window_height * 0.075F, settings.window_height * 0.075F, 0.0F);
+        texture_draw_rotated(texture(TEXTURE_UI_KNOB), hud_ingame_touch_x + settings.window_height * 0.3F,
+                             hud_ingame_touch_y + settings.window_height * 0.3F, settings.window_height * 0.1F,
+                             settings.window_height * 0.1F, 0.0F);
+    }
+
+    int k = 0;
+    char str[128];
+    while (hud_ingame_onscreencontrol(k, str, -1)) {
+        texture_draw_rotated(texture(TEXTURE_UI_INPUT), settings.window_height * (0.2F + 0.175F * k),
+                             settings.window_height * 0.96F, settings.window_height * 0.15F,
+                             settings.window_height * 0.1F, 0.0F);
+        font_centered(settings.window_height * (0.2F + 0.175F * k), settings.window_height * 0.98F,
+                      settings.window_height * 0.04F, str, ASCII);
+        k++;
+    }
+    if (hud_ingame_onscreencontrol(64, str, -1)) {
+        texture_draw_rotated(texture(TEXTURE_UI_INPUT), settings.window_width - settings.window_height * 0.075F,
+                             settings.window_height * 0.6F, settings.window_height * 0.15F,
+                             settings.window_height * 0.1F, 0.0F);
+        font_centered(settings.window_width - settings.window_height * 0.075F, settings.window_height * 0.62F,
+                      settings.window_height * 0.04F, str, ASCII);
+    }
+    if (hud_ingame_onscreencontrol(65, str, -1)) {
+        texture_draw_rotated(texture(TEXTURE_UI_INPUT), settings.window_width - settings.window_height * 0.075F,
+                             settings.window_height * 0.45F, settings.window_height * 0.15F,
+                             settings.window_height * 0.1F, 0.0F);
+        font_centered(settings.window_width - settings.window_height * 0.075F, settings.window_height * 0.47F,
+                      settings.window_height * 0.04F, str, ASCII);
+    }
+#endif
+}
+
+static void hud_ingame_scroll(double yoffset) {
+    if (yoffset == 0.0F) return;
+
+    if (camera.mode == CAMERAMODE_FPS) {
+        int h = players[local_player.id].tool;
+
+        if (!players[local_player.id].items_show)
+            local_player.last_tool = h;
+        h += (yoffset < 0) ? 1 : -1;
+
+        if (h < 0)
+            h = 3;
+        if (h == TOOL_BLOCK && local_player.blocks == 0)
+            h += (yoffset < 0) ? 1 : -1;
+        if (h == TOOL_WEAPON && local_player.ammo + local_player.ammo_reserved == 0)
+            h += (yoffset < 0) ? 1 : -1;
+        if (h == TOOL_GRENADE && local_player.grenades == 0)
+            h += (yoffset < 0) ? 1 : -1;
+        if (h > 3)
+            h = 0;
+
+        players[local_player.id].tool = h;
+        sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
+        player_on_tool_change();
+    } else if (camera.mode == CAMERAMODE_SPECTATOR && settings.scroll_camera_speed) {
+        camera.speed = clamp(
+            CAMERA_MINIMUM_SPEED, CAMERA_MAXIMUM_SPEED,
+            camera.speed + yoffset * 1.0F
+        );
+
+        hud_show_popup("Camera speed: %.0f %%", camera.speed / CAMERA_DEFAULT_SPEED * 100.0F);
+    }
+}
+
+bool window_focused = true, window_hovered = true;
+
+void hud_ingame_focus(bool focused) {
+    window_focused = focused;
+    if (!focused) window_mousemode(WINDOW_CURSOR_ENABLED);
+}
+
+void hud_ingame_hover(bool hovered) {
+    window_hovered = hovered;
+    if (!hovered) window_mousemode(WINDOW_CURSOR_ENABLED);
+}
+
+static void hud_ingame_mouselocation(double dx, double dy) {
+    if (window_get_mousemode() != WINDOW_CURSOR_DISABLED)
+        return;
+
+    if (settings.invert_y)
+        dy *= -1.0F;
+
+    float r = (settings.mouse_sensitivity / 5.0F) * (float) MOUSE_SENSITIVITY;
+    if (camera.mode == CAMERAMODE_FPS && ISSCOPING(&players[local_player.id]))
+        r *= settings.ads_sensitivity_scale;
+
+    camera_crosshair_move(dx * r, dy * r);
+}
+
+static void hud_ingame_mouseclick(double x, double y, int button, int action, int mods) {
+    UNUSED(x); UNUSED(y); UNUSED(mods);
+
+    if (window_get_mousemode() == WINDOW_CURSOR_ENABLED) {
+        if (window_focused && window_hovered && action == WINDOW_RELEASE)
+            window_mousemode(WINDOW_CURSOR_DISABLED);
+
+        return;
+    }
+
+    if (camera.mode == CAMERAMODE_FPS && button == WINDOW_MOUSE_RMB) {
+        button_map.rmb = (action == WINDOW_PRESS);
+
+        if (players[local_player.id].tool == TOOL_WEAPON && !players[local_player.id].items_show) {
+            bool toggle1 = settings.ads_mode == ADS_TOGGLE && action == WINDOW_PRESS;
+            bool toggle2 = settings.ads_mode == ZOOM_HOLD && action == WINDOW_RELEASE &&
+                           window_time() - players[local_player.id].start.rmb <= ZOOM_HOLD_TIME;
+
+            if (toggle1 || toggle2) players[local_player.id].input.buttons ^= MASKON(BUTTON_SECONDARY);
+        }
+
+        if (local_player.drag_active && action == WINDOW_RELEASE && players[local_player.id].tool == TOOL_BLOCK) {
+            int * pos = camera_terrain_pick(0);
+
+            if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
+                norm3f(pos[X], pos[Y], pos[Z], camera.r.x, camera.r.y, camera.r.z) < 25) {
+                int amount = cube_line_length(
+                    local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
+                    pos[X], pos[Z], 63 - pos[Y]
+                );
+
+                // see “handlePacketBlockLine” in src/network.c
+                if (amount <= min(local_player.blocks, BLOCKLINE_MAX_LENGTH)) {
+                    PacketBlockLine contained;
+                    contained.player_id = local_player.id;
+                    contained.start     = htonv3i(local_player.drag);
+                    contained.end.x     = pos[X];
+                    contained.end.y     = pos[Z];
+                    contained.end.z     = 63 - pos[Y];
+
+                    doPacketBlockLine(&contained, amount);
+                }
+
+                players[local_player.id].item_showup = window_time();
+            }
+        }
+
+        local_player.drag_active = 0;
+        if (action == WINDOW_PRESS && players[local_player.id].tool == TOOL_BLOCK &&
+            window_time() - players[local_player.id].item_showup >= 0.5F) {
+            int * pos = camera_terrain_pick(0);
+
+            if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
+                norm3f(camera.r.x, camera.r.y, camera.r.z, pos[X], pos[Y], pos[Z]) < 25.0F) {
+                local_player.drag_active = 1;
+                local_player.drag.x = pos[X];
+                local_player.drag.y = pos[Y];
+                local_player.drag.z = pos[Z];
+            }
+        }
+    }
+
+    if (button == WINDOW_MOUSE_MMB) button_map.mmb = (action == WINDOW_PRESS);
+
+    if (camera.mode == CAMERAMODE_SPECTATOR && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS && settings.mmb_toggle_noclip) {
+        camera.noclip = !camera.noclip;
+
+        hud_show_popup("Noclip mode is now %s", camera.noclip ? "enabled" : "disabled");
+    }
+
+    if (camera.mode == CAMERAMODE_BODYVIEW && button == WINDOW_MOUSE_MMB && action == WINDOW_PRESS) {
+        float nearest_dist = FLT_MAX;
+        int nearest_player = -1;
+        for (int k = 0; k < PLAYERS_MAX; k++) {
+            float dist = norm3f(camera.r.x, camera.r.y, camera.r.z, players[k].pos.x, players[k].pos.y, players[k].pos.z);
+
+            if (player_can_spectate(&players[k]) && players[k].alive && k != cameracontroller_bodyview_player && dist < nearest_dist) {
+                nearest_dist   = dist;
+                nearest_player = k;
+            }
+        }
+
+        if (0 <= nearest_player) cameracontroller_bodyview_player = nearest_player;
+    }
+
+    if (button == WINDOW_MOUSE_RMB && action == WINDOW_PRESS) {
+        players[local_player.id].start.rmb = window_time();
+        if (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) {
+            if (camera.mode == CAMERAMODE_SPECTATOR)
+                cameracontroller_bodyview_mode = true;
+
+            cameracontroller_bodyview_inc();
+            cameracontroller_bodyview_next();
+
+            cameracontroller_bodyview_zoom = 0.0F;
+        }
+    }
+
+    if (button == WINDOW_MOUSE_LMB && action == WINDOW_PRESS) {
+        if (camera.mode == CAMERAMODE_FPS && players[local_player.id].tool == TOOL_WEAPON) {
+            if (weapon_reloading()) weapon_reload_abort();
+
+            if (local_player.ammo == 0 && 0.5F <= window_time() - players[local_player.id].item_showup) {
+                sound_create(SOUND_LOCAL, sound(SOUND_EMPTY), 0.0F, 0.0F, 0.0F);
+
+                static const char popup[] = "RELOAD";
+                chat_show_popup(popup, sizeof(popup), ASCII, 0.4F, Red);
+            }
+        }
+    }
+
+    if (button == WINDOW_MOUSE_LMB) {
+        button_map.lmb = (action == WINDOW_PRESS);
+
+        if (camera.mode == CAMERAMODE_FPS && action == WINDOW_RELEASE)
+            weapon_burst = 0;
+
+        if (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) {
+            if (action == WINDOW_PRESS) {
+                if (camera.mode == CAMERAMODE_SPECTATOR)
+                    cameracontroller_bodyview_mode = true;
+
+                cameracontroller_bodyview_dec();
+                cameracontroller_bodyview_prev();
+
+                cameracontroller_bodyview_zoom = 0.0F;
+            }
+        }
+    }
+}
+
+typedef struct {
+    const char * str;
+    int acceptance;
+} AutocompleteType;
+
+void broadcast_chat(unsigned char chat_type, const char * message, size_t size) {
+    char buff[2048]; size_t written = encodeMagic(buff, sizeof(buff), message, size);
+
+    PacketChatMessage contained;
+    contained.player_id = local_player.id;
+    contained.chat_type = chat_type;
+    contained.message   = buff;
+
+    sendPacketChatMessage(&contained, written);
+}
+
+static int autocomplete_type_cmp(const void * a, const void * b) {
+    AutocompleteType * A = (AutocompleteType *) a, * B = (AutocompleteType *) b;
+    return B->acceptance - A->acceptance;
+}
+
+static const char * hud_ingame_completeword(const char * s) {
+    // find most likely player name or command
+
+    AutocompleteType candidates[PLAYERS_MAX * 2 + 64] = {{0}};
+    size_t candidates_cnt = 0;
+
+    for (int k = 0; k < PLAYERS_MAX; k++) {
+        if (players[k].connected)
+            candidates[candidates_cnt++] = (AutocompleteType) {
+                .str = players[k].name,
+                .acceptance = 0,
+            };
+    }
+
+    candidates[candidates_cnt++] = (AutocompleteType) {
+        .str = gamestate.team1.name,
+        .acceptance = 0,
+    };
+
+    candidates[candidates_cnt++] = (AutocompleteType) {
+        .str = gamestate.team2.name,
+        .acceptance = 0,
+    };
+
+    candidates[candidates_cnt++] = (AutocompleteType) {"/help", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/medkit", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/squad", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/votekick", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/login", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/airstrike", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/streak", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/ratio", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/intel", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/time", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/admin", 0};
+    candidates[candidates_cnt++] = (AutocompleteType) {"/ping", 0};
+
+    // valuate all strings
+    for (size_t k = 0; k < candidates_cnt; k++) {
+        for (size_t i = 0; i < strlen(candidates[k].str) && i < strlen(s); i++) {
+            if (candidates[k].str[i] == s[i])
+                candidates[k].acceptance += 2;
+            else if (tolower(candidates[k].str[i]) == tolower(s[i]) || s[i] == '*') {
+                candidates[k].acceptance++;
+            } else {
+                candidates[k].acceptance = 0;
+                break;
+            }
+        }
+    }
+
+    qsort(candidates, candidates_cnt, sizeof(AutocompleteType), autocomplete_type_cmp);
+    return (strlen(candidates[0].str) > 0 && candidates[0].acceptance > 0) ? candidates[0].str : NULL;
+}
+
+static inline CameraMode cycle_camera_mode(CameraMode mode) {
+    switch (mode) {
+        case CAMERAMODE_FPS:       return CAMERAMODE_SPECTATOR;
+        case CAMERAMODE_SPECTATOR: return CAMERAMODE_BODYVIEW;
+        case CAMERAMODE_BODYVIEW:  return CAMERAMODE_FPS;
+        default:                   return CAMERAMODE_FPS;
+    }
+}
+
+static inline void hud_game_chat_scroll_up(void) {
+    if (hud_game_chat_selected == NULL) return; // prevent scrolling above the top
+
+    hud_game_chat_selected = hud_game_chat_selected->prev;
+}
+
+static inline void hud_game_chat_scroll_down(void) {
+    if (game_chat.first == NULL) return; // chat is empty, nothing to scroll
+
+    if (hud_game_chat_selected == NULL) hud_game_chat_selected = game_chat.first;
+
+    if (hud_game_chat_selected->next == NULL) return; // prevent scrolling below the bottom
+    hud_game_chat_selected = hud_game_chat_selected->next;
+}
+
+static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
+    if (chat_input_mode != CHAT_NO_INPUT && action == WINDOW_PRESS && key == WINDOW_KEY_AUTOCOMPLETE && strlen(game_chat_input) > 0) {
+        // autocomplete word
+        char * incomplete = strrchr(game_chat_input, ' ') + 1;
+        if (incomplete == (char *) 1)
+            incomplete = game_chat_input;
+        const char * match = hud_ingame_completeword(incomplete);
+        if (match && strlen(match) + strlen(game_chat_input) < 128)
+            strcpy(incomplete, match);
+    }
+
+    if (network_connected && action == WINDOW_PRESS && key == WINDOW_KEY_CHAT_CLEAR)
+    { hud_game_chat_selected = NULL; deque_free(&game_chat);
+      hud_show_popup("Chat history cleared"); }
+
+    if (chat_input_mode == CHAT_NO_INPUT) {
+        if (action == WINDOW_RELEASE) {
+            if (key == WINDOW_KEY_COMMAND) {
+                window_textinput(1);
+                chat_input_mode = CHAT_ALL_INPUT;
+
+                game_chat_input[0] = '/';
+                game_chat_input[1] = 0;
+            }
+
+            if (key == WINDOW_KEY_TEAM_CHAT) {
+                window_textinput(1);
+                chat_input_mode = CHAT_TEAM_INPUT;
+                game_chat_input[0] = 0;
+            }
+
+            if (key == WINDOW_KEY_CHAT) {
+                window_textinput(1);
+                chat_input_mode = CHAT_ALL_INPUT;
+                game_chat_input[0] = 0;
+            }
+        } else if (action == WINDOW_PRESS) {
+            if (!network_connected) switch (key) {
+                case WINDOW_KEY_CYCLE_CAMERA: camera.mode = cycle_camera_mode(camera.mode); break;
+                case WINDOW_KEY_TOGGLE_ALIVE: players[local_player.id].alive = !players[local_player.id].alive; break;
+                case WINDOW_KEY_RESPAWN:      players[local_player.id].pos = (Vector3f) {256.0F, 65.0F, 256.0F}; break;
+                case WINDOW_KEY_RESTOCK:      restock(); break;
+                case WINDOW_KEY_TEAM_COLOR:   gamestate.team1.color = gamestate.team2.color = players[local_player.id].block; break;
+            }
+
+            if (key == WINDOW_KEY_RELEASE_MOUSE)
+                window_mousemode(WINDOW_CURSOR_ENABLED);
+
+            if (key == WINDOW_KEY_LASTTOOL) {
+                Tool tool = players[local_player.id].tool;
+                players[local_player.id].tool = local_player.last_tool;
+                local_player.last_tool = tool;
+                player_on_tool_change();
+            }
+
+            if (key == WINDOW_KEY_VOLUME_UP) {
+                settings.volume = min(settings.volume + 1, 10);
+            }
+
+            if (key == WINDOW_KEY_VOLUME_DOWN) {
+                settings.volume = max(settings.volume - 1, 0);
+            }
+
+            if (key == WINDOW_KEY_VOLUME_UP || key == WINDOW_KEY_VOLUME_DOWN) {
+                sound_volume(settings.volume / 10.0F);
+
+                hud_show_popup("Volume: %i", settings.volume);
+            }
+
+            if ((key == WINDOW_KEY_CURSOR_UP || key == WINDOW_KEY_CURSOR_DOWN || key == WINDOW_KEY_CURSOR_LEFT || key == WINDOW_KEY_CURSOR_RIGHT)
+               && camera.mode == CAMERAMODE_FPS && players[local_player.id].tool == TOOL_BLOCK) {
+                if (local_player.color[X] < 0 || local_player.color[Y] < 0) {
+                    local_player.color[X] = 3; local_player.color[Y] = 0;
+                } else {
+                    switch (key) {
+                        case WINDOW_KEY_CURSOR_LEFT: {
+                            local_player.color[X]--;
+                            if (local_player.color[X] < 0)
+                                local_player.color[X] = 7;
+                            break;
+                        }
+
+                        case WINDOW_KEY_CURSOR_RIGHT: {
+                            local_player.color[X]++;
+                            if (local_player.color[X] > 7)
+                                local_player.color[X] = 0;
+                            break;
+                        }
+
+                        case WINDOW_KEY_CURSOR_UP: {
+                            local_player.color[Y]--;
+                            if (local_player.color[Y] < 0)
+                                local_player.color[Y] = 7;
+                            break;
+                        }
+
+                        case WINDOW_KEY_CURSOR_DOWN: {
+                            local_player.color[Y]++;
+                            if (local_player.color[Y] > 7)
+                                local_player.color[Y] = 0;
+                            break;
+                        }
+                    }
+                }
+
+                players[local_player.id].block = texture_block_color(local_player.color[X], local_player.color[Y]);
+                updateBlockColor();
+            }
+
+            if (settings.toggle_crouch && camera.mode == CAMERAMODE_FPS && key == WINDOW_KEY_CROUCH) {
+                if (HASBIT(players[local_player.id].input.keys, INPUT_CROUCH))
+                    player_try_uncrouch();
+                else
+                    player_try_crouch();
+            }
+
+            if (camera.mode == CAMERAMODE_FPS &&
+                players[local_player.id].tool == TOOL_WEAPON &&
+                key == WINDOW_KEY_FIREMODE && !button_map.lmb) {
+                weapon_firemode = weapon_firemode_cycle(weapon_firemode);
+
+                hud_show_popup("%s", weapon_firemode_label(weapon_firemode));
+            }
+
+            if (camera.mode == CAMERAMODE_FPS && key == WINDOW_KEY_RELOAD &&
+                players[local_player.id].tool == TOOL_WEAPON) {
+                weapon_reload();
+            }
+
+            if (key == WINDOW_KEY_SNEAK && (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)) {
+                cameracontroller_bodyview_mode = !cameracontroller_bodyview_mode;
+            }
+
+            for (int k = 0; k < list_size(&config_keybind); k++) {
+                Keybind * keybind = list_get(&config_keybind, k);
+
+                if (keybind->key == internal) {
+                    size_t size = strsize(keybind->value, sizeof(keybind->value));
+                    if (size > 0) broadcast_chat(CHAT_ALL, keybind->value, size);
+
+                    break;
+                }
+            }
+
+            if (screen_current == SCREEN_NONE && camera.mode == CAMERAMODE_FPS) {
+                int tool = -1;
+
+                switch (key) {
+                    case WINDOW_KEY_TOOL1: tool = TOOL_SPADE;   break;
+                    case WINDOW_KEY_TOOL2: tool = TOOL_BLOCK;   break;
+                    case WINDOW_KEY_TOOL3: tool = TOOL_WEAPON;  break;
+                    case WINDOW_KEY_TOOL4: tool = TOOL_GRENADE; break;
+                }
+
+                if (0 <= tool && players[local_player.id].tool != tool) {
+                    local_player.last_tool = players[local_player.id].tool;
+                    players[local_player.id].tool = tool;
+
+                    sound_create(SOUND_LOCAL, sound(SOUND_SWITCH), 0.0F, 0.0F, 0.0F);
+                    player_on_tool_change();
+                }
+            }
+
+            if (screen_current == SCREEN_NONE) {
+                if (network_connected && key == WINDOW_KEY_CHANGETEAM) {
+                    screen_current = SCREEN_TEAM_SELECT;
+                    return;
+                }
+
+                if (key == WINDOW_KEY_CHANGEWEAPON) {
+                    screen_current = SCREEN_GUN_SELECT;
+                    return;
+                }
+            }
+
+            static int new_team = -1;
+
+            if (screen_current == SCREEN_TEAM_SELECT) {
+                switch (key) {
+                    case WINDOW_KEY_SELECT1: new_team = TEAM1;          break;
+                    case WINDOW_KEY_SELECT2: new_team = TEAM_SPECTATOR; break;
+                    case WINDOW_KEY_SELECT3: new_team = TEAM2;          break;
+                    default:                 new_team = -1;             break;
+                }
+
+                if (new_team >= 0) {
+                    if (network_logged_in) {
+                        PacketChangeTeam contained;
+                        contained.player_id = local_player.id;
+                        contained.team      = new_team;
+                        sendPacketChangeTeam(&contained, 0);
+
+                        screen_current = SCREEN_NONE;
+                        return;
+                    } else {
+                        if (new_team == TEAM_SPECTATOR) {
+                            network_join_game(new_team, WEAPON_RIFLE);
+                            screen_current = SCREEN_NONE;
+                        } else if (default_gun >= 0) {
+                            network_join_game(new_team, default_gun);
+                            screen_current = SCREEN_NONE;
+                        } else {
+                            screen_current = SCREEN_GUN_SELECT;
+                        }
+                        return;
+                    }
+                }
+
+                if (camera.mode != CAMERAMODE_SELECTION && (key == WINDOW_KEY_CHANGETEAM || key == WINDOW_KEY_ESCAPE)) {
+                    screen_current = SCREEN_NONE;
+                    return;
+                }
+
+                if (camera.mode == CAMERAMODE_SELECTION && key == WINDOW_KEY_SELECT4) {
+                    players[local_player.id].team = TEAM_SPECTATOR;
+
+                    screen_current = SCREEN_NONE;
+                    camera.mode = CAMERAMODE_SPECTATOR;
+
+                    return;
+                }
+            }
+
+            if (screen_current == SCREEN_GUN_SELECT) {
+                int new_gun = -1;
+                switch (key) {
+                    case WINDOW_KEY_SELECT1: new_gun = WEAPON_RIFLE;   break;
+                    case WINDOW_KEY_SELECT2: new_gun = WEAPON_SMG;     break;
+                    case WINDOW_KEY_SELECT3: new_gun = WEAPON_SHOTGUN; break;
+                }
+
+                if (new_gun >= 0) {
+                    if (!network_connected) {
+                        players[local_player.id].weapon = new_gun;
+                        weapon_set(false);
+                    } else if (network_logged_in) {
+                        PacketChangeWeapon contained;
+                        contained.player_id = local_player.id;
+                        contained.weapon    = new_gun;
+
+                        sendPacketChangeWeapon(&contained, 0);
+                    } else network_join_game(new_team >= 0 ? new_team : default_team, new_gun);
+
+                    screen_current = SCREEN_NONE;
+                    return;
+                }
+
+                if (camera.mode != CAMERAMODE_SELECTION && (key == WINDOW_KEY_CHANGEWEAPON || key == WINDOW_KEY_ESCAPE)) {
+                    screen_current = SCREEN_NONE;
+                    return;
+                }
+
+                if (camera.mode == CAMERAMODE_SELECTION && key == WINDOW_KEY_CHANGETEAM) {
+                    screen_current = SCREEN_TEAM_SELECT;
+                    new_team = -1;
+
+                    return;
+                }
+            }
+
+            if (key == WINDOW_KEY_ESCAPE) {
+                hud_change(&hud_settings);
+                return;
+            }
+
+            if (key == WINDOW_KEY_PICKCOLOR && players[local_player.id].tool == TOOL_BLOCK) {
+                players[local_player.id].item_disabled    = window_time();
+                players[local_player.id].items_show_start = window_time();
+                players[local_player.id].items_show       = true;
+
+                CameraHit hit; camera_hit_fromplayer(&hit, local_player.id, 128.0F);
+
+                local_player.color[X] = local_player.color[Y] = -1;
+
+                switch (hit.type) {
+                    case CAMERA_HITTYPE_BLOCK: {
+                        float damage = map_damage_get(hit.x, hit.y, hit.z);
+                        float tint = (1.0F - damage / 100.0F) * 0.75F + 0.25F;
+
+                        RGBA4i color = map_get(hit.x, hit.y, hit.z);
+                        players[local_player.id].block.r = color.r * tint;
+                        players[local_player.id].block.g = color.g * tint;
+                        players[local_player.id].block.b = color.b * tint;
+                        break;
+                    }
+
+                    case CAMERA_HITTYPE_PLAYER:
+                        players[local_player.id].block = players[hit.player_id].block;
+                        break;
+
+                    case CAMERA_HITTYPE_NONE:
+                    default:
+                        players[local_player.id].block.r = fog_color[0] * 255;
+                        players[local_player.id].block.g = fog_color[1] * 255;
+                        players[local_player.id].block.b = fog_color[2] * 255;
+                        break;
+                }
+
+                updateBlockColor();
+            }
+        }
+    } else {
+        if (action != WINDOW_RELEASE) {
+            if (key == WINDOW_KEY_V && mods) {
+                const char * clipboard = window_clipboard();
+                if (clipboard != NULL) strcatprint(game_chat_input, sizeof(game_chat_input), clipboard);
+            }
+
+            if (key == WINDOW_KEY_ESCAPE || key == WINDOW_KEY_ENTER) {
+                size_t size = strsize(game_chat_input, sizeof(game_chat_input));
+
+                if (key == WINDOW_KEY_ENTER && size > 1)
+                    broadcast_chat(chat_input_mode == CHAT_ALL_INPUT ? CHAT_ALL : CHAT_TEAM, game_chat_input, size);
+
+                window_textinput(0);
+                chat_input_mode = CHAT_NO_INPUT;
+            }
+
+            if (key == WINDOW_KEY_BACKSPACE) {
+                size_t len = strlen(game_chat_input);
+                if (len > 0) {
+                    while (CONT(game_chat_input[--len]) && len > 0);
+                    game_chat_input[len] = 0;
+                }
+            }
+
+            if (key == WINDOW_KEY_CURSOR_UP)
+                hud_game_chat_scroll_up();
+
+            if (key == WINDOW_KEY_CURSOR_DOWN)
+                hud_game_chat_scroll_down();
+        }
+    }
+}
+
+static void hud_ingame_touch(void * finger, int action, float x, float y, float dx, float dy) {
+    window_setmouseloc(x, y);
+    WindowFinger * f = finger;
+
+    if (action != TOUCH_MOVE) {
+        int k = 0;
+        while (hud_ingame_onscreencontrol(k, NULL, -1)) {
+            if (is_inside_centered(f->start.x, settings.window_height - f->start.y,
+                                   settings.window_height * (0.2F + 0.175F * k), settings.window_height * 0.96F,
+                                   settings.window_height * 0.15F, settings.window_height * 0.1F)) {
+                hud_ingame_onscreencontrol(k, NULL, (action == TOUCH_DOWN) ? 1 : 0);
+                return;
+            }
+            k++;
+        }
+        if (is_inside_centered(f->start.x, settings.window_height - f->start.y,
+                               settings.window_width - settings.window_height * 0.075F, settings.window_height * 0.6F,
+                               settings.window_height * 0.15F, settings.window_height * 0.1F)) {
+            hud_ingame_onscreencontrol(64, NULL, (action == TOUCH_DOWN) ? 1 : 0);
+            return;
+        }
+        if (is_inside_centered(f->start.x, settings.window_height - f->start.y,
+                               settings.window_width - settings.window_height * 0.075F, settings.window_height * 0.45F,
+                               settings.window_height * 0.15F, settings.window_height * 0.1F)) {
+            hud_ingame_onscreencontrol(65, NULL, (action == TOUCH_DOWN) ? 1 : 0);
+            return;
+        }
+    }
+
+    if (screen_current == SCREEN_TEAM_SELECT && action == TOUCH_UP) {
+        if (x < settings.window_width / 3)
+            hud_ingame_keyboard(WINDOW_KEY_TOOL1, WINDOW_PRESS, 0, 0);
+        if (x > settings.window_width / 3 * 2)
+            hud_ingame_keyboard(WINDOW_KEY_TOOL2, WINDOW_PRESS, 0, 0);
+        if (x > settings.window_width / 3 && x < settings.window_width / 3 * 2)
+            hud_ingame_keyboard(WINDOW_KEY_TOOL3, WINDOW_PRESS, 0, 0);
+        return;
+    }
+
+    if (screen_current == SCREEN_GUN_SELECT && action == TOUCH_UP) {
+        if (x < settings.window_width / 3)
+            hud_ingame_keyboard(WINDOW_KEY_TOOL1, WINDOW_PRESS, 0, 0);
+        if (x > settings.window_width / 3 * 2)
+            hud_ingame_keyboard(WINDOW_KEY_TOOL3, WINDOW_PRESS, 0, 0);
+        if (x > settings.window_width / 3 && x < settings.window_width / 3 * 2)
+            hud_ingame_keyboard(WINDOW_KEY_TOOL2, WINDOW_PRESS, 0, 0);
+        return;
+    }
+
+    if (screen_current == SCREEN_NONE) {
+        if (action == TOUCH_DOWN && x > settings.window_width - settings.window_height * 0.25F
+           && y < settings.window_height * 0.25F) {
+            window_pressed_keys[WINDOW_KEY_MAP] = !window_pressed_keys[WINDOW_KEY_MAP];
+            return;
+        }
+
+        if ((camera.mode == CAMERAMODE_FPS || camera.mode == CAMERAMODE_SPECTATOR)
+           && norm2f(f->start.x, f->start.y, settings.window_height * 0.3F, settings.window_height * 0.7F) <
+              sqrf(settings.window_height * 0.15F)) {
+            float mx = clamp(-settings.window_height * 0.2F, settings.window_height * 0.2F, x - settings.window_height * 0.3F);
+            float my = clamp(-settings.window_height * 0.2F, settings.window_height * 0.2F, y - settings.window_height * 0.7F);
+
+            hud_ingame_touch_x = mx;
+            hud_ingame_touch_y = -my;
+            if (absf(mx) > settings.window_height * 0.045F) {
+                window_pressed_keys[WINDOW_KEY_LEFT] = mx < 0;
+                window_pressed_keys[WINDOW_KEY_RIGHT] = mx > 0;
+            } else {
+                window_pressed_keys[WINDOW_KEY_LEFT] = 0;
+                window_pressed_keys[WINDOW_KEY_RIGHT] = 0;
+            }
+            if (absf(my) > settings.window_height * 0.045F) {
+                window_pressed_keys[WINDOW_KEY_UP] = my < 0;
+                window_pressed_keys[WINDOW_KEY_DOWN] = my > 0;
+            } else {
+                window_pressed_keys[WINDOW_KEY_UP] = 0;
+                window_pressed_keys[WINDOW_KEY_DOWN] = 0;
+            }
+            // window_pressed_keys[WINDOW_KEY_CROUCH] = (window_time()-f->down_time)>0.25F &&
+            // absf(mx)<settings.window_height*0.06F && absf(my)<settings.window_height*0.06F;
+            window_pressed_keys[WINDOW_KEY_SPRINT]
+                = absf(mx) > settings.window_height * 0.19F || absf(my) > settings.window_height * 0.19F;
+            if (action == TOUCH_UP) {
+                window_pressed_keys[WINDOW_KEY_LEFT] = 0;
+                window_pressed_keys[WINDOW_KEY_RIGHT] = 0;
+                window_pressed_keys[WINDOW_KEY_UP] = 0;
+                window_pressed_keys[WINDOW_KEY_DOWN] = 0;
+                window_pressed_keys[WINDOW_KEY_SPRINT] = 0;
+                // window_pressed_keys[WINDOW_KEY_CROUCH] = 0;
+                hud_ingame_touch_x = 0;
+                hud_ingame_touch_y = 0;
+            }
+            return;
+        }
+
+        if (camera.mode == CAMERAMODE_BODYVIEW && action == TOUCH_UP) {
+            if (x < settings.window_width / 2)
+                hud_ingame_mouseclick(0, 0, WINDOW_MOUSE_LMB, WINDOW_PRESS, 0);
+            if (x > settings.window_width / 2)
+                hud_ingame_mouseclick(0, 0, WINDOW_MOUSE_RMB, WINDOW_PRESS, 0);
+            return;
+        }
+
+        if (true) {
+            camera.rot.h -= dx * 0.002F;
+            camera.rot.v += dy * 0.002F;
+            camera_overflow_adjust();
+            return;
+        }
+    }
+}
+
+HUD hud_ingame = {
+    .init                = hud_ingame_init,
+    .render_3D           = hud_ingame_render3D,
+    .render_2D           = hud_ingame_render,
+    .input_keyboard      = hud_ingame_keyboard,
+    .input_mouselocation = hud_ingame_mouselocation,
+    .input_mouseclick    = hud_ingame_mouseclick,
+    .input_mousescroll   = hud_ingame_scroll,
+    .input_touch         = hud_ingame_touch,
+    .focus               = hud_ingame_focus,
+    .hover               = hud_ingame_hover,
+    .ui_images           = NULL,
+    .render_world        = true,
+    .render_localplayer  = false,
+    .ctx                 = NULL,
+};

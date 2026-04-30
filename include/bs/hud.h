@@ -27,6 +27,8 @@
 #include <bs/texture.h>
 #include <bs/window.h>
 #include <bs/common.h>
+#include <bs/config.h>
+#include <bs/font.h>
 
 typedef struct {
     void (*init)(void);
@@ -59,7 +61,35 @@ extern Text * hud_game_chat_selected;
 
 #define HUD_FLAG_INDEX_START 64
 
+static inline int mu_text_height(mu_Font font) {
+    UNUSED(font);
+
+    float scalex = fmax(1, round(settings.window_width / 800.0F));
+    float scaley = fmax(1, round(settings.window_height / 600.0F));
+    float scale  = settings.scale == 0 ? fmin(scalex, scaley) : settings.scale;
+
+    return scale * 16.0F;
+}
+
+static inline int mu_text_width(mu_Font font, const char * text, int len)
+{ return ceil(font_length(mu_text_height(font) / 16.0F, text, len, UTF8)); }
+
+static inline void mu_text_color(mu_Context * ctx, int red, int green, int blue)
+{ ctx->style->colors[MU_COLOR_TEXT] = mu_color(red, green, blue, 255); }
+
+static inline void mu_text_color_default(mu_Context * ctx)
+{ ctx->style->colors[MU_COLOR_TEXT] = mu_color(230, 230, 230, 255); }
+
+/*static inline mu_Layout * mu_get_layout(mu_Context * ctx)
+{ return &ctx->layout_stack.items[ctx->layout_stack.idx - 1]; }*/
+
+void hud_serverlist_refresh(void);
+
+int hud_header_render(mu_Context *, float scale, const char *);
+
 void hud_show_popup(const char * format, ...);
+
+Texture * hud_ui_images(int, bool * resize);
 
 void hud_change(HUD *);
 void hud_init(void);

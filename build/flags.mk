@@ -26,6 +26,7 @@ HASHPROG = sha512sum
 PACKFILE = build/bsresources.zip
 
 CFILES1 = src/ace/protocol.c src/gui/glfw.c src/gui/sdl.c src/gui/glut.c\
+          src/hud/controls.c src/hud/ingame.c src/hud/mapload.c src/hud/serverlist.c src/hud/settings.c\
           src/aabb.c src/camera.c src/cameracontroller.c src/channel.c src/chunk.c\
           src/common.c src/config.c src/entitysystem.c src/file.c src/font.c src/glx.c\
           src/grenade.c src/hud.c src/list.c src/main.c src/map.c src/matrix.c src/minheap.c\

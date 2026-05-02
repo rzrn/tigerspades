@@ -389,6 +389,33 @@ static void getPacketBlockAction(uint8_t * data, size_t len) {
     handlePacketBlockAction(&p);
 }
 
+static inline void chat_show_notice(const char * msg, size_t size, Codepage codepage)
+{ chat_show_popup(msg, size, codepage, 5.0F, White); }
+
+static inline void chat_show_warning(const char * msg, size_t size, Codepage codepage)
+{ sound_create(SOUND_LOCAL, sound(SOUND_BEEP1), 0.0F, 0.0F, 0.0F);
+  chat_show_popup(msg, size, codepage, 5.0F, Yellow); }
+
+static inline void chat_show_error(const char * msg, size_t size, Codepage codepage)
+{ sound_create(SOUND_LOCAL, sound(SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
+  chat_show_popup(msg, size, codepage, 5.0F, Red); }
+
+static inline void chat_show_status(const char * msg, size_t size, Codepage codepage)
+{ chat_show_popup(msg, size, codepage, 5.0F, Red); }
+
+static inline bool decodeOpenSpadesAlert(const char * msg, size_t size, Codepage codepage) {
+    if (size <= 3) return false;
+
+    if (msg[1] == '%' && msg[2] == ' ') switch (msg[0]) {
+        case 'N': chat_show_notice(&msg[3], size - 3, codepage);  return true;
+        case '%': chat_show_warning(&msg[3], size - 3, codepage); return true;
+        case '!': chat_show_error(&msg[3], size - 3, codepage);   return true;
+        case 'C': chat_show_status(&msg[3], size - 3, codepage);  return true;
+    }
+
+    return false;
+}
+
 static void getPacketChatMessage(uint8_t * data, size_t len) {
     if (network_map_transfer) return;
 
@@ -401,21 +428,20 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
 
     char buff[256];
     switch (p.chat_type) {
-        case CHAT_ERROR: sound_create(SOUND_LOCAL, sound(SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
-        case CHAT_BIG:   chat_show_popup(msg, size, codepage, 5.0F, Red); return;
-        case CHAT_INFO:  chat_show_popup(msg, size, codepage, 5.0F, White); return;
-
-        case CHAT_WARNING: {
-            sound_create(SOUND_LOCAL, sound(SOUND_BEEP1), 0.0F, 0.0F, 0.0F);
-            chat_show_popup(msg, size, codepage, 5.0F, Yellow);
-            return;
-        }
+        case CHAT_INFO:    chat_show_notice(msg, size, codepage);  return;
+        case CHAT_WARNING: chat_show_warning(msg, size, codepage); return;
+        case CHAT_ERROR:   chat_show_error(msg, size, codepage);   return;
+        case CHAT_BIG:     chat_show_status(msg, size, codepage);  return;
 
         case CHAT_SYSTEM: {
+            if (decodeOpenSpadesAlert(msg, size, codepage))
+                return;
+
             if (p.player_id == 255) {
                 strncpy(network_custom_reason, msg, 16);
                 return; // don’t add message to chat
             }
+
             buff[0] = 0;
             break;
         }
@@ -433,6 +459,8 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
                 }
 
                 sprintf(buff, "%s: ", prefix);
+            } else if (decodeOpenSpadesAlert(msg, size, codepage)) {
+                return;
             } else {
                 sprintf(buff, ": ");
             }

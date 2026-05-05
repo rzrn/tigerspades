@@ -61,18 +61,18 @@ extern Text * hud_game_chat_selected;
 
 #define HUD_FLAG_INDEX_START 64
 
-static inline int mu_text_height(mu_Font font) {
-    UNUSED(font);
-
+static inline float hud_ui_scale(void) {
     float scalex = fmax(1, round(settings.window_width / 800.0F));
     float scaley = fmax(1, round(settings.window_height / 600.0F));
-    float scale  = settings.scale == 0 ? fmin(scalex, scaley) : settings.scale;
 
-    return scale * 16.0F;
+    return settings.scale == 0 ? fmin(scalex, scaley) : settings.scale;
 }
 
+static inline int mu_text_height(mu_Font font)
+{ return hud_ui_scale() * font_height(font); }
+
 static inline int mu_text_width(mu_Font font, const char * text, int len)
-{ return ceil(font_length(mu_text_height(font) / 16.0F, text, len, UTF8)); }
+{ return ceil(font_width(font, hud_ui_scale(), text, len, UTF8)); }
 
 static inline void mu_text_color(mu_Context * ctx, int red, int green, int blue)
 { ctx->style->colors[MU_COLOR_TEXT] = mu_color(red, green, blue, 255); }

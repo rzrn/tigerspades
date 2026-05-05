@@ -14,9 +14,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from argparse import ArgumentParser
+from itertools import batched
 import struct
 
-from bdfparser import Font, Bitmap
+VERSION = 2
+
+from bdffont import BdfFont
 
 argparser = ArgumentParser(
     description = "BDF to the TigerSpades font format conversion tool"
@@ -30,25 +33,39 @@ argparser.add_argument("filename", nargs = '*', help = "BDF font to convert")
 
 params = argparser.parse_args()
 
-for filename in params.filename:
-    font = Font(filename)
+def of_bit_list(bs):
+    N = 0
 
-    headers = ", ".join("{} = {}".format(k, v) for k, v in font.headers.items())
+    for b in bs:
+        N = (N << 1) | b
+
+    return N
+
+for filename in params.filename:
+    font = BdfFont.load(filename)
+
+    fontname  = font.name.encode('utf-8')
+    copyright = font.properties.get('COPYRIGHT', '').encode('utf-8')
+    notice    = font.properties.get('NOTICE', '').encode('utf-8')
+
+    _, fbbh, fbbx, fbby = font.bounding_box
+
+    assert fbbx == 0, "Non-zero X coordinate of the font bounding box is not supported: '{}'".format(filename)
+
+    headers = ", ".join("{} = {}".format(k, v) for k, v in font.properties.items())
     print("{}: {}: {}".format(argparser.prog, filename, headers))
 
-    fontname = font.headers['fontname']
-    height = font.headers['fbby']
+    assert fbbh <= 255, "A font is too big: {}".format(filename)
 
-    if height > 255:
-        raise ValueError(
-            "{}: {}: too big font".format(argparser.prog, filename)
-        )
+    fout = open(filename.removesuffix('.bdf') + '.bitmap', 'wb')
 
-    fout = open(filename + '.out', 'wb')
-    fout.write(struct.pack("<128sHb", fontname.encode('utf-8'), params.high16, height))
+    fout.write(
+        struct.pack("<H128s512s512sHB", VERSION, fontname, copyright, notice, params.high16, fbbh)
+    )
 
-    for glyph in font.iterglyphs():
-        codepoint = glyph.cp()
+    for glyph in font.glyphs:
+        bbw, bbh, bbx, bby = glyph.bounding_box
+        codepoint = glyph.encoding
 
         low16 = codepoint & 0xFFFF
         high16 = (codepoint >> 16) & 0xFFFF
@@ -63,24 +80,14 @@ for filename in params.filename:
 
             continue
 
-        bitmap = glyph.draw(2)
+        assert bbx == fbbx and bby == fbby, "Unsupported glyph bounding box: {}: {:x}".format(filename, codepoint)
+        assert bbh == fbbh, "Bad glyph height: {}: {:x}".format(filename, codepoint)
 
-        if bitmap.height() != height:
-            raise ValueError(
-                "{}: {}: bad glyph height: {:x}".format(argparser.prog, filename, codepoint)
-            )
+        fout.write(struct.pack("<HB", low16, bbw))
 
-        if bitmap.width() > 255:
-            raise ValueError(
-                "{}: {}: glyph too big: {:x}".format(argparser.prog, filename, codepoint)
-            )
-
-        if bitmap.width() % 8 != 0:
-            raise ValueError(
-                "{}: {}: invalid glyph width: {:x}".format(argparser.prog, filename, codepoint)
-            )
-
-        data = bitmap.tobytes('1', {0: 0, 1: 1, 2: 1})
-        fout.write(struct.pack("<Hb", low16, bitmap.width() // 8) + data)
+        for row in glyph.bitmap:
+            for bs in batched(row, 8):
+                b = of_bit_list(reversed(bs))
+                fout.write(struct.pack("<B", b))
 
     fout.close()

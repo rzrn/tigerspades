@@ -31,10 +31,13 @@ extern Font * font_primary;
 extern Font * font_secondary;
 
 void font_init(void);
-float font_length(int scale, const char *, int, Codepage);
+
 Vector2f font_render(float x, float y, int scale, const char *, Codepage);
 Vector2f font_centered(float x, float y, int scale, const char *, Codepage);
+void font_right_aligned(float x, float y, int scale, const char *, Codepage);
 
 Font * font_select(Font *);
+uint8_t font_height(Font *);
+float font_width(Font *, int scale, const char *, int, Codepage);
 
 #endif

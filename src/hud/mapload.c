@@ -36,6 +36,9 @@ static inline const char * ellipsis(void) {
 static void hud_mapload_render(mu_Context * ctx, float scale) {
     UNUSED(ctx);
 
+    font_select(font_primary);
+    const float fh = font_height(NULL);
+
     glColor3f(1.0F, 1.0F, 1.0F);
     texture_draw(
         texture(TEXTURE_SPLASH), (settings.window_width - settings.window_height * 4.0F / 3.0F * 0.7F) * 0.5F,
@@ -48,10 +51,10 @@ static void hud_mapload_render(mu_Context * ctx, float scale) {
 
         glColor3ub(68, 68, 68);
         texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F + 440.0F * scale * progress,
-                     settings.window_height * 0.25F, 440.0F * scale * (1.0F - progress), 20.0F * scale);
+                     settings.window_height * 0.25F, 440.0F * scale * (1.0F - progress), (fh + 4.0F) * scale);
         glColor3ub(255, 255, 50);
         texture_draw(texture(TEXTURE_WHITE), (settings.window_width - 440.0F * scale) / 2.0F, settings.window_height * 0.25F,
-                     440.0F * scale * progress, 20.0F * scale);
+                     440.0F * scale * progress, (fh + 4.0F) * scale);
     }
 
     char buff[128];
@@ -63,12 +66,11 @@ static void hud_mapload_render(mu_Context * ctx, float scale) {
         sprintf(buff, "Connecting%s", ellipsis());
 
     glColor3ub(69, 69, 69);
-    font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F - 20.0F * scale, 2.0F * scale, buff, ASCII);
+    font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F - (fh + 4.0F) * scale, 2.0F * scale, buff, ASCII);
 
     font_select(font_secondary);
     glColor3f(1.0F, 1.0F, 0.0F);
-    font_render(0.0F, 16.0F * scale, 1.0F * scale, "Created by ByteBit, visit https://github.com/xtreme8000/BetterSpades", ASCII);
-    font_select(font_primary);
+    font_render(0.0F, fh * scale, 1.0F * scale, "Created by ByteBit, visit https://github.com/xtreme8000/BetterSpades", ASCII);
 }
 
 static void hud_mapload_keyboard(int key, int action, int mods, int internal) {

@@ -56,7 +56,7 @@
 #include <bs/bitmap.h>
 
 typedef struct {
-    uint8_t  page, stride;
+    uint8_t page, width;
     uint16_t x, y;
 } Glyph;
 
@@ -145,7 +145,9 @@ static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t he
 
         BitmapGlyph glyph = readBitmapGlyph(buff);
 
-        size_t size = ((size_t) header.height) * ((size_t) glyph.stride);
+        size_t stride = glyph.width > 0 ? (glyph.width - 1) / 8 + 1 : 0;
+        size_t size = stride * (size_t) header.height;
+
         uint8_t * data = malloc(size);
 
         if (fread(data, size, 1, file) != 1) {
@@ -153,30 +155,30 @@ static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t he
             exit(1);
         }
 
-        size_t width = glyph.stride * 8;
-
-        if (x0 + width > texsize) { x0 = 0; y0 += header.height; }
+        if (x0 + glyph.width > texsize) { x0 = 0; y0 += header.height; }
         if (y0 + header.height > texsize) {
             font.textures[pagenum] = upload_page(texsize, pagebuff);
             x0 = y0 = 0; pagenum++;
         }
 
-        font.table[glyph.low16].page   = pagenum;
-        font.table[glyph.low16].stride = glyph.stride;
+        font.table[glyph.low16].page  = pagenum;
+        font.table[glyph.low16].width = glyph.width;
 
         font.table[glyph.low16].x = x0;
         font.table[glyph.low16].y = y0;
 
         for (size_t dy = 0; dy < header.height; dy++) {
-            for (size_t dx = 0; dx < glyph.stride; dx++) {
-                for (size_t bit = 0; bit < 8; bit++) {
-                    size_t off = (y0 + dy) * texsize + (x0 + 8 * dx + 7 - bit);
-                    pagebuff[off] = data[dy * glyph.stride + dx] & (1 << bit) ? 0xff : 0x00;
-                }
+            uint8_t * const row = &data[dy * stride];
+
+            for (size_t dx = 0; dx < glyph.width; dx++) {
+                size_t off = (y0 + dy) * texsize + (x0 + dx);
+                size_t div = dx / 8, rem = dx % 8;
+
+                pagebuff[off] = (row[div] >> rem) & 1 ? 0xFF : 0x00;
             }
         }
 
-        x0 += width;
+        x0 += glyph.width;
     }
 
     font.texscale = 1.0F / ((float) texsize);
@@ -239,6 +241,13 @@ Font * font_select(Font * font) {
     return font_old;
 }
 
+uint8_t font_height(Font * font) {
+    if (font == NULL)
+        return font_selected->height;
+    else
+        return font->height;
+}
+
 Subfont * get_glyph(Font * font, uint32_t codepoint, Glyph * outglyph) {
     uint16_t high16 = codepoint >> 16;
 
@@ -248,7 +257,7 @@ Subfont * get_glyph(Font * font, uint32_t codepoint, Glyph * outglyph) {
         if (subfont->high16 == high16) {
             Glyph glyph = subfont->table[codepoint & 0xFFFF];
 
-            if (glyph.stride != 0) { *outglyph = glyph; return subfont; }
+            if (glyph.width != 0) { *outglyph = glyph; return subfont; }
         }
     }
 
@@ -268,14 +277,16 @@ static inline bool ignore(uint32_t codepoint) {
     return codepoint <= 127 && !isprint(codepoint);
 }
 
-float font_length(int scale, const char * text, int len, Codepage codepage) {
-    float x = 0, length = 0;
+float font_width(Font * font, int scale, const char * text, int len, Codepage codepage) {
+    if (font == NULL) font = font_selected;
+
+    float x = 0, w = 0;
 
     const char * end = len <= 0 ? (char *) UINTPTR_MAX : text + len;
 
     while (*text && text < end) {
         if (*text == '\n') {
-            length = fmax(length, x);
+            w = fmax(w, x);
             x = 0; text++;
         } else {
             size_t size = decodeSize(codepage, text[0]);
@@ -284,12 +295,12 @@ float font_length(int scale, const char * text, int len, Codepage codepage) {
 
             if (ignore(codepoint)) continue;
 
-            Glyph glyph; get_glyph(font_selected, codepoint, &glyph);
-            x += scale * glyph.stride * 8;
+            Glyph glyph; get_glyph(font, codepoint, &glyph);
+            x += scale * (float) glyph.width;
         }
     }
 
-    return fmax(length, x);
+    return fmax(w, x);
 }
 
 static inline void emitTexcoords(texcoord_t * buff, size_t offset, texcoord_t x, texcoord_t y, texcoord_t w, texcoord_t h) {
@@ -330,12 +341,10 @@ Vector2f font_render(float x, float y, int scale, const char * text, Codepage co
             Glyph glyph; Subfont * subfont = get_glyph(font_selected, codepoint, &glyph);
             Buffer * buffer = &subfont->buffers[glyph.page];
 
-            uint16_t width = glyph.stride * 8;
+            emitTexcoords(buffer->texcoords, buffer->len, glyph.x, glyph.y, glyph.width, font_selected->height);
+            emitVertex(buffer->vertex, buffer->len, x0, y0, scale * (vertex_t) glyph.width, h);
 
-            emitTexcoords(buffer->texcoords, buffer->len, glyph.x, glyph.y, width, font_selected->height);
-            emitVertex(buffer->vertex, buffer->len, x0, y0, scale * width, h);
-
-            buffer->len++; x0 += scale * width;
+            buffer->len++; x0 += scale * (float) glyph.width;
         }
     }
 
@@ -380,4 +389,7 @@ Vector2f font_render(float x, float y, int scale, const char * text, Codepage co
 }
 
 Vector2f font_centered(float x, float y, int h, const char * text, Codepage codepage)
-{ return font_render(x - font_length(h, text, 0, codepage) / 2.0F, y, h, text, codepage); }
+{ return font_render(x - font_width(NULL, h, text, 0, codepage) / 2.0F, y, h, text, codepage); }
+
+void font_right_aligned(float x, float y, int h, const char * text, Codepage codepage)
+{ font_render(x - font_width(NULL, h, text, 0, codepage), y, h, text, codepage); }

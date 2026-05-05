@@ -64,7 +64,11 @@ int hud_header_render(mu_Context * ctx, float scale, const char * text) {
 
         int width = cnt->body.w;
 
-        mu_layout_row(ctx, 4, (int[]) {0.166F * width, 0.166F * width, 0.166F * width, -1}, 0);
+        float A = fmaxf(mu_text_width(ctx->style->font, "Servers",  0), 0.166F * width);
+        float B = fmaxf(mu_text_width(ctx->style->font, "Settings", 0), 0.166F * width);
+        float C = fmaxf(mu_text_width(ctx->style->font, "Controls", 0), 0.166F * width);
+
+        mu_layout_row(ctx, 4, (int[]) {A, B, C, -1}, 0);
 
         if (hud_render_tab_button(ctx, scale, network_connected ? "Disconnect" : "Servers", &hud_serverlist)) {
             if (network_connected) {

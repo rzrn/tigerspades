@@ -505,15 +505,16 @@ void game_display(void) {
     matrix_upload();
     matrix_upload_p();
 
-    float scalex = fmax(1, round(settings.window_width / 800.0F));
-    float scaley = fmax(1, round(settings.window_height / 600.0F));
-    float scale  = settings.scale == 0 ? fmin(scalex, scaley) : settings.scale;
+    float scale = hud_ui_scale();
 
     if (hud_active->render_2D) {
         mu_Context * ctx = hud_active->ctx;
 
         if (ctx != NULL) {
-            hud_active->ctx->style->padding        = 10 * scale - 5;
+            const float fh = font_height(ctx->style->font);
+
+            // TODO: figure out what obscure calculation with `padding` microui does
+            hud_active->ctx->style->padding        = (fh / 2 + 2) * scale - 5;
             hud_active->ctx->style->spacing        = 8  * scale - 4;
             hud_active->ctx->style->title_height   = 48 * scale - 24;
             hud_active->ctx->style->scrollbar_size = 12 * scale;

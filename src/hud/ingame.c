@@ -409,6 +409,8 @@ static void hud_draw_welcome_screen(float scale) {
     font_select(font_primary);
     glColor3f(1.0F, 1.0F, 1.0F);
 
+    const float fh = font_height(NULL);
+
     texture_draw(
         texture(TEXTURE_SPLASH),
         (settings.window_width - 240 * scale) * 0.5F,
@@ -416,8 +418,12 @@ static void hud_draw_welcome_screen(float scale) {
         240 * scale, 180 * scale
     );
 
+    float x = settings.window_width / 2.0F, y = settings.window_height - 180 * scale;
+
     glColor3f(1.0F, 1.0F, 0.0F);
-    font_centered(settings.window_width / 2.0F, settings.window_height - 180 * scale, 2 * scale, "CONTROLS", ASCII);
+    font_centered(x, y, 2 * scale, "CONTROLS", ASCII);
+    y -= 2 * fh * scale;
+
     char help_str[2][12][16] = {{"Movement", "Weapons", "Reload", "Jump", "Crouch", "Sneak",
                                  "Sprint", "Map", "Change Team", "Change Weapon", "Global Chat",
                                  "Team Chat"},
@@ -425,34 +431,39 @@ static void hud_draw_welcome_screen(float scale) {
                                  "SHIFT", "M", ",", ".", "T", "Y"}};
 
     for (int k = 0; k < 12; k++) {
-        font_render(settings.window_width / 2.0F - font_length(1.0F * scale, help_str[0][k], 0, ASCII),
-                    settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[0][k], ASCII);
-        font_render(settings.window_width / 2.0F + font_length(1.0F * scale, " ", 0, ASCII),
-                    settings.window_height - (180 + 32 + 16 * k) * scale, 1.0F * scale, help_str[1][k], ASCII);
+        font_render(x - font_width(NULL, 1.0F * scale, help_str[0][k], 0, ASCII), y,
+                    1.0F * scale, help_str[0][k], ASCII);
+        font_render(x + font_width(NULL, 1.0F * scale, " ", 0, ASCII), y,
+                    1.0F * scale, help_str[1][k], ASCII);
+
+        y -= fh * scale;
     }
 }
 
 static float hud_draw_debug_screen(float top, float scale) {
     char buff[64]; Font * font_old = font_select(font_secondary);
+
+    const float fh = font_height(NULL);
+
     glColor3f(1.0F, 1.0F, 1.0F);
 
     sprintf(buff, "TigerSpades %s (%s)", BSVERSION, GIT_COMMIT_HASH);
-    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= fh * scale;
 
     sprintf(buff, "%i ms, %i fps", network_ping(), (int) fps);
-    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= fh * scale;
 
     Vector3f r = camera.mode == CAMERAMODE_FPS ? players[local_player.id].pos
                                                : camera.r;
 
     sprintf(buff, "XYZ: %.02f / %.02f / %.02f", r.x, r.y, r.z);
-    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= fh * scale;
 
     Vector3f o = camera.mode == CAMERAMODE_FPS ? players[local_player.id].orientation
                                                : crosshair_direction();
 
     sprintf(buff, "Facing: %.04f / %.04f / %.04f", o.x, o.y, o.z);
-    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= fh * scale;
 
     RGB3i rgb = players[local_player.id].block;
 
@@ -461,7 +472,7 @@ static float hud_draw_debug_screen(float top, float scale) {
         rgb.r, rgb.g, rgb.b,
         rgb.r, rgb.g, rgb.b
     );
-    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= fh * scale;
 
     int * pick = camera_terrain_pick(1);
 
@@ -471,7 +482,7 @@ static float hud_draw_debug_screen(float top, float scale) {
         sprintf(buff, "Targeted Block: (%d, %d, %d)", v.x, v.y, v.z);
     }
 
-    font_render(11.0F * scale, top, scale, buff, ASCII); top -= 16.0F * scale;
+    font_render(11.0F * scale, top, scale, buff, ASCII); top -= fh * scale;
 
     font_select(font_old);
 
@@ -537,20 +548,25 @@ static inline void hud_draw_graph_border(float x, float y, float w, float h, flo
     glDisable(GL_DEPTH_TEST);
 }
 
-static inline float hud_draw_graph_legend(Graph * g, float scale, float x, float y) {
+static inline Vector2f hud_draw_graph_legend(Graph * g, float scale, const float x0, const float y0) {
+    const float fh = font_height(NULL);
+
+    float x = x0, y = y0;
+
     for (size_t j = 0; j < g->nrows; j++) {
         LegendEntry * const legend = &g->legend[j];
 
         glColor3f(1.0F, 1.0F, 1.0F);
-        font_render(x + 16.0F * scale, y, 1.0F * scale, legend->label, UTF8);
+        Vector2f c = font_render(x0 + fh * scale, y, 1.0F * scale, legend->label, UTF8);
 
         glColor3f(legend->color.r, legend->color.g, legend->color.b);
-        texture_draw_empty(x, y - 1.0F * scale, 14.0F * scale, 14.0F * scale);
+        texture_draw_empty(x0, y - 1.0F * scale, (fh - 2.0F) * scale, (fh - 2.0F) * scale);
 
-        y -= 16.0F * scale;
+        x = fmax(x, c.x);
+        y -= fh * scale;
     }
 
-    return y;
+    return (Vector2f) {x, y};
 }
 
 static inline float * row(Graph * g, size_t j)
@@ -588,9 +604,9 @@ static Vector2f hud_draw_graph(Graph * g, float x, float y, float scale) {
     glDisable(GL_SCISSOR_TEST);
 
     hud_draw_graph_border(x, y, w, h, bw); y -= h;
-    y = hud_draw_graph_legend(g, scale, x, y - 4.0F * scale);
+    Vector2f c = hud_draw_graph_legend(g, scale, x, y - 4.0F * scale);
 
-    return (Vector2f) {x + w, y};
+    return (Vector2f) {fmax(x + w, c.x), c.y};
 }
 
 Graph * hud_graph = NULL;
@@ -652,17 +668,19 @@ static float hud_draw_network_stats(float top, float scale) {
 
     char dbg_str[32]; y -= 4.0F * scale;
 
+    const float fh = font_height(NULL);
+
     glColor3f(0.0F, 1.0F, 0.0F); sprintf(dbg_str, "in: %i B/s", network_stats[1].ingoing);
-    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= fh * scale;
 
     glColor3f(0.0F, 0.0F, 1.0F); sprintf(dbg_str, "out: %i B/s", network_stats[1].outgoing);
-    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= fh * scale;
 
     glColor3f(1.0F, 0.0F, 0.0F); sprintf(dbg_str, "ping: %i ms", network_stats[1].avg_ping);
-    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= fh * scale;
 
     glColor3f(1.0F, 1.0F, 1.0F); sprintf(dbg_str, "packet loss: %.2f %%", network_packet_loss() * 100.0F);
-    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= 16.0F * scale;
+    font_render(x, y, 1.0F * scale, dbg_str, ASCII); y -= fh * scale;
 
     return y;
 }
@@ -674,7 +692,7 @@ static float hud_draw_popup(float top, float scale) {
         glColor3f(1.0F, 1.0F, 1.0F);
         font_render(x, y, 1.0F * scale, hud_popup, ASCII);
 
-        y -= 16.0F * scale;
+        y -= font_height(NULL) * scale;
     }
 
     return y;
@@ -686,12 +704,15 @@ static float hud_draw_killfeed(float top, float scale) {
 
     Text * node = game_killfeed.first;
 
+    const float fh = font_height(NULL);
+
     for (size_t k = 0; k < 6 && node != NULL; k++) {
         if (window_time() - node->timer < 10.0F && strlen(node->value) > 0) {
             RGBA4i color = node->color;
             glColor3ub(color.r, color.g, color.b);
 
-            font_render(11.0F * scale, top, 1.0F * scale, node->value, UTF8); top -= 18.0F * scale;
+            font_render(11.0F * scale, top, 1.0F * scale, node->value, UTF8);
+            top -= (fh + 2.0F) * scale;
         }
 
         node = node->next;
@@ -703,9 +724,13 @@ static float hud_draw_killfeed(float top, float scale) {
 Text * hud_game_chat_selected = NULL;
 
 static void hud_draw_chat(float scale) {
-    font_select(font_secondary);
+    const size_t N = 6;
+    static char bufcaret[] = "_";
 
-    int chat_y = 8 * 18.0F * scale;
+    font_select(font_secondary);
+    const float fh = font_height(NULL);
+
+    float xpad = 8.0F * scale, yrow = (fh + 2.0F) * scale, x0 = 3.0F * scale, y0 = (N + 2) * yrow;
 
     Text * game_chat_top = chat_input_mode == CHAT_NO_INPUT || hud_game_chat_selected == NULL
                          ? game_chat.first : hud_game_chat_selected;
@@ -716,9 +741,9 @@ static void hud_draw_chat(float scale) {
 
         Text * node = game_chat_top;
 
-        for (size_t k = 0; k < 6 && node != NULL; k++) {
+        for (size_t k = 0; k < N && node != NULL; k++) {
             if ((window_time() - node->timer < 10.0F || chat_input_mode != CHAT_NO_INPUT) && strlen(node->value) > 0) {
-                chat_width = fmaxf(font_length(1.0F * scale, node->value, 0, UTF8), chat_width);
+                chat_width = fmaxf(font_width(NULL, 1.0F * scale, node->value, 0, UTF8), chat_width);
                 chat_height = k + 1;
             }
 
@@ -726,11 +751,10 @@ static void hud_draw_chat(float scale) {
         }
 
         if (chat_input_mode != CHAT_NO_INPUT) {
-            chat_height += 2;
-            chat_width = fmaxf(
-                font_length(1.0F * scale, game_chat_input, 0, UTF8),
-                fmaxf(settings.window_width / 2.0F, chat_width)
-            );
+            float chat_input_width = font_width(NULL, 1.0F * scale, game_chat_input, 0, UTF8) +
+                                     font_width(NULL, 1.0F * scale, bufcaret, 0, ASCII);
+
+            chat_width = fmaxf(fmaxf(chat_input_width, settings.window_width / 2.0F), chat_width);
         }
 
         if (chat_height > 0) {
@@ -738,11 +762,9 @@ static void hud_draw_chat(float scale) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             if (chat_input_mode == CHAT_NO_INPUT) {
-                texture_draw_empty(3.0F * scale, chat_y,
-                                   chat_width + 16.0F * scale, 18.0F * scale * chat_height);
+                texture_draw_empty(x0, y0, chat_width + 2.0F * xpad, chat_height * yrow);
             } else {
-                texture_draw_empty(3.0F * scale, chat_y + 36.0F * scale,
-                                   chat_width + 16.0F * scale, 18.0F * scale * chat_height);
+                texture_draw_empty(x0, y0 + 2 * yrow, chat_width + 2.0F * xpad, (chat_height + 2) * yrow);
             }
             glDisable(GL_BLEND);
         }
@@ -752,7 +774,7 @@ static void hud_draw_chat(float scale) {
 
     if (chat_input_mode != CHAT_NO_INPUT) {
         {
-            Vector2f caret = {.x = 11.0F * scale, .y = chat_y + 36.0F * scale};
+            Vector2f caret = {.x = x0 + xpad, .y = y0 + 2 * yrow};
 
             if (hud_game_chat_selected != NULL) {
                 ptrdiff_t A = game_chat.first->index - hud_game_chat_selected->index;
@@ -770,19 +792,19 @@ static void hud_draw_chat(float scale) {
         }
 
         {
-            Vector2f caret = font_render(11.0F * scale, chat_y + 18.0F * scale, 1.0F * scale, game_chat_input, UTF8);
-            static char bufcaret[] = "_"; font_render(caret.x, caret.y, 1.0F * scale, bufcaret, UTF8);
+            Vector2f caret = font_render(x0 + xpad, y0 + yrow, 1.0F * scale, game_chat_input, UTF8);
+            font_render(caret.x, caret.y, 1.0F * scale, bufcaret, ASCII);
         }
     }
 
     Text * node = game_chat_top;
 
-    for (size_t k = 0; k < 6 && node != NULL; k++) {
+    for (size_t k = 0; k < N && node != NULL; k++) {
         if (window_time() - node->timer < 10.0F || chat_input_mode != CHAT_NO_INPUT) {
             RGBA4i color = node->color;
             glColor3ub(color.r, color.g, color.b);
 
-            font_render(11.0F * scale, chat_y - 18.0F * scale * k, 1.0F * scale, node->value, UTF8);
+            font_render(x0 + xpad, y0 - k * yrow, 1.0F * scale, node->value, UTF8);
         }
 
         node = node->next;
@@ -800,10 +822,15 @@ static void hud_draw_map(float scale) {
     texture_draw(texture_minimap, minimap_x, minimap_y, 512 * scale, 512 * scale);
 
     font_select(font_secondary);
+
+    const float fh = font_height(NULL);
+
     char c[2] = {0};
     for (int k = 0; k < 8; k++) {
-        c[0] = 'A' + k; font_centered(minimap_x + (64 * k + 32) * scale, minimap_y + 16.0F * scale, 1.0F * scale, c, ASCII);
-        c[0] = '1' + k; font_centered(minimap_x - 8 * scale, minimap_y - (64 * k + 32 - 4) * scale, 1.0F * scale, c, ASCII);
+        float xc = minimap_x + (64 * k + 32) * scale, yc = minimap_y - (64 * k + 32) * scale;
+
+        c[0] = 'A' + k; font_centered(xc, minimap_y + fh * scale, 1.0F * scale, c, ASCII);
+        c[0] = '1' + k; font_right_aligned(minimap_x - 2.0F * scale, yc + (fh / 2.0F) * scale, 1.0F * scale, c, ASCII);
     }
 
     font_select(font_primary);
@@ -1219,6 +1246,8 @@ static void hud_draw_game_ui(float scale) {
         texture_draw_rotated(texture(TEXTURE_INDICATOR), settings.window_width / 2.0F, settings.window_height / 2.0F, 200, 200, ang);
     }
 
+    const float fh = font_height(NULL);
+
     if (local_id == local_player.id) {
         if (network_connected && settings.show_health) {
             int health = is_local ? (players[local_id].alive ? local_player.health : 0) : (players[local_id].alive ? 100 : 0);
@@ -1229,7 +1258,7 @@ static void hud_draw_game_ui(float scale) {
                 glColor3f(1.0F, 1.0F, 1.0F);
 
             char hp[4]; sprintf(hp, "%i", health);
-            font_render(8.0F * scale, 32.0F * scale, 2.0F * scale, hp, ASCII);
+            font_render(8.0F * scale, 2.0F * fh * scale, 2.0F * scale, hp, ASCII);
         }
 
         char item_mini_str[32]; int off = 0;
@@ -1256,8 +1285,8 @@ static void hud_draw_game_ui(float scale) {
 
         if (settings.show_ammo) {
             font_render(
-                settings.window_width - font_length(2.0F * scale, item_mini_str, 0, ASCII) - 8.0F * scale - off,
-                32.0F * scale, 2.0F * scale, item_mini_str, ASCII
+                settings.window_width - font_width(NULL, 2.0F * scale, item_mini_str, 0, ASCII) - 8.0F * scale - off,
+                2.0F * fh * scale, 2.0F * scale, item_mini_str, ASCII
             );
         }
 
@@ -1316,8 +1345,10 @@ static void hud_draw_scoreboard(float scale) {
         }
     }
 
+    const float fh = font_height(NULL);
+
     font_centered(settings.window_width * 0.25F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team1.name, UTF8);
-    font_centered(settings.window_width * 0.25F, settings.window_height - 47 * scale, 3.0F * scale, score_str, ASCII);
+    font_centered(settings.window_width * 0.25F, settings.window_height - (15 + 2 * fh) * scale, 3.0F * scale, score_str, ASCII);
 
     glColorRGB3i(gamestate.team2.color);
     switch (gamestate.mode) {
@@ -1341,7 +1372,7 @@ static void hud_draw_scoreboard(float scale) {
     }
 
     font_centered(settings.window_width * 0.75F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team2.name, UTF8);
-    font_centered(settings.window_width * 0.75F, settings.window_height - 47 * scale, 3.0F * scale, score_str, ASCII);
+    font_centered(settings.window_width * 0.75F, settings.window_height - (15 + 2 * fh) * scale, 3.0F * scale, score_str, ASCII);
 
     PlayerTable pt[PLAYERS_MAX];
     int connected = 0;
@@ -1377,19 +1408,19 @@ static void hud_draw_scoreboard(float scale) {
              (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == pt[k].id))) {
             texture_draw(texture(TEXTURE_INTEL),
                          settings.window_width / 4.0F * mul
-                             - font_length(1.0F * scale, players[pt[k].id].name, 0, UTF8) - 27.0F * scale,
-                         (427 - 16 * cntt[mul - 1]) * scale, 16.0F * scale, 16.0F * scale);
+                             - font_width(NULL, 1.0F * scale, players[pt[k].id].name, 0, UTF8) - 27.0F * scale,
+                         (427 - fh * cntt[mul - 1]) * scale, fh * scale, fh * scale);
         }
 
-        font_render(settings.window_width / 4.0F * mul - font_length(1.0F * scale, players[pt[k].id].name, 0, UTF8),
-                    (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, players[pt[k].id].name, UTF8);
-        font_render(settings.window_width / 4.0F * mul + 8.82F * scale, (427 - 16 * cntt[mul - 1]) * scale,
+        font_right_aligned(settings.window_width / 4.0F * mul, (427 - fh * cntt[mul - 1]) * scale,
+                           1.0F * scale, players[pt[k].id].name, UTF8);
+        font_render(settings.window_width / 4.0F * mul + 8.82F * scale, (427 - fh * cntt[mul - 1]) * scale,
                     1.0F * scale, id_str, ASCII);
 
         if (mul != 2) {
             sprintf(id_str, "%i", pt[k].score);
             font_render(settings.window_width / 4.0F * mul + 44.1F * scale,
-                        (427 - 16 * cntt[mul - 1]) * scale, 1.0F * scale, id_str, ASCII);
+                        (427 - fh * cntt[mul - 1]) * scale, 1.0F * scale, id_str, ASCII);
         }
         cntt[mul - 1]++;
     }
@@ -1498,12 +1529,14 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
                       "Click to switch players", ASCII);
 
         if (window_time() - local_player.death_time <= local_player.respawn_time) {
+            const float fh = font_height(NULL);
+
             glColor3f(1.0F, 0.0F, 0.0F);
             int cnt = local_player.respawn_time - (int)(window_time() - local_player.death_time);
             char coin[25];
             sprintf(coin, "Respawn in %i s", cnt);
             font_centered(settings.window_width / 2.0F,
-                          48.0F * scale * (cameracontroller_bodyview_mode ? 2.0F : 1.0F), 3.0F * scale, coin, ASCII);
+                          3.0F * fh * scale * (cameracontroller_bodyview_mode ? 2.0F : 1.0F), 3.0F * scale, coin, ASCII);
             if (local_player.respawn_cnt_last != cnt) {
                 if (cnt < 4)
                     sound_create(SOUND_LOCAL, sound(cnt == 1 ? SOUND_BEEP1 : SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
@@ -1573,7 +1606,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     if (window_time() - chat_popup.timer < chat_popup_duration) {
         float height = settings.chat_popup_centered ? 3.0F * scale : 2.0F * scale;
 
-        float x = settings.window_width * 0.5F - font_length(height, chat_popup.value, 0, UTF8) * 0.5F;
+        float x = settings.window_width * 0.5F - font_width(NULL, height, chat_popup.value, 0, UTF8) * 0.5F;
         float y = settings.chat_popup_centered ? settings.window_height * 0.65F : 14 * 18.0F * scale;
 
         glColor3ub(chat_popup.color.r, chat_popup.color.g, chat_popup.color.b);

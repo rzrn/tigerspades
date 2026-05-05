@@ -189,10 +189,15 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
         mu_layout_row(ctx, 1, (int[]) {-1}, -1);
 
         mu_begin_panel(ctx, "Servers");
-        int width = mu_get_current_container(ctx)->body.w;
+        int width = mu_get_current_container(ctx)->body.w - mu_text_width(ctx->style->font, "Ping", 0);
+
+        float A = fmaxf(mu_text_width(ctx->style->font, "Players",  0), 0.120F * width);
+        float B = fmaxf(mu_text_width(ctx->style->font, "Name",     0), 0.415F * width);
+        float C = fmaxf(mu_text_width(ctx->style->font, "Map",      0), 0.220F * width);
+        float D = fmaxf(mu_text_width(ctx->style->font, "Mode",     0), 0.120F * width);
 
         int flag_width = ctx->style->size.y + ctx->style->padding * 2;
-        mu_layout_row(ctx, 5, (int[]) {0.12F * width, 0.415F * width, 0.22F * width, 0.12F * width, -1}, 0);
+        mu_layout_row(ctx, 5, (int[]) {A, B, C, D, -1}, 0);
 
         hud_sort_button_render(ctx, scale, "Players", serverlist_sort_players);
         hud_sort_button_render(ctx, scale, "Name",    serverlist_sort_name);
@@ -200,10 +205,7 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
         hud_sort_button_render(ctx, scale, "Mode",    serverlist_sort_mode);
         hud_sort_button_render(ctx, scale, "Ping",    serverlist_sort_ping);
 
-        mu_layout_row(ctx, 6,
-                      (int[]) {0.12F * width, flag_width, 0.415F * width - flag_width - ctx->style->spacing * 2,
-                               0.22F * width, 0.12F * width, -1},
-                      0);
+        mu_layout_row(ctx, 6, (int[]) {A, flag_width, B - flag_width - ctx->style->spacing * 2, C, D, -1}, 0);
 
         serverlist_lock();
 

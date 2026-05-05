@@ -36,14 +36,17 @@
 #endif
 
 begin(BitmapHeader)
+    u16(version)
     blob(fontname, 128)
+    blob(copyright, 512)
+    blob(notice, 512)
     u16(high16)
     u8(height)
 end()
 
 begin(BitmapGlyph)
     u16(low16)
-    u8(stride)
+    u8(width)
 end()
 
 #undef begin

@@ -750,7 +750,7 @@ static void hud_draw_chat(float scale) {
             chat_width = fmaxf(fmaxf(chat_input_width, settings.window_width / 2.0F), chat_width);
         }
 
-        if (chat_height > 0) {
+        if (chat_height > 0 || chat_input_mode != CHAT_NO_INPUT) {
             glColor4f(0, 0, 0, 0.5F);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1423,16 +1423,19 @@ static inline float hud_draw_team_table(float scale, PlayerTable * player_table,
 }
 
 static void hud_draw_scoreboard(float scale) {
+    float x0 = settings.window_width * 0.5F;
+    float y0 = settings.window_height - 200.0F * scale;
+
+    const float fh = font_height(NULL);
+
     if (network_connected && camera.mode != CAMERAMODE_SELECTION) {
         char ping_str[16];
         sprintf(ping_str, "Ping: %i ms", network_ping());
         font_select(font_secondary);
         glColor3f(1.0F, 0.0F, 0.0F);
-        font_draw_center(settings.window_width / 2.0F, settings.window_height * 0.92F, 1.0F * scale, ping_str, ASCII);
+        font_draw_center(x0, y0 + fh * scale + 10.0F * scale, 1.0F * scale, ping_str, ASCII);
         font_select(font_primary);
     }
-
-    const float fh = font_height(NULL);
 
     PlayerTable pt[PLAYERS_MAX];
     int connected = 0;
@@ -1514,9 +1517,6 @@ static void hud_draw_scoreboard(float scale) {
             break;
         }
     }
-
-    float x0 = settings.window_width * 0.5F;
-    float y0 = settings.window_height - 200.0F * scale;
 
     size_t team_count = max(team1_count, team2_count);
 
@@ -1651,25 +1651,23 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     if (is_scoreboard_drawn || camera.mode == CAMERAMODE_SELECTION)
         hud_draw_scoreboard(scale);
 
-    if (camera.mode == CAMERAMODE_BODYVIEW
-       || (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode)) {
-        if (cameracontroller_bodyview_player != local_player.id) {
-            font_select(font_secondary);
-            switch (players[cameracontroller_bodyview_player].team) {
-                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
-                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+    if (camera.mode == CAMERAMODE_BODYVIEW || (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode)) {
+        font_select(font_secondary);
+        switch (players[cameracontroller_bodyview_player].team) {
+            case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+            case TEAM2: glColorRGB3i(gamestate.team2.color); break;
 
-                case TEAM_SPECTATOR: break;
-            }
-
-            font_draw_center(
-                settings.window_width / 2.0F, 13 * 18.0F * scale, 1.0F * scale,
-                players[cameracontroller_bodyview_player].name, UTF8
-            );
+            default: glColor3f(1.0F, 1.0F, 1.0F); break;
         }
+
+        font_draw_center(
+            settings.window_width / 2.0F, 13 * 18.0F * scale, 1.0F * scale,
+            players[cameracontroller_bodyview_player].name, UTF8
+        );
 
         font_select(font_primary);
         glColor3f(1.0F, 1.0F, 0.0F);
+
         font_draw_center(settings.window_width / 2.0F, settings.window_height, 1.0F * scale,
                          "Click to switch players", ASCII);
 
@@ -1677,7 +1675,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             const float fh = font_height(NULL);
 
             glColor3f(1.0F, 0.0F, 0.0F);
-            int cnt = local_player.respawn_time - (int)(window_time() - local_player.death_time);
+            int cnt = local_player.respawn_time - (int) (window_time() - local_player.death_time);
             char coin[25];
             sprintf(coin, "Respawn in %i s", cnt);
             font_draw_center(settings.window_width / 2.0F,
@@ -1697,7 +1695,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         hud_draw_game_ui(scale);
 
     if (camera.mode != CAMERAMODE_SELECTION) {
-        hud_draw_chat(scale);
+        if (!is_scoreboard_drawn)
+            hud_draw_chat(scale);
 
         float top = settings.window_height - 11.0F * scale;
 
@@ -1733,7 +1732,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     bool is_tag_visible = players[local_player.id].team == TEAM_SPECTATOR ||
                           players[player_intersection_player].team == players[local_player.id].team;
 
-    if (settings.show_friendly_tag && player_intersection_type >= 0 && is_tag_visible) {
+    if (!is_scoreboard_drawn && settings.show_friendly_tag && player_intersection_type >= 0 && is_tag_visible) {
         font_select(font_secondary);
 
         char * th[4] = {"torso", "head", "arms", "legs"}; char str[32];
@@ -1748,7 +1747,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         font_select(font_primary);
     }
 
-    if (window_time() - chat_popup.timer < chat_popup_duration) {
+    if (!is_scoreboard_drawn && window_time() - chat_popup.timer < chat_popup_duration) {
         float height = settings.chat_popup_centered ? 3.0F * scale : 2.0F * scale;
 
         float x = settings.window_width * 0.5F - font_width(NULL, height, chat_popup.value, 0, UTF8) * 0.5F;

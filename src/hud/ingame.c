@@ -46,6 +46,20 @@ void hud_show_popup(const char * format, ...) {
     hud_popup_timer = window_time();
 }
 
+static inline bool player_has_intel(int player_id) {
+    if (gamestate.mode == GAMEMODE_CTF) {
+        if (gamestate.ctf.team2_has_intel && gamestate.ctf.team1_carrier == player_id)
+            return true;
+
+        if (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == player_id)
+            return true;
+
+        return false;
+    }
+
+    return false;
+}
+
 static inline bool in_bodyview_mode(void)
 { return (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
        && cameracontroller_bodyview_mode
@@ -417,27 +431,6 @@ static void hud_draw_welcome_screen(float scale) {
         settings.window_height - 1 * scale,
         240 * scale, 180 * scale
     );
-
-    float x = settings.window_width / 2.0F, y = settings.window_height - 180 * scale;
-
-    glColor3f(1.0F, 1.0F, 0.0F);
-    font_centered(x, y, 2 * scale, "CONTROLS", ASCII);
-    y -= 2 * fh * scale;
-
-    char help_str[2][12][16] = {{"Movement", "Weapons", "Reload", "Jump", "Crouch", "Sneak",
-                                 "Sprint", "Map", "Change Team", "Change Weapon", "Global Chat",
-                                 "Team Chat"},
-                                {"W S A D", "1-4 / Wheel", "R", "Space", "CTRL", "V",
-                                 "SHIFT", "M", ",", ".", "T", "Y"}};
-
-    for (int k = 0; k < 12; k++) {
-        font_render(x - font_width(NULL, 1.0F * scale, help_str[0][k], 0, ASCII), y,
-                    1.0F * scale, help_str[0][k], ASCII);
-        font_render(x + font_width(NULL, 1.0F * scale, " ", 0, ASCII), y,
-                    1.0F * scale, help_str[1][k], ASCII);
-
-        y -= fh * scale;
-    }
 }
 
 static float hud_draw_debug_screen(float top, float scale) {
@@ -1182,17 +1175,16 @@ static void draw_muzzle(mat4 mvp) {
     texture_draw(texture_muzzle, v[X] - 32 / 2.0F, v[Y] + 32 / 2.0F, 32, 32);
 }
 
-static void hud_draw_weapon(float scale) {
-    UNUSED(scale);
-
-    glColor3f(1.0F, 1.0F, 1.0F);
-
+static bool hud_draw_zoom(void) {
     bool is_local = camera.mode == CAMERAMODE_FPS || cameracontroller_bodyview_player == local_player.id;
     int local_id = camera.mode == CAMERAMODE_FPS ? local_player.id : cameracontroller_bodyview_player;
 
-    if (settings.show_iron_sight && players[local_id].alive &&
-        players[local_id].tool == TOOL_WEAPON &&
-        HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY)) {
+    bool is_zoom_drawn = settings.show_iron_sight
+                      && players[local_id].alive
+                      && players[local_id].tool == TOOL_WEAPON
+                      && HASBIT(players[local_id].input.buttons, BUTTON_SECONDARY);
+
+    if (is_zoom_drawn) {
         Texture * zoom = NULL;
         switch (players[local_id].weapon) {
             case WEAPON_RIFLE:   zoom = texture(TEXTURE_ZOOM_SEMI);    break;
@@ -1218,9 +1210,17 @@ static void hud_draw_weapon(float scale) {
             settings.window_height * zoom_factor, (texture_width(zoom) - 1) / texture_width(zoom), 0.0F,
             1.0F / texture_width(zoom), 1.0F
         );
-    } else if (settings.show_crosshair && !window_key_down(WINDOW_KEY_HIDEHUD)) {
+    }
+
+    return is_zoom_drawn;
+}
+
+static void hud_draw_sight(void) {
+    if (settings.show_crosshair && !window_key_down(WINDOW_KEY_HIDEHUD)) {
         if (settings.kill_indicator && window_time() - local_player.last_kill_timer < 0.3F)
             glColor3f(1.0, 0.0, 0.0);
+        else
+            glColor3f(1.0F, 1.0F, 1.0F);
 
         mat4 mvp;
 
@@ -1312,6 +1312,116 @@ static void hud_draw_game_ui(float scale) {
     }
 }
 
+typedef struct {
+    RGB3f bg;
+
+    const char * text_left;
+    const char * text_center;
+    const char * text_right;
+
+    float top, left, right;
+    int player_id, vfill;
+    Team team;
+} TeamTable;
+
+static inline float hud_draw_team_table(float scale, PlayerTable * player_table, size_t players_connected, TeamTable * t) {
+    const float fh = font_height(NULL);
+
+    float xpad = 8.0F * scale;
+    float ypad = 4.0F * scale;
+    float yspc = 2.0F * scale;
+    float yrow = fh * scale + 2 * yspc;
+
+    float h1 = yrow + 2 * ypad;
+    float h2 = t->vfill * yrow + 2 * ypad;
+
+    float y1 = t->top;
+    float y2 = t->top - h1;
+
+    { // Background
+        const float tint = 0.75F;
+
+        float x1 = t->left, x2 = t->right, w = x2 - x1;
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        glColor4f(t->bg.r, t->bg.g, t->bg.b, 1.0F);
+        texture_draw_empty(x1, y1, w, h1);
+
+        glColor4f(t->bg.r * tint, t->bg.g * tint, t->bg.b * tint, tint);
+        texture_draw_empty(x1, y2, w, h2);
+
+        glDisable(GL_BLEND);
+    }
+
+    { // Header row
+        glColor3f(1.0F, 1.0F, 1.0F);
+
+        float x1 = t->left + xpad;
+        float x2 = 0.5F * (t->left + t->right);
+        float x3 = t->right - xpad;
+
+        float y = t->top - ypad - yspc;
+
+        if (t->text_left   != NULL) font_render(x1, y, 1.0F * scale, t->text_left, UTF8);
+        if (t->text_center != NULL) font_centered(x2, y, 1.0F * scale, t->text_center, ASCII);
+        if (t->text_right  != NULL) font_right_aligned(x3, y, 1.0F * scale, t->text_right, ASCII);
+    }
+
+    { // Remaining rows
+        char buff[16]; sprintf(buff, "#%i", t->player_id);
+
+        float x1 = t->left + xpad;
+        float x2 = t->left + 2 * xpad + font_width(NULL, 1.0F * scale, buff, 0, ASCII);
+        float x3 = t->right - xpad;
+
+        float y = y2 - ypad;
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        for (size_t k = 0; k < players_connected; k++) {
+            Player * const player = &players[player_table[k].id];
+
+            if (player->team == t->team) {
+                // First column
+                if (player_table[k].id == local_player.id)
+                    glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                else
+                    glColor4f(1.0F, 1.0F, 1.0F, 0.5F);
+
+                sprintf(buff, "#%i", player_table[k].id);
+                font_render(x1, y - yspc, 1.0F * scale, buff, ASCII);
+
+                // Second column
+                if (player_has_intel(player_table[k].id)) {
+                    if (fmodf(window_time(), 1.0F) < 0.5F)
+                        glColor4f(1.0F, 1.0F, 1.0F, 0.5F);
+                    else
+                        glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                } else if (player->alive || player->team == TEAM_SPECTATOR) {
+                    glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                } else {
+                    glColor4f(1.0F, 1.0F, 1.0F, 0.5F);
+                }
+
+                font_render(x2, y - yspc, 1.0F * scale, player->name, UTF8);
+
+                // Third column
+                sprintf(buff, "%i", player->score);
+                font_right_aligned(x3, y - yspc, 1.0F * scale, buff, ASCII);
+
+                y -= yrow;
+            }
+        }
+
+        glDisable(GL_BLEND);
+    }
+
+    return h1 + h2;
+}
+
 static void hud_draw_scoreboard(float scale) {
     if (network_connected && camera.mode != CAMERAMODE_SELECTION) {
         char ping_str[16];
@@ -1322,15 +1432,52 @@ static void hud_draw_scoreboard(float scale) {
         font_select(font_primary);
     }
 
-    char score_str[8];
+    const float fh = font_height(NULL);
 
-    glColorRGB3i(gamestate.team1.color);
+    PlayerTable pt[PLAYERS_MAX];
+    int connected = 0;
+    for (size_t k = 0; k < PLAYERS_MAX; k++) {
+        if (players[k].connected) {
+            pt[connected].id = k;
+            pt[connected++].score = players[k].score;
+        }
+    }
+    qsort(pt, connected, sizeof(PlayerTable), playertable_sort);
+
+    size_t team1_count = 0, team2_count = 0, spectator_count = 0;
+    int team1_player_id = 0, team2_player_id = 0, spectator_player_id = 0;
+
+    for (int player_id = 0; player_id < PLAYERS_MAX; player_id++) {
+        if (players[player_id].connected) {
+            switch (players[player_id].team) {
+                case TEAM1: {
+                    team1_player_id = max(team1_player_id, player_id);
+                    team1_count++;
+                    break;
+                }
+
+                case TEAM2: {
+                    team2_player_id = max(team2_player_id, player_id);
+                    team2_count++;
+                    break;
+                }
+
+                case TEAM_SPECTATOR: {
+                    spectator_player_id = max(spectator_player_id, player_id);
+                    spectator_count++;
+                    break;
+                }
+            }
+        }
+    }
+
+    char team1_score[8];
     switch (gamestate.mode) {
         case GAMEMODE_CTF:
             if (gamestate.ctf.capture_limit > 0)
-                sprintf(score_str, "%i/%i", gamestate.ctf.team1_score, gamestate.ctf.capture_limit);
+                sprintf(team1_score, "%i/%i", gamestate.ctf.team1_score, gamestate.ctf.capture_limit);
             else
-                sprintf(score_str, "%i", gamestate.ctf.team1_score);
+                sprintf(team1_score, "%i", gamestate.ctf.team1_score);
 
             break;
 
@@ -1339,24 +1486,20 @@ static void hud_draw_scoreboard(float scale) {
             for (size_t k = 0; k < gamestate.tc.territory_count; k++)
                 if (gamestate.tc.territory[k].team == TEAM1)
                     t++;
-            sprintf(score_str, "%i/%i", t, gamestate.tc.territory_count);
+
+            sprintf(team1_score, "%i/%i", t, gamestate.tc.territory_count);
 
             break;
         }
     }
 
-    const float fh = font_height(NULL);
-
-    font_centered(settings.window_width * 0.25F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team1.name, UTF8);
-    font_centered(settings.window_width * 0.25F, settings.window_height - (15 + 2 * fh) * scale, 3.0F * scale, score_str, ASCII);
-
-    glColorRGB3i(gamestate.team2.color);
+    char team2_score[8];
     switch (gamestate.mode) {
         case GAMEMODE_CTF:
             if (gamestate.ctf.capture_limit > 0)
-                sprintf(score_str, "%i/%i", gamestate.ctf.team2_score, gamestate.ctf.capture_limit);
+                sprintf(team2_score, "%i/%i", gamestate.ctf.team2_score, gamestate.ctf.capture_limit);
             else
-                sprintf(score_str, "%i", gamestate.ctf.team2_score);
+                sprintf(team2_score, "%i", gamestate.ctf.team2_score);
 
             break;
 
@@ -1365,65 +1508,61 @@ static void hud_draw_scoreboard(float scale) {
             for (size_t k = 0; k < gamestate.tc.territory_count; k++)
                 if (gamestate.tc.territory[k].team == TEAM2)
                     t++;
-            sprintf(score_str, "%i/%i", t, gamestate.tc.territory_count);
+
+            sprintf(team2_score, "%i/%i", t, gamestate.tc.territory_count);
 
             break;
         }
     }
 
-    font_centered(settings.window_width * 0.75F, settings.window_height - 15 * scale, 2.0F * scale, gamestate.team2.name, UTF8);
-    font_centered(settings.window_width * 0.75F, settings.window_height - (15 + 2 * fh) * scale, 3.0F * scale, score_str, ASCII);
+    float x0 = settings.window_width * 0.5F;
+    float y0 = settings.window_height - 200.0F * scale;
 
-    PlayerTable pt[PLAYERS_MAX];
-    int connected = 0;
-    for (int k = 0; k < PLAYERS_MAX; k++) {
-        if (players[k].connected) {
-            pt[connected].id = k;
-            pt[connected++].score = players[k].score;
-        }
-    }
-    qsort(pt, connected, sizeof(PlayerTable), playertable_sort);
+    size_t team_count = max(team1_count, team2_count);
 
-    int cntt[3] = {0};
-    for (int k = 0; k < connected; k++) {
-        int mul = 0;
-        switch (players[pt[k].id].team) {
-            case TEAM1: mul = 1; break;
-            case TEAM2: mul = 3; break;
-            default:
-            case TEAM_SPECTATOR: mul = 2; break;
-        }
+    TeamTable team1_table = {
+        .bg          = RGB3iAs3f(gamestate.team1.color),
+        .text_left   = gamestate.team1.name,
+        .text_center = NULL,
+        .text_right  = team1_score,
+        .top         = y0,
+        .left        = x0 - 300.0F * scale,
+        .right       = x0,
+        .player_id   = team1_player_id,
+        .vfill       = team_count,
+        .team        = TEAM1,
+    };
 
-        if (pt[k].id == local_player.id)
-            glColor3f(1.0F, 1.0F, 0.0F);
-        else if (!players[pt[k].id].alive && players[pt[k].id].team != TEAM_SPECTATOR)
-            glColor3f(0.6F, 0.6F, 0.6F);
-        else
-            glColor3f(1.0F, 1.0F, 1.0F);
+    TeamTable team2_table = {
+        .bg          = RGB3iAs3f(gamestate.team2.color),
+        .text_left   = gamestate.team2.name,
+        .text_center = NULL,
+        .text_right  = team2_score,
+        .top         = y0,
+        .left        = x0,
+        .right       = x0 + 300.0F * scale,
+        .player_id   = team2_player_id,
+        .vfill       = team_count,
+        .team        = TEAM2,
+    };
 
-        char id_str[16];
-        sprintf(id_str, "#%i", pt[k].id);
-        if (gamestate.mode == GAMEMODE_CTF &&
-            ((gamestate.ctf.team2_has_intel && gamestate.ctf.team1_carrier == pt[k].id) ||
-             (gamestate.ctf.team1_has_intel && gamestate.ctf.team2_carrier == pt[k].id))) {
-            texture_draw(texture(TEXTURE_INTEL),
-                         settings.window_width / 4.0F * mul
-                             - font_width(NULL, 1.0F * scale, players[pt[k].id].name, 0, UTF8) - 27.0F * scale,
-                         (427 - fh * cntt[mul - 1]) * scale, fh * scale, fh * scale);
-        }
+    float h1 = hud_draw_team_table(scale, pt, connected, &team1_table);
+    float h2 = hud_draw_team_table(scale, pt, connected, &team2_table);
 
-        font_right_aligned(settings.window_width / 4.0F * mul, (427 - fh * cntt[mul - 1]) * scale,
-                           1.0F * scale, players[pt[k].id].name, UTF8);
-        font_render(settings.window_width / 4.0F * mul + 8.82F * scale, (427 - fh * cntt[mul - 1]) * scale,
-                    1.0F * scale, id_str, ASCII);
+    TeamTable spectator_table = {
+        .bg          = {.r = 0.0F, .g = 0.0F, .b = 0.0F},
+        .text_left   = NULL,
+        .text_center = "Spectator",
+        .text_right  = NULL,
+        .top         = y0 - fmaxf(h1, h2) - 10.0F * scale,
+        .left        = x0 - 150.0F * scale,
+        .right       = x0 + 150.0F * scale,
+        .player_id   = spectator_player_id,
+        .vfill       = spectator_count,
+        .team        = TEAM_SPECTATOR,
+    };
 
-        if (mul != 2) {
-            sprintf(id_str, "%i", pt[k].score);
-            font_render(settings.window_width / 4.0F * mul + 44.1F * scale,
-                        (427 - fh * cntt[mul - 1]) * scale, 1.0F * scale, id_str, ASCII);
-        }
-        cntt[mul - 1]++;
-    }
+    if (spectator_count > 0) hud_draw_team_table(scale, pt, connected, &spectator_table);
 }
 
 static void hud_draw_progressbar(float scale) {
@@ -1475,8 +1614,14 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     if (window_key_down(WINDOW_KEY_TRACE_CLEAR))
         trajectories_reset();
 
-    if (camera.mode == CAMERAMODE_FPS || ((camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR) && cameracontroller_bodyview_mode))
-        hud_draw_weapon(scale);
+    bool is_scoreboard_drawn = network_connected && window_key_down(WINDOW_KEY_SCOREBOARD) && chat_input_mode == CHAT_NO_INPUT;
+
+    if (camera.mode == CAMERAMODE_FPS || in_bodyview_mode()) {
+        bool is_zoom_drawn = hud_draw_zoom();
+
+        if (!is_zoom_drawn && !is_scoreboard_drawn)
+            hud_draw_sight();
+    }
 
     if (window_key_down(WINDOW_KEY_HIDEHUD))
         return;
@@ -1503,7 +1648,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         glColor3f(1.0F, 1.0F, 1.0F);
     }
 
-    if ((network_connected && window_key_down(WINDOW_KEY_SCOREBOARD) && chat_input_mode == CHAT_NO_INPUT) || camera.mode == CAMERAMODE_SELECTION)
+    if (is_scoreboard_drawn || camera.mode == CAMERAMODE_SELECTION)
         hud_draw_scoreboard(scale);
 
     if (camera.mode == CAMERAMODE_BODYVIEW

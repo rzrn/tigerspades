@@ -34,7 +34,7 @@ void font_init(void);
 
 Vector2f font_render(float x, float y, int scale, const char *, Codepage);
 Vector2f font_centered(float x, float y, int scale, const char *, Codepage);
-void font_right_aligned(float x, float y, int scale, const char *, Codepage);
+float font_right_aligned(float x, float y, int scale, const char *, Codepage);
 
 Font * font_select(Font *);
 uint8_t font_height(Font *);

@@ -391,5 +391,9 @@ Vector2f font_render(float x, float y, int scale, const char * text, Codepage co
 Vector2f font_centered(float x, float y, int h, const char * text, Codepage codepage)
 { return font_render(x - font_width(NULL, h, text, 0, codepage) / 2.0F, y, h, text, codepage); }
 
-void font_right_aligned(float x, float y, int h, const char * text, Codepage codepage)
-{ font_render(x - font_width(NULL, h, text, 0, codepage), y, h, text, codepage); }
+float font_right_aligned(float x, float y, int h, const char * text, Codepage codepage) {
+    float w = font_width(NULL, h, text, 0, codepage);
+    font_render(x - w, y, h, text, codepage);
+
+    return w;
+}

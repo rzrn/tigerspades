@@ -321,7 +321,7 @@ static inline void emitVertex(vertex_t * buff, size_t offset, vertex_t x, vertex
     *(dest++) = x;     *(dest++) = y;
 }
 
-Vector2f font_render(float x, float y, int scale, const char * text, Codepage codepage) {
+Vector2f font_draw_left(float x, float y, int scale, const char * text, Codepage codepage) {
     clear_buffers(font_selected);
 
     float x0 = x, y0 = y, h = font_selected->height * scale;
@@ -388,12 +388,12 @@ Vector2f font_render(float x, float y, int scale, const char * text, Codepage co
     return (Vector2f) {x0, y0};
 }
 
-Vector2f font_centered(float x, float y, int h, const char * text, Codepage codepage)
-{ return font_render(x - font_width(NULL, h, text, 0, codepage) / 2.0F, y, h, text, codepage); }
+Vector2f font_draw_center(float x, float y, int h, const char * text, Codepage codepage)
+{ return font_draw_left(x - font_width(NULL, h, text, 0, codepage) / 2.0F, y, h, text, codepage); }
 
-float font_right_aligned(float x, float y, int h, const char * text, Codepage codepage) {
+float font_draw_right(float x, float y, int h, const char * text, Codepage codepage) {
     float w = font_width(NULL, h, text, 0, codepage);
-    font_render(x - w, y, h, text, codepage);
+    font_draw_left(x - w, y, h, text, codepage);
 
     return w;
 }

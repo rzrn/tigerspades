@@ -1133,7 +1133,7 @@ void player_render(Player * p, int id) {
         font_select(font_primary);
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(GL_GREATER, 0.5F);
-        font_centered(0, 0, 4, p->name, UTF8);
+        font_draw_center(0, 0, 4, p->name, UTF8);
         glDisable(GL_ALPHA_TEST);
         matrix_pop(matrix_model);
         matrix_upload();

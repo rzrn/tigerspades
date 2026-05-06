@@ -538,8 +538,8 @@ void game_display(void) {
                         glColor4ub(cmd->text.color.r, cmd->text.color.g, cmd->text.color.b, cmd->text.color.a);
 
                         if (cmd->text.font != NULL) font_select(cmd->text.font);
-                        font_render(cmd->text.pos.x, settings.window_height - cmd->text.pos.y,
-                                    ctx->text_height(cmd->text.font) / 16.0F, cmd->text.str, UTF8);
+                        font_draw_left(cmd->text.pos.x, settings.window_height - cmd->text.pos.y,
+                                       ctx->text_height(cmd->text.font) / 16.0F, cmd->text.str, UTF8);
                         glEnable(GL_BLEND);
                         break;
                     case MU_COMMAND_RECT:

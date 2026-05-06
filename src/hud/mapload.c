@@ -66,11 +66,11 @@ static void hud_mapload_render(mu_Context * ctx, float scale) {
         sprintf(buff, "Connecting%s", ellipsis());
 
     glColor3ub(69, 69, 69);
-    font_centered(settings.window_width / 2.0F, settings.window_height * 0.25F - (fh + 4.0F) * scale, 2.0F * scale, buff, ASCII);
+    font_draw_center(settings.window_width / 2.0F, settings.window_height * 0.25F - (fh + 4.0F) * scale, 2.0F * scale, buff, ASCII);
 
     font_select(font_secondary);
     glColor3f(1.0F, 1.0F, 0.0F);
-    font_render(0.0F, fh * scale, 1.0F * scale, "Created by ByteBit, visit https://github.com/xtreme8000/BetterSpades", ASCII);
+    font_draw_left(0.0F, fh * scale, 1.0F * scale, "Created by ByteBit, visit https://github.com/xtreme8000/BetterSpades", ASCII);
 }
 
 static void hud_mapload_keyboard(int key, int action, int mods, int internal) {

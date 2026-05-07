@@ -249,6 +249,12 @@ bool camera_terrain_pickEx(float startx, float starty, float startz, float offx,
     int32_t taxilen = abs(voxx - (int32_t)floorf(endx)) + abs(voxy - (int32_t)floorf(endy)) + abs(voxz - (int32_t)floorf(endz));
 
     while (1) {
+        if (
+            voxx < 0 || voxx >= map_size_x ||
+            voxy < 0 ||
+            voxz < 0 || voxz >= map_size_z
+        ) return false;
+
         if (!map_isair(voxx, voxy, voxz)) {
             if (solidvox != NULL) {
                 solidvox[0] = voxx;

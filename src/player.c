@@ -120,7 +120,7 @@ bool player_can_spectate(Player * p) {
          : p->team == players[local_player.id].team;
 }
 
-static inline bool in_bodyview_mode() {
+static inline bool in_bodyview_mode(void) {
     if (camera.mode == CAMERAMODE_BODYVIEW || camera.mode == CAMERAMODE_SPECTATOR)
         return cameracontroller_bodyview_mode;
 

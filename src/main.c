@@ -325,9 +325,9 @@ void game_display(void) {
             if (!network_connected && button_map.mmb &&
                 players[local_player.id].tool == TOOL_BLOCK &&
                 window_time() - players[local_player.id].item_showup >= 0.5F) {
-                int pick[6];
+                int pick[3];
 
-                if (camera_terrain_pick(pick, pick+3)) {
+                if (camera_terrain_pick(pick, NULL)) {
                     players[local_player.id].item_showup = window_time();
 
                     RGBA4i color = RGB3iAs4i(players[local_player.id].block);

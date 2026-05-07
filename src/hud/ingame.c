@@ -467,9 +467,10 @@ static float hud_draw_debug_screen(float top, float scale) {
     );
     font_draw_left(11.0F * scale, top, scale, buff, ASCII); top -= fh * scale;
 
-    int * pick = camera_terrain_pick(1);
+    int pick[3];
 
-    if (pick == NULL) sprintf(buff, "Targeted Block: N/A");
+    if (!camera_terrain_pick(pick, NULL))
+        sprintf(buff, "Targeted Block: N/A");
     else {
         Vector3i v = hton3i(pick[X], pick[Y], pick[Z]);
         sprintf(buff, "Targeted Block: (%d, %d, %d)", v.x, v.y, v.z);
@@ -1880,9 +1881,9 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         }
 
         if (local_player.drag_active && action == WINDOW_RELEASE && players[local_player.id].tool == TOOL_BLOCK) {
-            int * pos = camera_terrain_pick(0);
+            int pos[3];
 
-            if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
+            if (camera_terrain_pick(NULL, pos) && isdestructible(pos[X], pos[Y], pos[Z]) &&
                 norm3f(pos[X], pos[Y], pos[Z], camera.r.x, camera.r.y, camera.r.z) < 25) {
                 int amount = cube_line_length(
                     local_player.drag.x, local_player.drag.z, 63 - local_player.drag.y,
@@ -1908,9 +1909,9 @@ static void hud_ingame_mouseclick(double x, double y, int button, int action, in
         local_player.drag_active = 0;
         if (action == WINDOW_PRESS && players[local_player.id].tool == TOOL_BLOCK &&
             window_time() - players[local_player.id].item_showup >= 0.5F) {
-            int * pos = camera_terrain_pick(0);
+            int pos[3];
 
-            if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z]) &&
+            if (camera_terrain_pick(NULL, pos) && isdestructible(pos[X], pos[Y], pos[Z]) &&
                 norm3f(camera.r.x, camera.r.y, camera.r.z, pos[X], pos[Y], pos[Z]) < 25.0F) {
                 local_player.drag_active = 1;
                 local_player.drag.x = pos[X];

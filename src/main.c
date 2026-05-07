@@ -325,9 +325,9 @@ void game_display(void) {
             if (!network_connected && button_map.mmb &&
                 players[local_player.id].tool == TOOL_BLOCK &&
                 window_time() - players[local_player.id].item_showup >= 0.5F) {
-                int * pick = camera_terrain_pick(1);
+                int pick[6];
 
-                if (pick != NULL) {
+                if (camera_terrain_pick(pick, pick+3)) {
                     players[local_player.id].item_showup = window_time();
 
                     RGBA4i color = RGB3iAs4i(players[local_player.id].block);
@@ -339,8 +339,8 @@ void game_display(void) {
                 players[local_player.id].tool == TOOL_BLOCK &&
                 window_time() - players[local_player.id].item_showup >= 0.5F &&
                 local_player.blocks > 0) {
-                int * pos = camera_terrain_pick(0);
-                if (pos != NULL && isdestructible(pos[X], pos[Y], pos[Z])
+                int pos[3];
+                if (camera_terrain_pick(NULL, pos) && isdestructible(pos[X], pos[Y], pos[Z])
                    && norm3f(camera.r.x, camera.r.y, camera.r.z, pos[X], pos[Y], pos[Z]) < 25.0F
                    && !player_in_block(HASBIT(players[local_player.id].input.keys, INPUT_CROUCH), camera.r, pos)) {
                     players[local_player.id].item_showup = window_time();
@@ -375,28 +375,28 @@ void game_display(void) {
             }
         }
 
-        int * pos = NULL;
-        switch (players[local_id].tool) {
-            case TOOL_BLOCK:
-                if (!HASBIT(players[local_id].input.keys, INPUT_SPRINT) && render_fpv) {
-                    if (is_local)
-                        pos = camera_terrain_pick(0);
-                    else
-                        pos = camera_terrain_pickEx(
-                            0, camera.r.x, camera.r.y, camera.r.z,
-                            players[local_id].orientation_smooth.x,
-                            players[local_id].orientation_smooth.y,
-                            players[local_id].orientation_smooth.z
-                        );
-                }
-
-                break;
-
-            default: pos = NULL;
+        int pos[3];
+        bool picked = false;
+        if (
+            players[local_id].tool == TOOL_BLOCK &&
+            !HASBIT(players[local_id].input.keys, INPUT_SPRINT) &&
+            render_fpv
+        ) {
+            if (is_local)
+                picked = camera_terrain_pick(NULL, pos);
+            else {
+                picked = camera_terrain_pickEx(
+                    camera.r.x, camera.r.y, camera.r.z,
+                    players[local_id].orientation_smooth.x,
+                    players[local_id].orientation_smooth.y,
+                    players[local_id].orientation_smooth.z,
+                    NULL, pos
+                );
+            }
         }
 
         if (players[local_id].alive && players[local_id].tool == TOOL_BLOCK)
-        if (pos != NULL && norm3f(pos[X], pos[Y], pos[Z], camera.r.x, camera.r.y, camera.r.z) < 25) {
+        if (picked && norm3f(pos[X], pos[Y], pos[Z], camera.r.x, camera.r.y, camera.r.z) < 25) {
             matrix_upload();
             glLineWidth(1.0F);
             glDisable(GL_DEPTH_TEST);

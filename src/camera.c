@@ -156,25 +156,25 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
 #if HACKS_ENABLED && HACK_WALLHACK
     if (players[local_player.id].tool != TOOL_WEAPON) {
 #endif
-    int pos[6]; Vector3f r = {.x = x, .y = y, .z = z}, o = {.x = ox, .y = oy, .z = oz};
+    int solidvox[3], prevox[3]; Vector3f r = {.x = x, .y = y, .z = z}, o = {.x = ox, .y = oy, .z = oz};
 
-    if (camera_terrain_pickEx(r, o, pos, pos + 3) &&
-        norm3f(x, y, z, pos[0], pos[1], pos[2]) <= sqrf(range)) {
+    if (camera_terrain_pickEx(r, o, solidvox, prevox) &&
+        norm3f(x, y, z, solidvox[X], solidvox[Y], solidvox[Z]) <= sqrf(range)) {
         AABB block = {
-            .min = {pos[0], pos[1], pos[2]},
-            .max = {pos[0] + 1, pos[1] + 1, pos[2] + 1},
+            .min = {solidvox[X], solidvox[Y], solidvox[Z]},
+            .max = {solidvox[X] + 1, solidvox[Y] + 1, solidvox[Z] + 1},
         };
 
         float d;
         if (aabb_intersection_ray(&block, &dir, &d)) {
             hit->type     = CAMERA_HITTYPE_BLOCK;
             hit->distance = d;
-            hit->x        = pos[0];
-            hit->y        = pos[1];
-            hit->z        = pos[2];
-            hit->xb       = pos[3];
-            hit->yb       = pos[4];
-            hit->zb       = pos[5];
+            hit->x        = solidvox[X];
+            hit->y        = solidvox[Y];
+            hit->z        = solidvox[Z];
+            hit->xb       = prevox[X];
+            hit->yb       = prevox[Y];
+            hit->zb       = prevox[Z];
         }
     }
 #if HACKS_ENABLED && HACK_WALLHACK

@@ -424,8 +424,6 @@ static void hud_draw_welcome_screen(float scale) {
     font_select(font_primary);
     glColor3f(1.0F, 1.0F, 1.0F);
 
-    const float fh = font_height(NULL);
-
     texture_draw(
         texture(TEXTURE_SPLASH),
         (settings.window_width - 240 * scale) * 0.5F,
@@ -1654,18 +1652,20 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         hud_draw_scoreboard(scale);
 
     if (camera.mode == CAMERAMODE_BODYVIEW || (camera.mode == CAMERAMODE_SPECTATOR && cameracontroller_bodyview_mode)) {
-        font_select(font_secondary);
-        switch (players[cameracontroller_bodyview_player].team) {
-            case TEAM1: glColorRGB3i(gamestate.team1.color); break;
-            case TEAM2: glColorRGB3i(gamestate.team2.color); break;
+        if (!is_scoreboard_drawn) {
+            font_select(font_secondary);
+            switch (players[cameracontroller_bodyview_player].team) {
+                case TEAM1: glColorRGB3i(gamestate.team1.color); break;
+                case TEAM2: glColorRGB3i(gamestate.team2.color); break;
 
-            default: glColor3f(1.0F, 1.0F, 1.0F); break;
+                default: glColor3f(1.0F, 1.0F, 1.0F); break;
+            }
+
+            float x = settings.window_width / 2.0F;
+            float y = 12 * (font_height(NULL) + 2.0F) * scale;
+
+            font_draw_center(x, y, 1.0F * scale, players[cameracontroller_bodyview_player].name, UTF8);
         }
-
-        font_draw_center(
-            settings.window_width / 2.0F, 13 * 18.0F * scale, 1.0F * scale,
-            players[cameracontroller_bodyview_player].name, UTF8
-        );
 
         font_select(font_primary);
         glColor3f(1.0F, 1.0F, 0.0F);
@@ -1680,11 +1680,10 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
             int cnt = local_player.respawn_time - (int) (window_time() - local_player.death_time);
             char coin[25];
             sprintf(coin, "Respawn in %i s", cnt);
-            font_draw_center(settings.window_width / 2.0F,
-                             3.0F * fh * scale * (cameracontroller_bodyview_mode ? 2.0F : 1.0F), 3.0F * scale, coin, ASCII);
+            font_draw_center(settings.window_width / 2.0F, 3.0F * fh * scale, 3.0F * scale, coin, ASCII);
+
             if (local_player.respawn_cnt_last != cnt) {
-                if (cnt < 4)
-                    sound_create(SOUND_LOCAL, sound(cnt == 1 ? SOUND_BEEP1 : SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
+                if (cnt < 4) sound_create(SOUND_LOCAL, sound(cnt == 1 ? SOUND_BEEP1 : SOUND_BEEP2), 0.0F, 0.0F, 0.0F);
 
                 local_player.respawn_cnt_last = cnt;
             }
@@ -1734,6 +1733,8 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     bool is_tag_visible = players[local_player.id].team == TEAM_SPECTATOR ||
                           players[player_intersection_player].team == players[local_player.id].team;
 
+    const float fh = font_height(NULL);
+
     if (!is_scoreboard_drawn && settings.show_friendly_tag && player_intersection_type >= 0 && is_tag_visible) {
         font_select(font_secondary);
 
@@ -1745,7 +1746,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         }
 
         sprintf(str, "%s (%s)", players[player_intersection_player].name, th[player_intersection_type]);
-        font_draw_center(settings.window_width / 2.0F, 11 * 18.0F * scale, 1.0F * scale, str, UTF8);
+        font_draw_center(settings.window_width / 2.0F, 11 * (fh + 2.0F) * scale, 1.0F * scale, str, UTF8);
         font_select(font_primary);
     }
 
@@ -1753,7 +1754,7 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
         float height = settings.chat_popup_centered ? 3.0F * scale : 2.0F * scale;
 
         float x = settings.window_width * 0.5F - font_width(NULL, height, chat_popup.value, 0, UTF8) * 0.5F;
-        float y = settings.chat_popup_centered ? settings.window_height * 0.65F : 14 * 18.0F * scale;
+        float y = settings.chat_popup_centered ? settings.window_height * 0.65F : 14 * (fh + 2.0F) * scale;
 
         glColor3ub(chat_popup.color.r, chat_popup.color.g, chat_popup.color.b);
         font_draw_left(x, y, height, chat_popup.value, UTF8);

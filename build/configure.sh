@@ -184,7 +184,7 @@ case ${PROFILE} in
   DEBUG)
     # Debug builds are not expected to work with any compiler.
     # We leave all noisy-but-useful flags (like ‘-Wall’) here.
-    CFLAGS1="${CFLAGS1} -std=c99 -g -Wall -Wextra -pedantic -Wno-implicit-fallthrough"
+    CFLAGS1="${CFLAGS1} -std=c99 -g -Wall -Wextra -pedantic -Wno-implicit-fallthrough -Wno-logical-op-parentheses"
     CFLAGS2="${CFLAGS2} -std=c99 -g"
     ;;
   *)

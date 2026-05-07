@@ -158,8 +158,9 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
 #if HACKS_ENABLED && HACK_WALLHACK
     if (players[local_player.id].tool != TOOL_WEAPON) {
 #endif
-    int * pos = camera_terrain_pickEx(1, x, y, z, ray_x, ray_y, ray_z);
-    if (pos != NULL && norm3f(x, y, z, pos[0], pos[1], pos[2]) <= sqrf(range)) {
+    int pos[6];
+    if (camera_terrain_pickEx(x, y, z, ray_x, ray_y, ray_z, pos, pos+3) &&
+        norm3f(x, y, z, pos[0], pos[1], pos[2]) <= sqrf(range)) {
         AABB block = {
             .min = {pos[0], pos[1], pos[2]},
             .max = {pos[0] + 1, pos[1] + 1, pos[2] + 1},
@@ -202,110 +203,92 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
     }
 }
 
-int * camera_terrain_pick(unsigned char mode) {
+bool camera_terrain_pick(int solidvox[3], int prevox[3]) {
     Vector3f r = camera.r, o = muzzle_direction();
-    return camera_terrain_pickEx(mode, r.x, r.y, r.z, o.x, o.y, o.z);
+    return camera_terrain_pickEx(r.x, r.y, r.z, o.x, o.y, o.z, solidvox, prevox);
 }
 
-// kindly borrowed from
-// https://stackoverflow.com/questions/16505905/walk-a-line-between-two-points-in-a-3d-voxel-space-visiting-all-cells
-// adapted, original code by Wivlaro
-int * camera_terrain_pickEx(unsigned char mode, float gx0, float gy0, float gz0, float ray_x, float ray_y, float ray_z) {
-    float gx1 = gx0 + ray_x * 128.0F;
-    float gy1 = gy0 + ray_y * 128.0F;
-    float gz1 = gz0 + ray_z * 128.0F;
+/* https://www.eecs.yorku.ca/~amana/research/grid.pdf
+ * https://github.com/fenomas/fast-voxel-raycast
+ * https://voxel.wiki/wiki/raytracing/
+ * https://voxel.wiki/wiki/raycasting/
+ * https://gamedev.stackexchange.com/questions/81267
+ */
+bool camera_terrain_pickEx(float startx, float starty, float startz, float offx, float offy, float offz, int solidvox[3], int prevox[3]) {
+    int stepx, stepy, stepz;
+    float endx, endy, endz;
+    float deltax, deltay, deltaz;
+    float tmaxx, tmaxy, tmaxz;
+    float distx, disty, distz;
 
-    int gx0idx = floor(gx0);
-    int gy0idx = floor(gy0);
-    int gz0idx = floor(gz0);
+    /* No clue why each axis of off is (128^-1)x what it should be */
+    endx = startx + offx * 128;
+    endy = starty + offy * 128;
+    endz = startz + offz * 128;
 
-    int gx1idx = floor(gx1);
-    int gy1idx = floor(gy1);
-    int gz1idx = floor(gz1);
+    /* Direction in each axis the ray travels */
+    stepx = offx < 0 ? -1 : 1;
+    stepy = offy < 0 ? -1 : 1;
+    stepz = offz < 0 ? -1 : 1;
 
-    int sx = gx1idx > gx0idx ? 1 : gx1idx < gx0idx ? -1 : 0;
-    int sy = gy1idx > gy0idx ? 1 : gy1idx < gy0idx ? -1 : 0;
-    int sz = gz1idx > gz0idx ? 1 : gz1idx < gz0idx ? -1 : 0;
+    deltax = fabsf(1 / offx);
+    deltay = fabsf(1 / offy);
+    deltaz = fabsf(1 / offz);
 
-    int gx = gx0idx;
-    int gy = gy0idx;
-    int gz = gz0idx;
+    /* This magic construction prevents off-by-one errors. */
+    distx = offx < 0 ? ceilf(startx) - startx - 1 : floorf(startx) - startx + 1;
+    disty = offy < 0 ? ceilf(starty) - starty - 1 : floorf(starty) - starty + 1;
+    distz = offz < 0 ? ceilf(startz) - startz - 1 : floorf(startz) - startz + 1;
 
-    int gxp = gx0idx + (gx1idx > gx0idx ? 1 : 0);
-    int gyp = gy0idx + (gy1idx > gy0idx ? 1 : 0);
-    int gzp = gz0idx + (gz1idx > gz0idx ? 1 : 0);
+    tmaxx = offx == 0 ? HUGE_VAL : distx / offx;
+    tmaxy = offy == 0 ? HUGE_VAL : disty / offy;
+    tmaxz = offz == 0 ? HUGE_VAL : distz / offz;
 
-    float vx = gx1 == gx0 ? 1 : gx1 - gx0;
-    float vy = gy1 == gy0 ? 1 : gy1 - gy0;
-    float vz = gz1 == gz0 ? 1 : gz1 - gz0;
+    int32_t voxx = floorf(startx), voxy = floorf(starty), voxz = floorf(startz);
+    int32_t prevoxx = voxx, prevoxy = voxy, prevoxz = voxz;
+    int32_t taxilen = abs(voxx - (int32_t)floorf(endx)) + abs(voxy - (int32_t)floorf(endy)) + abs(voxz - (int32_t)floorf(endz));
 
-    float vxvy = vx * vy;
-    float vxvz = vx * vz;
-    float vyvz = vy * vz;
+    while (1) {
+        if (
+            voxx < 0 || voxx >= map_size_x ||
+            voxy < 0 ||
+            voxz < 0 || voxz >= map_size_z
+        ) return false;
 
-    float errx = (gxp - gx0) * vyvz;
-    float erry = (gyp - gy0) * vxvz;
-    float errz = (gzp - gz0) * vxvy;
+        if (!map_isair(voxx, voxy, voxz)) {
+            if (solidvox != NULL) {
+                solidvox[0] = voxx;
+                solidvox[1] = voxy;
+                solidvox[2] = voxz;
+            }
 
-    float derrx = sx * vyvz;
-    float derry = sy * vxvz;
-    float derrz = sz * vxvy;
+            if (prevox != NULL) {
+                prevox[0] = prevoxx;
+                prevox[1] = prevoxy;
+                prevox[2] = prevoxz;
+            }
 
-    int gx_pre = gx, gy_pre = gy, gz_pre = gz;
-
-    static int ret[6];
-    ret[0] = ret[1] = ret[2] = 0;
-    ret[3] = ret[4] = ret[5] = 0;
-
-    for (;;) {
-        if (gx >= map_size_x || gx < 0 || gy < 0 || gz >= map_size_z || gz < 0) {
-            return NULL;
+            return true;
         }
-        switch (mode) {
-            case 0:
-                if (!map_isair(gx, gy, gz) && map_isair(gx_pre, gy_pre, gz_pre)) {
-                    ret[0] = gx_pre;
-                    ret[1] = gy_pre;
-                    ret[2] = gz_pre;
-                    return ret;
-                }
-                break;
-            case 1:
-                if (!map_isair(gx, gy, gz)) {
-                    ret[0] = gx;
-                    ret[1] = gy;
-                    ret[2] = gz;
-                    ret[3] = gx_pre;
-                    ret[4] = gy_pre;
-                    ret[5] = gz_pre;
-                    return ret;
-                }
-                break;
-        }
-        gx_pre = gx;
-        gy_pre = gy;
-        gz_pre = gz;
 
-        if (gx == gx1idx && gy == gy1idx && gz == gz1idx)
-            break;
+        if (taxilen-- == 0)
+            return false;
 
-        int xr = fabsf(errx);
-        int yr = fabsf(erry);
-        int zr = fabsf(errz);
+        prevoxx = voxx;
+        prevoxy = voxy;
+        prevoxz = voxz;
 
-        if (sx != 0 && (sy == 0 || xr < yr) && (sz == 0 || xr < zr)) {
-            gx += sx;
-            errx += derrx;
-        } else if (sy != 0 && (sz == 0 || yr < zr)) {
-            gy += sy;
-            erry += derry;
-        } else if (sz != 0) {
-            gz += sz;
-            errz += derrz;
+        if (tmaxz <= tmaxx && tmaxz <= tmaxy) {
+            voxz += stepz;
+            tmaxz += deltaz;
+        } else if (tmaxx < tmaxy) {
+            voxx += stepx;
+            tmaxx += deltax;
+        } else {
+            voxy += stepy;
+            tmaxy += deltay;
         }
     }
-
-    return NULL;
 }
 
 void camera_ExtractFrustum(void) {

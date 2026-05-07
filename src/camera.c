@@ -1,5 +1,6 @@
 /*
     Copyright © 2016–2021 ByteBit
+    Copyright © 2026 DavidCo113
     Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
@@ -145,12 +146,9 @@ void camera_hit(CameraHit * hit, int exclude_player, float x, float y, float z, 
     camera_hit_mask(hit, exclude_player, x, y, z, ray_x, ray_y, ray_z, range);
 }
 
-void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, float z, float ray_x,
-                     float ray_y, float ray_z, float range) {
-    Ray dir = {
-        .origin = {x, y, z},
-        .direction = {ray_x, ray_y, ray_z},
-    };
+void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, float z,
+                     float ox, float oy, float oz, float range) {
+    Ray dir = {.origin = {x, y, z}, .direction = {ox, oy, oz}};
 
     hit->type = CAMERA_HITTYPE_NONE;
     hit->distance = FLT_MAX;
@@ -158,8 +156,9 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
 #if HACKS_ENABLED && HACK_WALLHACK
     if (players[local_player.id].tool != TOOL_WEAPON) {
 #endif
-    int pos[6];
-    if (camera_terrain_pickEx(x, y, z, ray_x, ray_y, ray_z, pos, pos+3) &&
+    int pos[6]; Vector3f r = {.x = x, .y = y, .z = z}, o = {.x = ox, .y = oy, .z = oz};
+
+    if (camera_terrain_pickEx(r, o, pos, pos + 3) &&
         norm3f(x, y, z, pos[0], pos[1], pos[2]) <= sqrf(range)) {
         AABB block = {
             .min = {pos[0], pos[1], pos[2]},
@@ -205,8 +204,11 @@ void camera_hit_mask(CameraHit * hit, int exclude_player, float x, float y, floa
 
 bool camera_terrain_pick(int solidvox[3], int prevox[3]) {
     Vector3f r = camera.r, o = muzzle_direction();
-    return camera_terrain_pickEx(r.x, r.y, r.z, o.x, o.y, o.z, solidvox, prevox);
+    return camera_terrain_pickEx(r, o, solidvox, prevox);
 }
+
+static inline int taxinorm3i(int x1, int y1, int z1, int x2, int y2, int z2)
+{ return abs(x1 - x2) + abs(y1 - y2) + abs(z1 - z2); }
 
 /* https://www.eecs.yorku.ca/~amana/research/grid.pdf
  * https://github.com/fenomas/fast-voxel-raycast
@@ -214,81 +216,73 @@ bool camera_terrain_pick(int solidvox[3], int prevox[3]) {
  * https://voxel.wiki/wiki/raycasting/
  * https://gamedev.stackexchange.com/questions/81267
  */
-bool camera_terrain_pickEx(float startx, float starty, float startz, float offx, float offy, float offz, int solidvox[3], int prevox[3]) {
-    int stepx, stepy, stepz;
-    float endx, endy, endz;
-    float deltax, deltay, deltaz;
-    float tmaxx, tmaxy, tmaxz;
-    float distx, disty, distz;
+bool camera_terrain_pickEx(Vector3f r, Vector3f o, int solidvox[3], int prevox[3]) {
+    /* Direction in each axis the ray travels. */
+    int dx = o.x < 0 ? -1 : 1, dy = o.y < 0 ? -1 : 1, dz = o.z < 0 ? -1 : 1;
+    Vector3f tdelta = {.x = fabsf(1 / o.x), .y = fabsf(1 / o.y), .z = fabsf(1 / o.z)};
 
-    /* No clue why each axis of off is (128^-1)x what it should be */
-    endx = startx + offx * 128;
-    endy = starty + offy * 128;
-    endz = startz + offz * 128;
+    /* 1. f(s) = floor(s) + 1 is the smallest integer that is greater than `s`.
+       2. g(s) = ceil(s) is the smallest integer that is greater than or equal to `s`.
+       In other words, we have that f(s) > s but only g(s) ≥ s. */
+    float cx = o.x < 0 ? ceilf(r.x) - 1 : floorf(r.x) + 1;
+    float cy = o.y < 0 ? ceilf(r.y) - 1 : floorf(r.y) + 1;
+    float cz = o.z < 0 ? ceilf(r.z) - 1 : floorf(r.z) + 1;
 
-    /* Direction in each axis the ray travels */
-    stepx = offx < 0 ? -1 : 1;
-    stepy = offy < 0 ? -1 : 1;
-    stepz = offz < 0 ? -1 : 1;
+    /* Hence, all coordinates of `tmax` are positive. */
+    Vector3f tmax = {
+        .x = o.x == 0 ? HUGE_VAL : (cx - r.x) / o.x,
+        .y = o.y == 0 ? HUGE_VAL : (cy - r.y) / o.y,
+        .z = o.z == 0 ? HUGE_VAL : (cz - r.z) / o.z
+    };
 
-    deltax = fabsf(1 / offx);
-    deltay = fabsf(1 / offy);
-    deltaz = fabsf(1 / offz);
+    Vector3i curr = {.x = floorf(r.x), .y = floorf(r.y), .z = floorf(r.z)}, prev = curr;
 
-    /* This magic construction prevents off-by-one errors. */
-    distx = offx < 0 ? ceilf(startx) - startx - 1 : floorf(startx) - startx + 1;
-    disty = offy < 0 ? ceilf(starty) - starty - 1 : floorf(starty) - starty + 1;
-    distz = offz < 0 ? ceilf(startz) - startz - 1 : floorf(startz) - startz + 1;
+    /* No clue why each axis of `o` is (128^-1)x what it should be. */
+    int ex = floorf(r.x + o.x * 128);
+    int ey = floorf(r.y + o.y * 128);
+    int ez = floorf(r.z + o.z * 128);
 
-    tmaxx = offx == 0 ? HUGE_VAL : distx / offx;
-    tmaxy = offy == 0 ? HUGE_VAL : disty / offy;
-    tmaxz = offz == 0 ? HUGE_VAL : distz / offz;
+    for (int d = taxinorm3i(curr.x, curr.y, curr.z, ex, ey, ez); d >= 0; d--) {
+        if (curr.x < 0 || curr.x >= map_size_x)
+            return false;
 
-    int32_t voxx = floorf(startx), voxy = floorf(starty), voxz = floorf(startz);
-    int32_t prevoxx = voxx, prevoxy = voxy, prevoxz = voxz;
-    int32_t taxilen = abs(voxx - (int32_t)floorf(endx)) + abs(voxy - (int32_t)floorf(endy)) + abs(voxz - (int32_t)floorf(endz));
+        if (curr.y < 0)
+            return false;
 
-    while (1) {
-        if (
-            voxx < 0 || voxx >= map_size_x ||
-            voxy < 0 ||
-            voxz < 0 || voxz >= map_size_z
-        ) return false;
+        if (curr.z < 0 || curr.z >= map_size_z)
+            return false;
 
-        if (!map_isair(voxx, voxy, voxz)) {
+        if (!map_isair(curr.x, curr.y, curr.z)) {
             if (solidvox != NULL) {
-                solidvox[0] = voxx;
-                solidvox[1] = voxy;
-                solidvox[2] = voxz;
+                solidvox[0] = curr.x;
+                solidvox[1] = curr.y;
+                solidvox[2] = curr.z;
             }
 
             if (prevox != NULL) {
-                prevox[0] = prevoxx;
-                prevox[1] = prevoxy;
-                prevox[2] = prevoxz;
+                prevox[0] = prev.x;
+                prevox[1] = prev.y;
+                prevox[2] = prev.z;
             }
 
             return true;
         }
 
-        if (taxilen-- == 0)
-            return false;
+        prev = curr;
 
-        prevoxx = voxx;
-        prevoxy = voxy;
-        prevoxz = voxz;
-
-        if (tmaxz <= tmaxx && tmaxz <= tmaxy) {
-            voxz += stepz;
-            tmaxz += deltaz;
-        } else if (tmaxx < tmaxy) {
-            voxx += stepx;
-            tmaxx += deltax;
+        if (tmax.z <= tmax.x && tmax.z <= tmax.y) {
+            curr.z += dz;
+            tmax.z += tdelta.z;
+        } else if (tmax.x < tmax.y) {
+            curr.x += dx;
+            tmax.x += tdelta.x;
         } else {
-            voxy += stepy;
-            tmaxy += deltay;
+            curr.y += dy;
+            tmax.y += tdelta.y;
         }
     }
+
+    return false;
 }
 
 void camera_ExtractFrustum(void) {

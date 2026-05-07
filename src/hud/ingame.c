@@ -1,6 +1,7 @@
 /*
     Copyright © 2017–2023 ByteBit
     Copyright © 2018 NotAFile
+    Copyright © 2026 DavidCo113
     Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.

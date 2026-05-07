@@ -1,5 +1,6 @@
 /*
     Copyright © 2017–2020 ByteBit
+    Copyright © 2026 DavidCo113
     Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
@@ -81,7 +82,7 @@ void camera_ExtractFrustum(void);
 unsigned char camera_PointInFrustum(float x, float y, float z);
 int camera_CubeInFrustum(float x, float y, float z, float size, float size_y);
 bool camera_terrain_pick(int solidvox[3], int prevox[3]);
-bool camera_terrain_pickEx(float startx, float starty, float startz, float offx, float offy, float offz, int solidvox[3], int prevox[3]);
+bool camera_terrain_pickEx(Vector3f r, Vector3f o, int solidvox[3], int prevox[3]);
 void camera_overflow_adjust(void);
 void camera_crosshair_move(float, float);
 void camera_apply(void);

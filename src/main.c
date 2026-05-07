@@ -375,8 +375,8 @@ void game_display(void) {
             }
         }
 
-        int pos[3];
-        bool picked = false;
+        int pos[3]; bool picked = false;
+
         if (
             players[local_id].tool == TOOL_BLOCK &&
             !HASBIT(players[local_id].input.keys, INPUT_SPRINT) &&
@@ -384,15 +384,8 @@ void game_display(void) {
         ) {
             if (is_local)
                 picked = camera_terrain_pick(NULL, pos);
-            else {
-                picked = camera_terrain_pickEx(
-                    camera.r.x, camera.r.y, camera.r.z,
-                    players[local_id].orientation_smooth.x,
-                    players[local_id].orientation_smooth.y,
-                    players[local_id].orientation_smooth.z,
-                    NULL, pos
-                );
-            }
+            else
+                picked = camera_terrain_pickEx(camera.r, players[local_id].orientation_smooth, NULL, pos);
         }
 
         if (players[local_id].alive && players[local_id].tool == TOOL_BLOCK)

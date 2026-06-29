@@ -120,6 +120,7 @@ typedef struct {
     bool  scroll_camera_speed;
     bool  mmb_toggle_noclip;
     bool  show_welcome_screen;
+    bool  serverlist_send_ping;
 } Options;
 
 extern char * serverlist_url;

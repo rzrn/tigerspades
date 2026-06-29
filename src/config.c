@@ -268,6 +268,12 @@ Setting config_settings[] = {
         .category = "Network"
     },
     {
+        .value    = &settings_tmp.serverlist_send_ping,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "serverlist_send_ping",
+        .display  = "Measure ping in the server list"
+    },
+    {
         .value    = &settings_tmp.min_lan_port,
         .type     = CONFIG_TYPE_INT,
         .maxi     = INT_MAX,
@@ -710,6 +716,7 @@ Options settings = {
     .scroll_camera_speed    = true,
     .mmb_toggle_noclip      = true,
     .show_welcome_screen    = true,
+    .serverlist_send_ping   = true,
 };
 
 char * config_filepath = "config.ini";

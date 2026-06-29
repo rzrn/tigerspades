@@ -244,7 +244,11 @@ void * ping_update(void * data) {
 
                     serverlist[k]->current = (int) json_object_get_number(s, "players_current");
                     serverlist[k]->max     = (int) json_object_get_number(s, "players_max");
-                    serverlist[k]->ping    = -1;
+
+                    if (settings.serverlist_send_ping)
+                        serverlist[k]->ping = -1;
+                    else
+                        serverlist[k]->ping = (int) json_object_get_number(s, "latency");
 
                     strnzcpy(serverlist[k]->name,       json_object_get_string(s, "name"),       sizeof(serverlist[k]->name));
                     strnzcpy(serverlist[k]->map,        json_object_get_string(s, "map"),        sizeof(serverlist[k]->map));
@@ -256,7 +260,7 @@ void * ping_update(void * data) {
 
                     Address addr;
 
-                    if (network_identifier_split(serverlist[k]->identifier, &addr)) {
+                    if (settings.serverlist_send_ping && network_identifier_split(serverlist[k]->identifier, &addr)) {
                         PingTask task = {
                             .entry     = serverlist[k],
                             .trycount  = 0,

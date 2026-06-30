@@ -1717,11 +1717,11 @@ static void hud_ingame_render(mu_Context * ctx, float scale) {
     font_select(font_primary);
     glColor3f(1.0F, 1.0F, 1.0F);
 
-    if (gamestate.mode == GAMEMODE_TC)
+    if (!is_scoreboard_drawn && gamestate.mode == GAMEMODE_TC)
         hud_draw_progressbar(scale);
 
     // draw the minimap
-    if (camera.mode != CAMERAMODE_SELECTION) {
+    if (!is_scoreboard_drawn && camera.mode != CAMERAMODE_SELECTION) {
         glColor3f(1.0F, 1.0F, 1.0F);
 
         if (window_key_down(WINDOW_KEY_MAP))

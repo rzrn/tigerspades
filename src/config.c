@@ -876,7 +876,7 @@ static int config_read_key(void * user, const char * section, const char * name,
         for (WindowKey key = WINDOW_KEY_FIRST; key <= WINDOW_KEY_LAST; key++) {
             ConfigKey * e = config_key(key);
 
-            if (strcmp(name, e->name) == 0) {
+            if (e->name != NULL && strcmp(name, e->name) == 0) {
                 log_debug("found override for %s, from %i to %i", e->name, e->keycode, atoi(value));
                 e->keycode = strtol(value, NULL, 0);
                 break;

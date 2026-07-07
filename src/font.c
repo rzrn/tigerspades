@@ -193,6 +193,75 @@ static Subfont upload_subfont(const char * filename, size_t texsize, uint16_t he
 Font * font_primary, * font_secondary;
 static Font * font_selected;
 
+static void font_init_16px(GLint max_size) {
+    const uint16_t height = 16;
+
+    if (settings.unicode_enabled) {
+        static Subfont uvga, gnubmp, gnusmp;
+
+        gnubmp = upload_subfont("fonts/unifont/bmp.bitmap", max_size, height);
+        gnusmp = upload_subfont("fonts/unifont/smp.bitmap", max_size, height);
+        uvga   = upload_subfont("fonts/uvga/bmp.bitmap",    max_size, height);
+
+        static Subfont * primary_subfonts[]   = {&uvga, &gnubmp, &gnusmp};
+        static Subfont * secondary_subfonts[] = {&gnubmp, &gnusmp};
+
+        static Font primary   = {.replacement = 0xFFFD, .length = 3, .height = height, .special = &uvga,   .subfonts = primary_subfonts};
+        static Font secondary = {.replacement = 0xFFFD, .length = 2, .height = height, .special = &gnubmp, .subfonts = secondary_subfonts};
+
+        font_primary   = &primary;
+        font_secondary = &secondary;
+    } else {
+        static Subfont vga, gnuascii;
+
+        gnuascii = upload_subfont("fonts/unifont/ascii.bitmap", max_size, height);
+        vga      = upload_subfont("fonts/uvga/ascii.bitmap",    max_size, height);
+
+        static Subfont * primary_subfonts[]   = {&vga, &gnuascii};
+        static Subfont * secondary_subfonts[] = {&gnuascii};
+
+        static Font primary   = {.replacement = 0x3F, .length = 2, .height = height, .special = &vga,      .subfonts = primary_subfonts};
+        static Font secondary = {.replacement = 0x3F, .length = 1, .height = height, .special = &gnuascii, .subfonts = secondary_subfonts};
+
+        font_primary   = &primary;
+        font_secondary = &secondary;
+    }
+}
+
+static void font_init_24px(GLint max_size) {
+    const uint16_t height = 24;
+
+    if (settings.unicode_enabled) {
+        static Subfont normal, bold;
+
+        normal = upload_subfont("fonts/terminus-normal/bmp.bitmap", max_size, height);
+        bold   = upload_subfont("fonts/terminus-bold/bmp.bitmap",   max_size, height);
+
+        static Subfont * primary_subfonts[]   = {&bold};
+        static Subfont * secondary_subfonts[] = {&normal};
+
+        static Font primary   = {.replacement = 0xFFFD, .length = 1, .height = height, .special = &bold,   .subfonts = primary_subfonts};
+        static Font secondary = {.replacement = 0xFFFD, .length = 1, .height = height, .special = &normal, .subfonts = secondary_subfonts};
+
+        font_primary   = &primary;
+        font_secondary = &secondary;
+    } else {
+        static Subfont normal, bold;
+
+        normal = upload_subfont("fonts/terminus-normal/ascii.bitmap", max_size, height);
+        bold   = upload_subfont("fonts/terminus-bold/ascii.bitmap",   max_size, height);
+
+        static Subfont * primary_subfonts[]   = {&bold};
+        static Subfont * secondary_subfonts[] = {&normal};
+
+        static Font primary   = {.replacement = 0x3F, .length = 1, .height = height, .special = &bold,   .subfonts = primary_subfonts};
+        static Font secondary = {.replacement = 0x3F, .length = 1, .height = height, .special = &normal, .subfonts = secondary_subfonts};
+
+        font_primary   = &primary;
+        font_secondary = &secondary;
+    }
+}
+
 void font_init(void) {
     GLint max_size = 0; glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
 
@@ -201,35 +270,11 @@ void font_init(void) {
         exit(1);
     }
 
-    if (settings.unicode_enabled) {
-        static Subfont uvga, gnubmp, gnusmp;
+    switch (settings.font_family) {
+        case FONT_16PX: font_init_16px(max_size); break;
+        case FONT_24PX: font_init_24px(max_size); break;
 
-        gnubmp = upload_subfont("fonts/gnubmp.bitmap", max_size, 16);
-        gnusmp = upload_subfont("fonts/gnusmp.bitmap", max_size, 16);
-        uvga   = upload_subfont("fonts/uvga.bitmap",   max_size, 16);
-
-        static Subfont * primary_subfonts[]   = {&uvga, &gnubmp, &gnusmp};
-        static Subfont * secondary_subfonts[] = {&gnubmp, &gnusmp};
-
-        static Font primary   = {.replacement = 0xFFFD, .length = 3, .height = 16, .special = &uvga,   .subfonts = primary_subfonts};
-        static Font secondary = {.replacement = 0xFFFD, .length = 2, .height = 16, .special = &gnubmp, .subfonts = secondary_subfonts};
-
-        font_primary   = &primary;
-        font_secondary = &secondary;
-    } else {
-        static Subfont vga, gnuascii;
-
-        gnuascii = upload_subfont("fonts/gnuascii.bitmap", max_size, 16);
-        vga      = upload_subfont("fonts/vga.bitmap",      max_size, 16);
-
-        static Subfont * primary_subfonts[]   = {&vga, &gnuascii};
-        static Subfont * secondary_subfonts[] = {&gnuascii};
-
-        static Font primary   = {.replacement = 0x3F, .length = 2, .height = 16, .special = &vga,      .subfonts = primary_subfonts};
-        static Font secondary = {.replacement = 0x3F, .length = 1, .height = 16, .special = &gnuascii, .subfonts = secondary_subfonts};
-
-        font_primary   = &primary;
-        font_secondary = &secondary;
+        default: font_init_16px(max_size); break;
     }
 
     font_selected = font_primary;

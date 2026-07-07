@@ -110,6 +110,17 @@ static void config_label_ads_mode(char * buffer, size_t length, void * voidptr) 
         case ADS_TOGGLE: snprintf(buffer, length, "Toggle");        break;
         case ADS_HOLD:   snprintf(buffer, length, "Hold");          break;
         case ZOOM_HOLD:  snprintf(buffer, length, "Toggle + Zoom"); break;
+        default:         snprintf(buffer, length, "Unknown");       break;
+    }
+}
+
+static void config_label_font_family(char * buffer, size_t length, void * voidptr) {
+    int value = *((int *) voidptr);
+
+    switch (value) {
+        case FONT_16PX: snprintf(buffer, length, "GNU Unifont + UNI-VGA"); break;
+        case FONT_24PX: snprintf(buffer, length, "Terminus");              break;
+        default:        snprintf(buffer, length, "Unknown");               break;
     }
 }
 
@@ -177,6 +188,7 @@ ConfigKey _config_key[] = {
 };
 
 int config_ads_mode_valdefs[]     = {ADS_TOGGLE, ADS_HOLD, ZOOM_HOLD};
+int config_font_family_valdefs[]  = {FONT_16PX, FONT_24PX};
 int config_scale_valdefs[]        = {0, 1, 2, 4, 8, 16, 32, 64};
 int config_width_valdefs[]        = {640, 800, 854, 1024, 1280, 1920, 3840};
 int config_height_valdefs[]       = {480, 600, 720, 768, 1024, 1080, 2160};
@@ -385,6 +397,15 @@ Setting config_settings[] = {
         .numdefs  = lengthof(config_scale_valdefs),
         .label    = config_label_scale,
         .category = "Interface"
+    },
+    {
+        .value   = &settings_tmp.font_family,
+        .type    = CONFIG_TYPE_ENUM,
+        .name    = "font_family",
+        .valdefs = config_font_family_valdefs,
+        .numdefs = lengthof(config_font_family_valdefs),
+        .display = "Typeface",
+        .label   = config_label_font_family
     },
     {
         .value    = &settings_tmp.chat_shadow,
@@ -717,6 +738,7 @@ Options settings = {
     .mmb_toggle_noclip      = true,
     .show_welcome_screen    = true,
     .serverlist_send_ping   = true,
+    .font_family            = FONT_16PX,
 };
 
 char * config_filepath = "config.ini";

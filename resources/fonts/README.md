@@ -20,3 +20,11 @@ Letters in the Hebrew block were taken unchanged from a public domain hebrew con
 Glyphs in Arabic, Arabic Presentation Forms-A, Arabic Presentation Forms-B and U+262B Farsi symbol were kindly donated by Behdad Esfahbod.
 
 Copyright © 2000 Dmitry Bolkhovityanov, bolkhov@inp.nsk.su
+
+# Terminus
+
+This version of [the Terminus font](https://terminus-font.sourceforge.net/) was converted from the BDF version (4.49.1, `ter-u24n.bdf` and `ter-u24b.bdf`) using the `extra/bdf2bitmap.py` script.
+
+Terminus Font is licensed under the SIL Open Font License, Version 1.1. The license is included as `terminus-normal/LICENSE`, and is also available with a FAQ at http://scripts.sil.org/OFL
+
+Copyright © 2020 Dimitar Toshkov Zhekov, with Reserved Font Name ‘Terminus Font’.

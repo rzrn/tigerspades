@@ -56,6 +56,11 @@ enum {
 
 #define ZOOM_HOLD_TIME 0.25F
 
+enum {
+    FONT_16PX = 0,
+    FONT_24PX = 1
+};
+
 typedef struct {
     char  name[16];
     int   min_lan_port;
@@ -121,6 +126,7 @@ typedef struct {
     bool  mmb_toggle_noclip;
     bool  show_welcome_screen;
     bool  serverlist_send_ping;
+    int   font_family;
 } Options;
 
 extern char * serverlist_url;

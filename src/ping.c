@@ -443,7 +443,9 @@ void * ping_update(void * data) {
 }
 
 void ping_init(void) {
-    signal(SIGPIPE, SIG_IGN);
+    #ifdef SIGPIPE
+        signal(SIGPIPE, SIG_IGN);
+    #endif
 
     pthread_mutex_init(&serverlist_mutex, NULL);
 

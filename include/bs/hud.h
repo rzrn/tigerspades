@@ -102,16 +102,16 @@ typedef struct {
     char label[64];
 } LegendEntry;
 
-typedef struct _Graph Graph;
+typedef struct _Stat Stat;
 
-struct _Graph {
+struct _Stat {
     uint8_t index;
     size_t nrows, ncols;
     LegendEntry * legend;
     float2 * data;
-    Graph * next;
+    Stat * next;
 };
 
-extern Graph * hud_graph;
+extern Stat * hud_custom_stat;
 
 #endif

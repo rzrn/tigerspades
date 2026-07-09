@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2020 ByteBit
-    Copyright © 2024–2025 rzrn
+    Copyright © 2024–2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ enum Extension {
     EXT_PLAYER_PROPERTIES = 0x00,
     EXT_TRACE_BULLETS     = 0x10,
     EXT_HIT_EFFECTS       = 0x11,
-    EXT_DRAWING           = 0x12,
+    EXT_CUSTOM_STAT       = 0x12,
     EXT_256PLAYERS        = 0xC0,
     EXT_MESSAGES          = 0xC1,
     EXT_KICKREASON        = 0xC2,
@@ -226,9 +226,9 @@ enum HitEffectTarget {
 };
 
 enum {
-    subIdPacketGraphNew  = 0,
-    subIdPacketGraphData = 1,
-    subIdPacketGraphDel  = 2
+    subIdPacketStatNew  = 0,
+    subIdPacketStatData = 1,
+    subIdPacketStatDel  = 2
 };
 
 #define begin(T) typedef struct _##T T; struct _##T {

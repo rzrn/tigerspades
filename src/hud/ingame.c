@@ -482,7 +482,7 @@ static float hud_draw_debug_screen(float top, float scale) {
     return top;
 }
 
-static inline void hud_draw_graph_grid(float alpha) {
+static inline void hud_draw_stat_grid(float alpha) {
     glEnable(GL_DEPTH_TEST);
 
     {
@@ -525,7 +525,7 @@ static inline void hud_draw_graph_grid(float alpha) {
     glDisable(GL_DEPTH_TEST);
 }
 
-static inline void hud_draw_graph_border(float x, float y, float w, float h, float bw) {
+static inline void hud_draw_stat_border(float x, float y, float w, float h, float bw) {
     glEnable(GL_DEPTH_TEST);
 
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -541,13 +541,13 @@ static inline void hud_draw_graph_border(float x, float y, float w, float h, flo
     glDisable(GL_DEPTH_TEST);
 }
 
-static inline Vector2f hud_draw_graph_legend(Graph * g, float scale, const float x0, const float y0) {
+static inline Vector2f hud_draw_stat_legend(Stat * s, float scale, const float x0, const float y0) {
     const float fh = font_height(NULL);
 
     float x = x0, y = y0;
 
-    for (size_t j = 0; j < g->nrows; j++) {
-        LegendEntry * const legend = &g->legend[j];
+    for (size_t j = 0; j < s->nrows; j++) {
+        LegendEntry * const legend = &s->legend[j];
 
         glColor3f(1.0F, 1.0F, 1.0F);
         Vector2f c = font_draw_left(x0 + fh * scale, y, 1.0F * scale, legend->label, UTF8);
@@ -562,10 +562,10 @@ static inline Vector2f hud_draw_graph_legend(Graph * g, float scale, const float
     return (Vector2f) {x, y};
 }
 
-static inline float * row(Graph * g, size_t j)
-{ return &g->data[g->ncols * j][0]; }
+static inline float * row(Stat * s, size_t j)
+{ return &s->data[s->ncols * j][0]; }
 
-static Vector2f hud_draw_graph(Graph * g, float x, float y, float scale) {
+static Vector2f hud_draw_stat(Stat * s, float x, float y, float scale) {
     float w = 200.0F * scale, h = 100.0F * scale;
     float bw = 1.0F * scale, liw = 2.0F * scale;
 
@@ -577,17 +577,17 @@ static Vector2f hud_draw_graph(Graph * g, float x, float y, float scale) {
         glTranslatef(x, y - h, 0.0F);
         glScalef(w, h, 1.0F);
 
-        hud_draw_graph_grid(0.2F);
+        hud_draw_stat_grid(0.2F);
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glLineWidth(liw);
 
-        for (size_t j = 0; j < g->nrows; j++) {
-            RGB3f color = g->legend[j].color;
+        for (size_t j = 0; j < s->nrows; j++) {
+            RGB3f color = s->legend[j].color;
 
             glColor3f(color.r, color.g, color.b);
-            glVertexPointer(2, GL_FLOAT, 0, row(g, j));
-            glDrawArrays(GL_LINE_STRIP, 0, g->ncols);
+            glVertexPointer(2, GL_FLOAT, 0, row(s, j));
+            glDrawArrays(GL_LINE_STRIP, 0, s->ncols);
         }
 
         glLineWidth(1);
@@ -596,19 +596,19 @@ static Vector2f hud_draw_graph(Graph * g, float x, float y, float scale) {
 
     glDisable(GL_SCISSOR_TEST);
 
-    hud_draw_graph_border(x, y, w, h, bw); y -= h;
-    Vector2f c = hud_draw_graph_legend(g, scale, x, y - 4.0F * scale);
+    hud_draw_stat_border(x, y, w, h, bw); y -= h;
+    Vector2f c = hud_draw_stat_legend(s, scale, x, y - 4.0F * scale);
 
     return (Vector2f) {fmax(x + w, c.x), c.y};
 }
 
-Graph * hud_graph = NULL;
+Stat * hud_custom_stat = NULL;
 
 static float hud_draw_figure(float top, float scale) {
     float x = 11.0F * scale, y = top - 8.0F * scale;
 
-    for (Graph * g = hud_graph; g != NULL; g = g->next) {
-        Vector2f c = hud_draw_graph(g, x, y, scale);
+    for (Stat * s = hud_custom_stat; s != NULL; s = s->next) {
+        Vector2f c = hud_draw_stat(s, x, y, scale);
         x = c.x + 11.0F * scale; top = min(top, c.y);
     }
 

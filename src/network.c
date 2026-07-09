@@ -504,7 +504,7 @@ static const char * getExtensionName(uint8_t id) {
         case EXT_PLAYER_PROPERTIES: return "Player Properties";
         case EXT_TRACE_BULLETS:     return "Trace Bullets";
         case EXT_HIT_EFFECTS:       return "Hit Effects";
-        case EXT_DRAWING:           return "Drawing";
+        case EXT_CUSTOM_STAT:       return "Custom Statistics";
         case EXT_256PLAYERS:        return "Player Limit";
         case EXT_MESSAGES:          return "Message Types";
         case EXT_KICKREASON:        return "Kick Reason";
@@ -542,7 +542,7 @@ static void getPacketExtInfo(uint8_t * data, size_t len) {
         addExtInfoEntry(EXT_KICKREASON,        1, &offset); length++;
         addExtInfoEntry(EXT_TRACE_BULLETS,     1, &offset); length++;
         addExtInfoEntry(EXT_HIT_EFFECTS,       1, &offset); length++;
-        addExtInfoEntry(EXT_DRAWING,           1, &offset); length++;
+        addExtInfoEntry(EXT_CUSTOM_STAT,       1, &offset); length++;
 
         PacketExtInfo reply; reply.length = length;
         sendPacketExtInfo(&reply, offset);
@@ -1286,169 +1286,169 @@ static void getPacketHitEffect(uint8_t * data, size_t len) {
         particle_create(Red, r.x, r.y, r.z, 3.5F, 1.0F, 8, 0.1F, 0.4F);
 }
 
-static inline float * dom(Graph * g, size_t i, size_t j)
-{ return &g->data[i + g->ncols * j][0]; }
+static inline float * dom(Stat * s, size_t i, size_t j)
+{ return &s->data[i + s->ncols * j][0]; }
 
-static inline float * cod(Graph * g, size_t i, size_t j)
-{ return &g->data[i + g->ncols * j][1]; }
+static inline float * cod(Stat * s, size_t i, size_t j)
+{ return &s->data[i + s->ncols * j][1]; }
 
-static void graph_alloc(Graph * g, uint8_t index, size_t nrows, size_t ncols) {
-    g->index  = index;
-    g->nrows  = nrows;
-    g->ncols  = ncols;
-    g->legend = malloc(nrows * sizeof(LegendEntry));
-    g->data   = malloc(nrows * ncols * sizeof(float2));
-    g->next   = NULL;
+static void stat_alloc(Stat * s, uint8_t index, size_t nrows, size_t ncols) {
+    s->index  = index;
+    s->nrows  = nrows;
+    s->ncols  = ncols;
+    s->legend = malloc(nrows * sizeof(LegendEntry));
+    s->data   = malloc(nrows * ncols * sizeof(float2));
+    s->next   = NULL;
 
     for (size_t i = 0; i < ncols; i++) {
         float t = (float) i / (float) (ncols - 1);
 
         for (size_t j = 0; j < nrows; j++) {
-            *dom(g, i, j) = t;
-            *cod(g, i, j) = -FLT_MAX;
+            *dom(s, i, j) = t;
+            *cod(s, i, j) = -FLT_MAX;
         }
     }
 }
 
-static void graph_free(Graph * g) {
-    free(g->legend);
-    free(g->data);
+static void stat_free(Stat * s) {
+    free(s->legend);
+    free(s->data);
 }
 
-static Graph * graph_try_emplace(Graph ** g, size_t index) {
-    Graph * prev = NULL, * curr;
+static Stat * stat_try_emplace(Stat ** s, size_t index) {
+    Stat * prev = NULL, * curr;
 
-    for (curr = *g; curr != NULL; prev = curr, curr = curr->next)
+    for (curr = *s; curr != NULL; prev = curr, curr = curr->next)
         if (curr->index == index)
             break;
 
     if (curr == NULL) {
-        curr = malloc(sizeof(Graph));
+        curr = malloc(sizeof(Stat));
 
         if (prev == NULL)
-            *g = curr;
+            *s = curr;
         else
             prev->next = curr;
     } else {
-        Graph * next = curr->next;
+        Stat * next = curr->next;
 
-        graph_free(curr);
+        stat_free(curr);
         curr->next = next;
     }
 
     return curr;
 }
 
-static Graph * graph_find(Graph * g, size_t index) {
-    for (Graph * curr = g; curr != NULL; curr = curr->next)
+static Stat * stat_find(Stat * s, size_t index) {
+    for (Stat * curr = s; curr != NULL; curr = curr->next)
         if (curr->index == index)
             return curr;
 
     return NULL;
 }
 
-static Graph * graph_remove(Graph ** g, size_t index) {
-    Graph * prev = NULL, * curr;
+static Stat * stat_remove(Stat ** s, size_t index) {
+    Stat * prev = NULL, * curr;
 
-    for (curr = *g; curr != NULL; prev = curr, curr = curr->next)
+    for (curr = *s; curr != NULL; prev = curr, curr = curr->next)
         if (curr->index == index)
             break;
 
     if (curr == NULL) return NULL;
 
     if (prev == NULL)
-        *g = curr->next;
+        *s = curr->next;
     else
         prev->next = curr->next;
 
     return curr;
 }
 
-static void getPacketGraphNew(uint8_t * data, size_t len) {
-    PacketGraphNew p; size_t offset = readPacketGraphNew(data, &p);
-    if (len % sizePacketGraphNewEntry != 0) ERRLEN(PacketGraphNewEntry, len);
+static void getPacketStatNew(uint8_t * data, size_t len) {
+    PacketStatNew p; size_t offset = readPacketStatNew(data, &p);
+    if (len % sizePacketStatNewEntry != 0) ERRLEN(PacketStatNewEntry, len);
 
-    size_t nrows = len / sizePacketGraphNewEntry;
+    size_t nrows = len / sizePacketStatNewEntry;
 
-    Graph * g = graph_try_emplace(&hud_graph, p.index);
-    graph_alloc(g, p.index, nrows, p.length);
+    Stat * s = stat_try_emplace(&hud_custom_stat, p.index);
+    stat_alloc(s, p.index, nrows, p.length);
 
-    for (size_t j = 0; j < g->nrows; j++) {
-        PacketGraphNewEntry e; offset += readPacketGraphNewEntry(data + offset, &e);
+    for (size_t j = 0; j < s->nrows; j++) {
+        PacketStatNewEntry e; offset += readPacketStatNewEntry(data + offset, &e);
 
-        LegendEntry * p = &g->legend[j];
+        LegendEntry * p = &s->legend[j];
         decodeMagic(p->label, sizeof(p->label), (char *) e.label.data, e.label.size);
 
         p->color = RGB3iAs3f(e.color);
     }
 }
 
-static void getPacketGraphData(uint8_t * data, size_t len) {
-    PacketGraphData p; size_t offset = readPacketGraphData(data, &p);
-    if (len % sizePacketGraphDataEntry != 0) ERRLEN(PacketGraphDataEntry, len);
+static void getPacketStatData(uint8_t * data, size_t len) {
+    PacketStatData p; size_t offset = readPacketStatData(data, &p);
+    if (len % sizePacketStatDataEntry != 0) ERRLEN(PacketStatDataEntry, len);
 
-    size_t nrows = len / sizePacketGraphDataEntry;
+    size_t nrows = len / sizePacketStatDataEntry;
 
-    Graph * g = graph_find(hud_graph, p.index);
+    Stat * s = stat_find(hud_custom_stat, p.index);
 
-    if (g == NULL) {
-        log_error("Invalid graph ID (%d) was received.", p.index);
+    if (s == NULL) {
+        log_error("Invalid statistics display ID (%d) was received.", p.index);
         return;
     }
 
-    if (g->nrows != nrows) ERRLEN(PacketGraphDataEntry, len);
+    if (s->nrows != nrows) ERRLEN(PacketStatDataEntry, len);
 
-    for (size_t i = 0; i + 1 < g->ncols; i++)
-        for (size_t j = 0; j < g->nrows; j++)
-            *cod(g, i, j) = *cod(g, i + 1, j);
+    for (size_t i = 0; i + 1 < s->ncols; i++)
+        for (size_t j = 0; j < s->nrows; j++)
+            *cod(s, i, j) = *cod(s, i + 1, j);
 
-    for (size_t j = 0; j < g->nrows; j++) {
-        PacketGraphDataEntry e; offset += readPacketGraphDataEntry(data + offset, &e);
-        *cod(g, g->ncols - 1, j) = clamp(-FLT_MAX, FLT_MAX, e.value);
+    for (size_t j = 0; j < s->nrows; j++) {
+        PacketStatDataEntry e; offset += readPacketStatDataEntry(data + offset, &e);
+        *cod(s, s->ncols - 1, j) = clamp(-FLT_MAX, FLT_MAX, e.value);
     }
 }
 
-static void getPacketGraphDel(uint8_t * data, size_t len) {
+static void getPacketStatDel(uint8_t * data, size_t len) {
     UNUSED(len);
 
-    PacketGraphDel p; readPacketGraphDel(data, &p);
+    PacketStatDel p; readPacketStatDel(data, &p);
 
-    Graph * g = graph_remove(&hud_graph, p.index);
+    Stat * s = stat_remove(&hud_custom_stat, p.index);
 
-    if (g == NULL) {
-        log_error("Invalid graph ID (%d) was received.", p.index);
+    if (s == NULL) {
+        log_error("Invalid statistics display ID (%d) was received.", p.index);
     } else {
-        graph_free(g); free(g);
+        stat_free(s); free(s);
     }
 }
 
-static void getPacketDraw(uint8_t * data, size_t len) {
-    if (len < sizePacketDraw) ERRLEN(PacketDraw, len);
-    PacketDraw p; size_t offset = readPacketDraw(data, &p);
+static void getPacketStat(uint8_t * data, size_t len) {
+    if (len < sizePacketStat) ERRLEN(PacketStat, len);
+    PacketStat p; size_t offset = readPacketStat(data, &p);
 
-    len -= sizePacketDraw;
+    len -= sizePacketStat;
 
     switch (p.subID) {
-        case subIdPacketGraphNew: {
-            if (len < sizePacketGraphNew) ERRLEN(PacketGraphNew, len);
-            getPacketGraphNew(data + offset, len - sizePacketGraphNew);
+        case subIdPacketStatNew: {
+            if (len < sizePacketStatNew) ERRLEN(PacketStatNew, len);
+            getPacketStatNew(data + offset, len - sizePacketStatNew);
             break;
         }
 
-        case subIdPacketGraphData: {
-            if (len < sizePacketGraphData) ERRLEN(PacketGraphData, len);
-            getPacketGraphData(data + offset, len - sizePacketGraphData);
+        case subIdPacketStatData: {
+            if (len < sizePacketStatData) ERRLEN(PacketStatData, len);
+            getPacketStatData(data + offset, len - sizePacketStatData);
             break;
         }
 
-        case subIdPacketGraphDel: {
-            if (len < sizePacketGraphDel) ERRLEN(PacketGraphDel, len);
-            getPacketGraphDel(data + offset, len - sizePacketGraphDel);
+        case subIdPacketStatDel: {
+            if (len < sizePacketStatDel) ERRLEN(PacketStatDel, len);
+            getPacketStatDel(data + offset, len - sizePacketStatDel);
             break;
         }
 
         default: {
-            log_error("Invalid subID of PackedDraw (%d) was received.", p.subID);
+            log_error("Invalid subID of PackedStat (%d) was received.", p.subID);
             break;
         }
     }
@@ -1774,5 +1774,5 @@ void network_init(void) {
     packets[PACKET_EXT_BASE + EXT_PLAYER_PROPERTIES] = getPacketPlayerProperties;
     packets[PACKET_EXT_BASE + EXT_TRACE_BULLETS]     = getPacketBulletTrace;
     packets[PACKET_EXT_BASE + EXT_HIT_EFFECTS]       = getPacketHitEffect;
-    packets[PACKET_EXT_BASE + EXT_DRAWING]           = getPacketDraw;
+    packets[PACKET_EXT_BASE + EXT_CUSTOM_STAT]       = getPacketStat;
 }

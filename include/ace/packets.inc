@@ -1,5 +1,5 @@
 /*
-    Copyright © 2024–2025 rzrn
+    Copyright © 2024–2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -291,30 +291,30 @@
         u8(target)
     end()
 
-    begin(PacketDraw)
+    begin(PacketStat)
         u8(subID)
     end()
 
     #if PACKET_INCOMPLETE
-        begin(PacketGraphNew)
+        begin(PacketStatNew)
             u8(index)
             u8(length)
         end()
 
-        begin(PacketGraphNewEntry)
+        begin(PacketStatNewEntry)
             bgr(color)
             blob(label, 64)
         end()
 
-        begin(PacketGraphData)
+        begin(PacketStatData)
             u8(index)
         end()
 
-        begin(PacketGraphDataEntry)
+        begin(PacketStatDataEntry)
             f32(value)
         end()
 
-        begin(PacketGraphDel)
+        begin(PacketStatDel)
             u8(index)
         end()
     #endif

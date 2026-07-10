@@ -107,6 +107,15 @@ On the buggy drivers (like “mesa” under PowerPC Macs) it may be neccessary
 The development headers for OpenAL and OpenGL don’t have to be installed since they come with macOS by default.
 On the old Macs don’t forget to use `<...> make CC=c99 <...>` since the old GCC defaults to C89.
 
+#### Haiku
+
+Use the following command to install the required dependencies:
+```
+pkgman install glfw_devel openal_devel
+```
+
+Or, if you want, install `libsdl2_devel` instead of `glfw_devel`.
+
 ## License
 
 For any copyright year range specified as YYYY–ZZZZ in this package note

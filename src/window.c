@@ -38,6 +38,10 @@
     #include <unistd.h>
 #endif
 
+#if defined(OS_FREEBSD) || defined(OS_OPENBSD) || defined(OS_NETBSD)
+    #include <unistd.h>
+#endif
+
 #ifdef OS_HAIKU
     #include <kernel/OS.h>
 #endif
@@ -80,6 +84,10 @@ int window_cpucores(void) {
         #else
             return get_nprocs();
         #endif
+    #endif
+
+    #if defined(OS_FREEBSD) || defined(OS_OPENBSD) || defined(OS_NETBSD)
+        return sysconf(_SC_NPROCESSORS_CONF);
     #endif
 
     #ifdef OS_WINDOWS

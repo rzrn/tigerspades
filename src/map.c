@@ -55,6 +55,7 @@ static struct libvxl_map map = {.chunks = NULL};
 static pthread_rwlock_t map_lock;
 
 float fog_color[4] = {0.5F, 0.9098F, 1.0F, 1.0F};
+float fog_distance = 128.0F;
 
 typedef struct {
     int damage;

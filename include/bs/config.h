@@ -67,7 +67,6 @@ typedef struct {
     int   max_lan_port;
     bool  opengl14;
     bool  ambient_occlusion;
-    float render_distance;
     int   window_width;
     int   window_height;
     int   multisamples;

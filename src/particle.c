@@ -176,7 +176,7 @@ static bool particle_render_single(void * obj, void * user) {
     Particle * p = (Particle *) obj;
     Tesselator * tess = (Tesselator *) user;
 
-    if (norm2f(camera.r.x, camera.r.z, p->x, p->z) > sqrf(settings.render_distance))
+    if (norm2f(camera.r.x, camera.r.z, p->x, p->z) > sqrf(fog_distance))
         return false;
 
     float size = p->size / 2.0F * (1.0F - ((float) (window_time() - p->fade) / 2.0F));

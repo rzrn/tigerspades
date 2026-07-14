@@ -40,8 +40,8 @@
 
 #include <log.h>
 
-float frustum_near(void) { return 0.1F;                                         }
-float frustum_far(void)  { return settings.render_distance + CHUNK_SIZE * 4.0F; }
+float frustum_near(void) { return 0.1F;                             }
+float frustum_far(void)  { return fog_distance + CHUNK_SIZE * 4.0F; }
 
 Chunk chunks[CHUNKS_PER_DIM * CHUNKS_PER_DIM];
 
@@ -119,13 +119,13 @@ void chunk_draw_visible(void) {
     ChunkRenderCall chunks_draw[CHUNKS_PER_DIM * CHUNKS_PER_DIM * 2];
     int index = 0;
 
-    int overshoot = (settings.render_distance + CHUNK_SIZE - 1) / CHUNK_SIZE + 1;
+    int overshoot = (fog_distance + CHUNK_SIZE - 1) / CHUNK_SIZE + 1;
 
     // go through all possible chunks and store all in range and view
     for (int y = -overshoot; y < CHUNKS_PER_DIM + overshoot; y++) {
         for (int x = -overshoot; x < CHUNKS_PER_DIM + overshoot; x++) {
             if (norm2f((x + 0.5F) * CHUNK_SIZE, (y + 0.5F) * CHUNK_SIZE, camera.r.x, camera.r.z) <=
-                sqrf(settings.render_distance + 1.414F * CHUNK_SIZE)) {
+                sqrf(fog_distance + 1.414F * CHUNK_SIZE)) {
                 uint32_t tmp_x = ((uint32_t) x) % CHUNKS_PER_DIM;
                 uint32_t tmp_y = ((uint32_t) y) % CHUNKS_PER_DIM;
 

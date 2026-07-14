@@ -1,6 +1,6 @@
 /*
     Copyright © 2016–2021 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -32,6 +32,7 @@ extern int map_size_y;
 extern int map_size_z;
 
 extern float fog_color[4];
+extern float fog_distance;
 
 void map_init(void);
 int map_object_visible(float x, float y, float z);

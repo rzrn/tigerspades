@@ -456,7 +456,7 @@ void player_render_all(void) {
         if (k != local_player.id) {
             if (camera_CubeInFrustum(players[k].pos.x, players[k].pos.y, players[k].pos.z, 1.0F, 2.0F)
                && norm2f(players[k].pos.x, players[k].pos.z, camera.r.x, camera.r.z) <=
-                  sqrf(settings.render_distance + 2.0F)) {
+                  sqrf(fog_distance + 2.0F)) {
                 Hit intersects = {0};
                 player_render(&players[k], k);
                 player_collision(&players[k], &ray, &intersects);

@@ -679,7 +679,6 @@ Options settings = {
     .max_lan_port           = 32892,
     .opengl14               = true,
     .ambient_occlusion      = false,
-    .render_distance        = RENDER_DISTANCE,
     .window_width           = 800,
     .window_height          = 600,
     .multisamples           = 0,

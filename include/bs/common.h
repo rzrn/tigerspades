@@ -383,9 +383,6 @@ RGBA4i readBGRA(uint32_t *);
 void strnzcpy(char * dest, const char * src, size_t);
 size_t strsize(const char *, size_t maxsize);
 
-// QUESTION: should we allow players to change this?
-#define RENDER_DISTANCE 128.0F
-
                         // NOTE: These options are intended for testing purposes only.
                         // NOTE: Don’t cry if you got banned for using this on a public server.
                         // ┌───────────────┬──────────────┬──────────────────────────────────────────────────────────────────────────┐

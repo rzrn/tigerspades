@@ -528,7 +528,7 @@ void kv6_render(kv6 * model, unsigned char team) {
             glEnable(GL_PROGRAM_POINT_SIZE);
             glUseProgram(kv6_program);
             glUniform1f(glGetUniformLocation(kv6_program, "dist_factor"),
-                        glx_fog ? 1.0F / settings.render_distance : 0.0F);
+                        glx_fog ? 1.0F / fog_distance : 0.0F);
             glUniform1f(glGetUniformLocation(kv6_program, "size"),
                         1.414F * near_plane_height * model->box.scale * (len_x + len_y + len_z) / 3.0F);
             glUniform3f(glGetUniformLocation(kv6_program, "fog"), fog_color[0], fog_color[1], fog_color[2]);

@@ -237,11 +237,11 @@ void glx_enable_sphericalfog(void) {
         glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
         glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
         glTexGenfv(GL_T, GL_EYE_PLANE,
-                   (float[]) {1.0F / settings.render_distance / 2.0F, 0.0F, 0.0F,
-                              -camera.r.x / settings.render_distance / 2.0F + 0.5F});
+                   (float[]) {1.0F / fog_distance / 2.0F, 0.0F, 0.0F,
+                              -camera.r.x / fog_distance / 2.0F + 0.5F});
         glTexGenfv(GL_S, GL_EYE_PLANE,
-                   (float[]) {0.0F, 0.0F, 1.0F / settings.render_distance / 2.0F,
-                              -camera.r.z / settings.render_distance / 2.0F + 0.5F});
+                   (float[]) {0.0F, 0.0F, 1.0F / fog_distance / 2.0F,
+                              -camera.r.z / fog_distance / 2.0F + 0.5F});
         glEnable(GL_TEXTURE_GEN_T);
         glEnable(GL_TEXTURE_GEN_S);
         glActiveTexture(GL_TEXTURE0);
@@ -258,7 +258,7 @@ void glx_enable_sphericalfog(void) {
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, (float[]) {fog_color[0], fog_color[1], fog_color[2], 1.0F});
 
         glLightfv(GL_LIGHT1, GL_POSITION,
-                  (float[]) {camera.r.x, (settings.render_distance * map_size_y) / 16.0F, camera.r.z, 1.0F});
+                  (float[]) {camera.r.x, (fog_distance * map_size_y) / 16.0F, camera.r.z, 1.0F});
         glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, (float[]) {0.0F, -1.0F, 0.0F});
         glLightfv(GL_LIGHT1, GL_DIFFUSE, (float[]) {1.0F, 1.0F, 1.0F, 1.0F});
         glLightfv(GL_LIGHT1, GL_AMBIENT, (float[]) {-fog_color[0], -fog_color[1], -fog_color[2], 1.0F});
@@ -279,7 +279,7 @@ void glx_enable_sphericalfog(void) {
     float amb[4] = {0.0F, 0.0F, 0.0F, 1.0F};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
 
-    float lpos[4] = {camera.r.x, (settings.render_distance * map_size_y) / 16.0F, camera.r.z, 1.0F};
+    float lpos[4] = {camera.r.x, (fog_distance * map_size_y) / 16.0F, camera.r.z, 1.0F};
     glLightfv(GL_LIGHT1, GL_POSITION, lpos);
     float dir[3] = {0.0F, -1.0F, 0.0F};
     glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, dir);
@@ -293,7 +293,7 @@ void glx_enable_sphericalfog(void) {
     glEnable(GL_FOG);
     glFogf(GL_FOG_MODE, GL_LINEAR);
     glFogf(GL_FOG_START, 0.0F);
-    glFogf(GL_FOG_END, settings.render_distance);
+    glFogf(GL_FOG_END, fog_distance);
     glFogfv(GL_FOG_COLOR, fog_color);
 #endif
 #endif

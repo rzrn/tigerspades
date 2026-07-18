@@ -238,12 +238,29 @@ void game_killfeed_add(RGBA4i, const char *, size_t);
 void game_chat_add(RGBA4i, const char *, size_t, Codepage);
 void chat_show_popup(const char *, size_t, Codepage, float duration, RGBA4i);
 
+typedef struct _DamageMarker DamageMarker;
+
+struct _DamageMarker {
+    int value;
+    float fade;
+    float x, y, z;
+    float vx, vy, vz;
+    DamageMarker * next;
+};
+
+extern DamageMarker * game_damage_marker;
+
+void game_damage_marker_add(int player_id, int hit_amount);
+
 const char * reason_disconnect(int code);
 
 int ms_rand(void);
 
 #include <stdlib.h>
 #include <log.h>
+
+static inline float randomf(void) { return (float) rand() / (float) RAND_MAX; }
+static inline float uniform(float a, float b) { return randomf() * (b - a) + a; }
 
 #define CHECK_ALLOCATION_ERROR(ret)                                                        \
     if (!ret) {                                                                            \

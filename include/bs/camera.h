@@ -78,7 +78,7 @@ void camera_hit_mask(CameraHit *, int exclude_player, float x, float y, float z,
 
 float camera_fov_scaled(void);
 
-void camera_ExtractFrustum(void);
+void camera_extract_frustum(float clip[16]);
 unsigned char camera_PointInFrustum(float x, float y, float z);
 int camera_CubeInFrustum(float x, float y, float z, float size, float size_y);
 bool camera_terrain_pick(int solidvox[3], int prevox[3]);

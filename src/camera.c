@@ -285,15 +285,8 @@ bool camera_terrain_pickEx(Vector3f r, Vector3f o, int solidvox[3], int prevox[3
     return false;
 }
 
-void camera_ExtractFrustum(void) {
-    float clip[16];
+void camera_extract_frustum(float clip[16]) {
     float t;
-
-    mat4 mvp;
-    matrix_load(mvp, matrix_model);
-    matrix_multiply(mvp, matrix_view);
-    matrix_multiply(mvp, matrix_projection);
-    memcpy(clip, (float *) mvp, 16 * sizeof(float));
 
     /* Extract the numbers for the RIGHT plane */
     frustum[0][0] = clip[3]  - clip[0];

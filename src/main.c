@@ -163,6 +163,66 @@ void chat_show_popup(const char * msg, size_t size, Codepage codepage, float dur
     chat_popup_duration = duration;
 }
 
+DamageMarker * game_damage_marker = NULL;
+
+void game_damage_marker_add(int player_id, int hit_amount) {
+    Player * const p = &players[player_id];
+
+    DamageMarker * marker = malloc(sizeof(DamageMarker));
+
+    marker->x     = p->pos.x + uniform(-0.5F, 0.5F);
+    marker->y     = p->physics.eye.y + player_height(p) + uniform(0.25F, 1.25F);
+    marker->z     = p->pos.z + uniform(-0.5F, 0.5F);
+    marker->vx    = uniform(-1.0F, 1.0F);
+    marker->vy    = uniform(0.5F, 1.75F);
+    marker->vz    = uniform(-1.0F, 1.0F);
+    marker->next  = game_damage_marker;
+    marker->fade  = 3.0F;
+    marker->value = hit_amount;
+
+    game_damage_marker = marker;
+}
+
+static void game_damage_markers_render(mat4 mvp) {
+    font_select(font_primary);
+
+    for (DamageMarker * marker = game_damage_marker; marker != NULL; marker = marker->next) {
+        char buff[16]; sprintf(buff, "%d", -marker->value);
+
+        vec3 v; matrix_project(mvp, marker->x, marker->y, marker->z, settings.window_width, settings.window_height, v);
+
+        float alpha = fmin(marker->fade, 1.0F);
+
+        if (marker->value > 0)
+            glColor4f(1.0F, 0.0F, 0.0F, alpha);
+        else
+            glColor4f(1.0F, 1.0F, 1.0F, alpha);
+
+        font_draw_center(v[X], v[Y], 1, buff, ASCII);
+    }
+}
+
+static void game_damage_markers_update(float dt) {
+    DamageMarker ** curr = &game_damage_marker;
+
+    while (*curr != NULL) {
+        DamageMarker * marker = *curr;
+
+        marker->x += marker->vx * dt;
+        marker->y += marker->vy * dt;
+        marker->z += marker->vz * dt;
+
+        marker->fade -= dt;
+
+        if (marker->fade < 0.0F) {
+            *curr = marker->next;
+            free(marker);
+        } else {
+            curr = &marker->next;
+        }
+    }
+}
+
 void drawEntity(kv6 * model, Vector3f * r, unsigned char team) {
     float x = r->x, y = r->y + 1.0F, z = r->z;
 
@@ -283,6 +343,8 @@ void game_display(void) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    mat4 mvp;
+
     if (hud_active->render_world) {
         glEnable(GL_DEPTH_TEST);
         glDepthRange(0.0F, 1.0F);
@@ -305,7 +367,15 @@ void game_display(void) {
             glLightfv(GL_LIGHT0, GL_POSITION, lpos);
         }
 
-        camera_ExtractFrustum();
+        {
+            matrix_load(mvp, matrix_model);
+            matrix_multiply(mvp, matrix_view);
+            matrix_multiply(mvp, matrix_projection);
+
+            float clip[16];
+            memcpy(clip, (float *) mvp, 16 * sizeof(float));
+            camera_extract_frustum(clip);
+        }
 
         glx_enable_sphericalfog();
         drawScene();
@@ -497,6 +567,9 @@ void game_display(void) {
     matrix_identity(matrix_model);
     matrix_upload();
     matrix_upload_p();
+
+    // To make markers appear always of the same size, we render them in screen-space coordinates.
+    if (hud_active->render_world) game_damage_markers_render(mvp);
 
     float scale = hud_ui_scale();
 
@@ -833,6 +906,7 @@ void game_idle(double dt) {
         tracer_update(step);
         particle_update(step);
         map_collapsing_update(step);
+        game_damage_markers_update(step);
     }
 
     sound_update();

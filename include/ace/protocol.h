@@ -214,6 +214,7 @@ enum Extension {
     EXT_TRACE_BULLETS     = 0x10,
     EXT_HIT_EFFECTS       = 0x11,
     EXT_CUSTOM_STAT       = 0x12,
+    EXT_DAMAGE_MARKERS    = 0x20,
     EXT_256PLAYERS        = 0xC0,
     EXT_MESSAGES          = 0xC1,
     EXT_KICKREASON        = 0xC2,

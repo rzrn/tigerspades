@@ -429,6 +429,13 @@ Setting config_settings[] = {
         .display  = "Enable kill indicator"
     },
     {
+        .value    = &settings_tmp.damage_markers,
+        .type     = CONFIG_TYPE_BOOLEAN,
+        .name     = "damage_markers",
+        .help     = "Requires server support",
+        .display  = "Enable damage markers"
+    },
+    {
         .value    = &settings_tmp.show_iron_sight,
         .type     = CONFIG_TYPE_BOOLEAN,
         .name     = "show_iron_sight",
@@ -738,6 +745,7 @@ Options settings = {
     .show_welcome_screen    = true,
     .serverlist_send_ping   = true,
     .font_family            = FONT_16PX,
+    .damage_markers         = false,
 };
 
 char * config_filepath = "config.ini";

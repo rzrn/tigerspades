@@ -126,6 +126,7 @@ typedef struct {
     bool  show_welcome_screen;
     bool  serverlist_send_ping;
     int   font_family;
+    bool  damage_markers;
 } Options;
 
 extern char * serverlist_url;

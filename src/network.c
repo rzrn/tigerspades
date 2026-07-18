@@ -505,6 +505,7 @@ static const char * getExtensionName(uint8_t id) {
         case EXT_TRACE_BULLETS:     return "Trace Bullets";
         case EXT_HIT_EFFECTS:       return "Hit Effects";
         case EXT_CUSTOM_STAT:       return "Custom Statistics";
+        case EXT_DAMAGE_MARKERS:    return "Damage Markers";
         case EXT_256PLAYERS:        return "Player Limit";
         case EXT_MESSAGES:          return "Message Types";
         case EXT_KICKREASON:        return "Kick Reason";
@@ -543,6 +544,7 @@ static void getPacketExtInfo(uint8_t * data, size_t len) {
         addExtInfoEntry(EXT_TRACE_BULLETS,     1, &offset); length++;
         addExtInfoEntry(EXT_HIT_EFFECTS,       1, &offset); length++;
         addExtInfoEntry(EXT_CUSTOM_STAT,       1, &offset); length++;
+        addExtInfoEntry(EXT_DAMAGE_MARKERS,    1, &offset); length++;
 
         PacketExtInfo reply; reply.length = length;
         sendPacketExtInfo(&reply, offset);
@@ -1454,6 +1456,13 @@ static void getPacketStat(uint8_t * data, size_t len) {
     }
 }
 
+static void getPacketDamageMarker(uint8_t * data, size_t len) {
+    READPACKET(PacketDamageMarker, p, data, len);
+
+    if (settings.damage_markers)
+        game_damage_marker_add(p.player_id, p.hit_amount);
+}
+
 void updateBlockColor(void) {
     PacketSetColor contained;
     contained.player_id = local_player.id;
@@ -1775,4 +1784,5 @@ void network_init(void) {
     packets[PACKET_EXT_BASE + EXT_TRACE_BULLETS]     = getPacketBulletTrace;
     packets[PACKET_EXT_BASE + EXT_HIT_EFFECTS]       = getPacketHitEffect;
     packets[PACKET_EXT_BASE + EXT_CUSTOM_STAT]       = getPacketStat;
+    packets[PACKET_EXT_BASE + EXT_DAMAGE_MARKERS]    = getPacketDamageMarker;
 }

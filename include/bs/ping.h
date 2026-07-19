@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2020 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -35,6 +35,8 @@ typedef struct {
 } ServerEntry;
 
 typedef struct News {
+    size_t imgsize;
+    char * imgdata;
     Texture * image;
     char caption[65];
     char url[129];

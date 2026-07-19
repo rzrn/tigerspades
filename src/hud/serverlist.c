@@ -23,6 +23,8 @@
 #include <string.h>
 #include <limits.h>
 
+#include <lodepng/lodepng.h>
+
 #include <bs/file.h>
 #include <bs/hud.h>
 #include <bs/rpc.h>
@@ -145,10 +147,24 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
             mu_begin_panel(ctx, "News");
             mu_layout_row(ctx, 0, NULL, 0);
 
-            News * current = newslist;
             int index = 0;
 
-            while (current != NULL) {
+            for (News * current = newslist; current != NULL; current = current->next) {
+                if (current->imgdata != NULL) {
+                    // This data arrives from the other thread, so we have to do OpenGL things here.
+
+                    uint32_t * buffer; unsigned int width, height;
+                    lodepng_decode32((unsigned char **) &buffer, &width, &height, (uint8_t *) current->imgdata, current->imgsize);
+
+                    current->image = texture_alloc();
+                    texture_create_buffer(current->image, "image", width, height, buffer, true);
+                    texture_filter(current->image, TEXTURE_FILTER_LINEAR);
+
+                    free(current->imgdata);
+                    current->imgdata = NULL;
+                    current->imgsize = 0;
+                }
+
                 mu_layout_begin_column(ctx);
                 float size = settings.window_height * 0.3F - ctx->text_height(ctx->style->font) * 4.125F;
                 mu_layout_row(ctx, 1, (int[]) {size * current->tile_size}, size);
@@ -167,7 +183,6 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
                 mu_layout_end_column(ctx);
 
                 index++;
-                current = current->next;
             }
 
             mu_end_panel(ctx);

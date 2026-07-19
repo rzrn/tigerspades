@@ -1,6 +1,6 @@
 /*
     Copyright © 2017–2020 ByteBit
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -90,7 +90,7 @@ void texture_draw_quad(Texture *, float x, float y, float w, float h, float u1, 
 void texture_draw_empty(float x, float y, float w, float h);
 void texture_draw_empty_rotated(float x, float y, float w, float h, float angle);
 void texture_draw_rotated(Texture *, float x, float y, float w, float h, float angle);
-void texture_resize_pow2(Texture *, const char *, unsigned int min_size);
+void * texture_resize_pow2(const char * name, uint32_t *, unsigned int * width, unsigned int * height, unsigned int min_size);
 RGB3i texture_block_color(int x, int y);
 void texture_gradient_fog(unsigned int *);
 void texture_bind(Texture *);

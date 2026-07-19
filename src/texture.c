@@ -1,7 +1,7 @@
 /*
     Copyright © 2017–2020 ByteBit
     Copyright © 2018 vuolen
-    Copyright © 2023–2025 rzrn
+    Copyright © 2023–2026 rzrn
 
     This file is part of BetterSpades.
 
@@ -33,7 +33,6 @@
 struct _Texture {
     unsigned int width, height;
     GLuint texture_id;
-    uint32_t * data;
 };
 
 #define TEXTURE_TOTAL (TEXTURE_LAST + 1)
@@ -141,25 +140,27 @@ void texture_filter(Texture * t, Filtering filter) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void texture_create_buffer(Texture * t, const char * name, unsigned int width, unsigned int height, uint32_t * buff, bool new) {
+void texture_create_buffer(Texture * t, const char * name, unsigned int width, unsigned int height, uint32_t * buff1, bool new) {
     if (new) glGenTextures(1, &t->texture_id);
+
     t->width  = width;
     t->height = height;
-    t->data   = buff;
 
-    texture_resize_pow2(t, name, max(width, height));
+    void * buff2 = texture_resize_pow2(name, buff1, &t->width, &t->height, max(width, height));
+    if (buff2 != NULL) buff1 = buff2;
 
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, t->data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buff1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    free(buff2); // `buff1` remains unchanged
 }
 
 void texture_delete(Texture * t) {
-    if (t->data != NULL) free(t->data);
     glDeleteTextures(1, &t->texture_id);
 }
 
@@ -276,7 +277,9 @@ void texture_load(enum Texture index, Filtering filter) {
 
     int sz = file_size(filename);
     void * data = file_load(filename);
-    int error = lodepng_decode32((unsigned char **) &t->data, &t->width, &t->height, data, sz);
+
+    void * imgbuff; int error = lodepng_decode32((unsigned char **) &imgbuff, &t->width, &t->height, data, sz);
+
     free(data);
 
     if (error) {
@@ -284,11 +287,14 @@ void texture_load(enum Texture index, Filtering filter) {
         return;
     }
 
-    texture_resize_pow2(t, filename, 0);
+    {
+        void * buff = texture_resize_pow2(filename, imgbuff, &t->width, &t->height, 0);
+        if (buff != NULL) { free(imgbuff); imgbuff = buff; }
+    }
 
     glGenTextures(1, &t->texture_id);
     glBindTexture(GL_TEXTURE_2D, t->texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, t->data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, t->width, t->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imgbuff);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLfiltering(filter));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLfiltering(filter));
@@ -296,39 +302,44 @@ void texture_load(enum Texture index, Filtering filter) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    free(imgbuff);
 }
 
 static inline bool has_npot_textures(void) {
     return strstr((const char *) glGetString(GL_EXTENSIONS), "ARB_texture_non_power_of_two") != NULL;
 }
 
-void texture_resize_pow2(Texture * t, const char * name, unsigned int min_size) {
-    if (t->data == NULL) return;
+void * texture_resize_pow2(const char * name, uint32_t * data, unsigned int * width, unsigned int * height, unsigned int min_size) {
+    if (data == NULL) return NULL;
 
     unsigned int max_size = 0;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *) &max_size);
     max_size = max(max_size, min_size);
 
     unsigned int w = 1, h = 1;
+
     if (has_npot_textures()) {
-        if (t->width <= max_size && t->height <= max_size)
-            return;
-        w = t->width;
-        h = t->height;
+        if (*width <= max_size && *height <= max_size)
+            return NULL;
+
+        w = *width;
+        h = *height;
     } else {
-        while (w < t->width)
+        while (w < *width)
             w += w;
-        while (h < t->height)
+
+        while (h < *height)
             h += h;
     }
 
     w = min(w, max_size);
     h = min(h, max_size);
 
-    if (t->width == w && t->height == h)
-        return;
+    if (*width == w && *height == h)
+        return NULL;
 
-    log_info("%s: texture original: %i:%i now: %i:%i limit: %i", name, t->width, t->height, w, h, max_size);
+    log_info("%s: texture original: %i:%i now: %i:%i limit: %i", name, *width, *height, w, h, max_size);
 
     uint32_t * buff = malloc(w * h * sizeof(uint32_t));
     CHECK_ALLOCATION_ERROR(buff)
@@ -337,15 +348,15 @@ void texture_resize_pow2(Texture * t, const char * name, unsigned int min_size) 
     for (size_t x = 0; x < w; x++) {
         float p = (float) x / (float) w, q = (float) y / (float) h;
 
-        float xs = p * t->width, ys = q * t->height;
+        float xs = p * *width, ys = q * *height;
 
-        size_t x1 = xs, x2 = min(x1 + 1, t->width - 1);
-        size_t y1 = ys, y2 = min(y1 + 1, t->height - 1);
+        size_t x1 = xs, x2 = min(x1 + 1, *width  - 1);
+        size_t y1 = ys, y2 = min(y1 + 1, *height - 1);
 
-        RGBA4i aa = readRGBA(t->data + x1 + y1 * t->width);
-        RGBA4i ba = readRGBA(t->data + x2 + y1 * t->width);
-        RGBA4i ab = readRGBA(t->data + x1 + y2 * t->width);
-        RGBA4i bb = readRGBA(t->data + x2 + y2 * t->width);
+        RGBA4i aa = readRGBA(data + x1 + y1 * *width);
+        RGBA4i ba = readRGBA(data + x2 + y1 * *width);
+        RGBA4i ab = readRGBA(data + x1 + y2 * *width);
+        RGBA4i bb = readRGBA(data + x2 + y2 * *width);
 
         float tx = xs - x1, ty = ys - y1;
 
@@ -364,11 +375,10 @@ void texture_resize_pow2(Texture * t, const char * name, unsigned int min_size) 
         writeRGBA(buff + x + y * w, color);
     }
 
-    free(t->data);
+    *width  = w;
+    *height = h;
 
-    t->width  = w;
-    t->height = h;
-    t->data   = buff;
+    return buff;
 }
 
 RGB3i texture_block_color(int x, int y) {
@@ -428,12 +438,16 @@ void texture_init(void) {
 
     texture_create_buffer(texture_minimap, "_texture_minimap", map_size_x, map_size_z, NULL, true);
 
-    uint32_t * gradient = malloc(512 * 512 * sizeof(uint32_t));
-    CHECK_ALLOCATION_ERROR(gradient)
+    {
+        uint32_t * gradient = malloc(512 * 512 * sizeof(uint32_t));
+        CHECK_ALLOCATION_ERROR(gradient)
 
-    texture_gradient_fog(gradient);
-    texture_create_buffer(texture_gradient, "_texture_gradient", 512, 512, gradient, true);
-    texture_filter(texture_gradient, TEXTURE_FILTER_LINEAR);
+        texture_gradient_fog(gradient);
+        texture_create_buffer(texture_gradient, "_texture_gradient", 512, 512, gradient, true);
+        texture_filter(texture_gradient, TEXTURE_FILTER_LINEAR);
+
+        free(gradient);
+    }
 
     texture_create_buffer(texture_dummy, "_texture_dummy", 1, 1, (uint32_t[]) {0}, true);
 }

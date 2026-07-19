@@ -160,6 +160,8 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
                     texture_create_buffer(current->image, "image", width, height, buffer, true);
                     texture_filter(current->image, TEXTURE_FILTER_LINEAR);
 
+                    free(buffer);
+
                     free(current->imgdata);
                     current->imgdata = NULL;
                     current->imgsize = 0;

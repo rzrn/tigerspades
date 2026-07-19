@@ -43,7 +43,6 @@ void minheap_clear(Minheap * h);
 void minheap_destroy(Minheap * h);
 int minheap_isempty(Minheap * h);
 MinheapBlock minheap_extract(Minheap * h);
-void minheap_set(Minheap * h, MinheapBlock * b, int value);
 MinheapBlock * minheap_put(Minheap * h, MinheapBlock * b);
 
 #endif

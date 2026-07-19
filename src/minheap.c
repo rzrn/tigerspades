@@ -78,48 +78,6 @@ MinheapBlock minheap_extract(Minheap * h) {
     return min;
 }
 
-static void minheap_increase(Minheap * h, MinheapBlock * b, int value) {
-    b->pos = pos_key(pos_keyx(b->pos), value, pos_keyy(b->pos));
-
-    int k = b - h->nodes;
-    while (1) {
-        int smallest = k;
-        if (k * 2 + 1 < h->index
-           && pos_keyy(h->nodes[k * 2 + 1].pos)
-               < pos_keyy(h->nodes[smallest].pos)) // does left child exist and is less than parent?
-            smallest = k * 2 + 1;
-        if (k * 2 + 2 < h->index
-           && pos_keyy(h->nodes[k * 2 + 2].pos)
-               < pos_keyy(h->nodes[smallest].pos)) // does right child exist and is less than parent?
-            smallest = k * 2 + 2;
-        if (smallest == k) // parent is smallest, finished!
-            break;
-        nodes_swap(h, k, smallest);
-        k = smallest;
-    }
-}
-
-static void minheap_decrease(Minheap * h, MinheapBlock * b, int value) {
-    b->pos = pos_key(pos_keyx(b->pos), value, pos_keyy(b->pos));
-
-    int k = b - h->nodes;
-    while (k > 0) {
-        if (pos_keyy(h->nodes[k].pos) < pos_keyy(h->nodes[(k - 1) / 2].pos)) { // is child less than parent?
-            nodes_swap(h, k, (k - 1) / 2);
-            k = (k - 1) / 2; // continue at parent
-        } else {
-            break;
-        }
-    }
-}
-
-void minheap_set(Minheap * h, MinheapBlock * b, int value) {
-    if (value > pos_keyy(b->pos))
-        minheap_increase(h, b, value);
-    else
-        minheap_decrease(h, b, value);
-}
-
 MinheapBlock * minheap_put(Minheap * h, MinheapBlock * b) {
     if (h->index >= h->length) { // grow buffer
         h->length *= 2;

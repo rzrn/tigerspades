@@ -770,8 +770,8 @@ static void hud_draw_chat(float scale) {
             Vector2f caret = {.x = x0 + xpad, .y = y0 + 2 * yrow};
 
             if (hud_game_chat_selected != NULL) {
-                ptrdiff_t A = game_chat.first->index - hud_game_chat_selected->index;
-                ptrdiff_t B = game_chat.first->index - game_chat.last->index;
+                size_t A = game_chat.first->index - hud_game_chat_selected->index;
+                size_t B = game_chat.first->index - game_chat.last->index;
 
                 char bufmode[128]; snprintf(bufmode, sizeof(bufmode), "[%ld / %ld] ", A + 1, B + 1);
                 caret = font_draw_left(caret.x, caret.y, 1.0F * scale, bufmode, ASCII);

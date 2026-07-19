@@ -223,7 +223,7 @@ struct _Text {
 
 typedef struct {
     Text * first, * last;
-    ptrdiff_t maxlen;
+    size_t maxlen;
 } TextDeque;
 
 void deque_free(TextDeque *);

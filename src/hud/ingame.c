@@ -2092,6 +2092,16 @@ static inline void hud_game_chat_scroll_down(void) {
     hud_game_chat_selected = hud_game_chat_selected->next;
 }
 
+static inline bool hud_key_to_tool(int key, Tool * tool) {
+    switch (key) {
+        case WINDOW_KEY_TOOL1: *tool = TOOL_SPADE;   return true;
+        case WINDOW_KEY_TOOL2: *tool = TOOL_BLOCK;   return true;
+        case WINDOW_KEY_TOOL3: *tool = TOOL_WEAPON;  return true;
+        case WINDOW_KEY_TOOL4: *tool = TOOL_GRENADE; return true;
+        default:                                     return false;
+    }
+}
+
 static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
     if (chat_input_mode != CHAT_NO_INPUT && action == WINDOW_PRESS && key == WINDOW_KEY_AUTOCOMPLETE && strlen(game_chat_input) > 0) {
         // autocomplete word
@@ -2237,16 +2247,7 @@ static void hud_ingame_keyboard(int key, int action, int mods, int internal) {
             }
 
             if (screen_current == SCREEN_NONE && camera.mode == CAMERAMODE_FPS) {
-                int tool = -1;
-
-                switch (key) {
-                    case WINDOW_KEY_TOOL1: tool = TOOL_SPADE;   break;
-                    case WINDOW_KEY_TOOL2: tool = TOOL_BLOCK;   break;
-                    case WINDOW_KEY_TOOL3: tool = TOOL_WEAPON;  break;
-                    case WINDOW_KEY_TOOL4: tool = TOOL_GRENADE; break;
-                }
-
-                if (0 <= tool && players[local_player.id].tool != tool) {
+                Tool tool; if (hud_key_to_tool(key, &tool) && players[local_player.id].tool != tool) {
                     local_player.last_tool = players[local_player.id].tool;
                     players[local_player.id].tool = tool;
 

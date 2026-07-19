@@ -120,6 +120,8 @@ void deque_free(TextDeque * deque) {
 }
 
 void game_killfeed_add(RGBA4i color, const char * mesg, size_t size) {
+    UNUSED(size); // TODO: is this okay?
+
     // Instead of free-malloc, we reuse existing memory.
     Text * node = is_deque_full(&game_killfeed)
                 ? deque_pop(&game_killfeed)

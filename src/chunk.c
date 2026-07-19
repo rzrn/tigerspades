@@ -50,8 +50,8 @@ Channel chunk_work_queue, chunk_result_queue;
 pthread_mutex_t chunk_block_queue_lock;
 
 typedef struct {
-    size_t chunk_x;
-    size_t chunk_y;
+    int chunk_x;
+    int chunk_y;
     Chunk * chunk;
 } ChunkWorkPacket;
 
@@ -216,10 +216,10 @@ void * chunk_generate(void * data) {
             }
         }
 
-        for (int k = blocks.blocks_sorted_count - 1; k >= 0; k--) {
-            struct libvxl_block * blk = blocks.blocks_sorted + k;
+        for (size_t k = blocks.blocks_sorted_count; k > 0; k--) {
+            struct libvxl_block * blk = &blocks.blocks_sorted[k - 1];
 
-            if (blk->position != last_position || k == blocks.blocks_sorted_count - 1) {
+            if (blk->position != last_position || k == blocks.blocks_sorted_count) {
                 last_position = blk->position;
 
                 int x = key_getx(blk->position), z = key_gety(blk->position);
@@ -236,7 +236,7 @@ void * chunk_generate(void * data) {
     return NULL;
 }
 
-void chunk_generate_greedy(struct libvxl_chunk_copy * blocks, size_t start_x, size_t start_z, Tesselator * tess,
+void chunk_generate_greedy(struct libvxl_chunk_copy * blocks, int start_x, int start_z, Tesselator * tess,
                            int * max_height) {
     *max_height = 0;
 
@@ -811,7 +811,7 @@ void chunk_rebuild_all(void) {
                 chunks + (CHUNKS_PER_DIM - k - 1) + i * CHUNKS_PER_DIM,
             };
 
-            for (size_t j = 0; j < sizeof(build) / sizeof(*build); j++) {
+            for (size_t j = 0; j < lengthof(build); j++) {
                 channel_put(&chunk_work_queue,
                             &(ChunkWorkPacket) {
                                 .chunk   = build[j],

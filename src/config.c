@@ -817,9 +817,11 @@ void config_save(void) {
     void * fin = file_open(config_filepath, "w");
 
     if (fin != NULL) {
-        char last_section[32] = {0};
+        ConfigFileEntry * e; char last_section[sizeof(e->section)] = {0};
+
         for (int k = 0; k < list_size(&config_file); k++) {
-            ConfigFileEntry * e = list_get(&config_file, k);
+            e = list_get(&config_file, k);
+
             if (strcmp(e->section, last_section) != 0) {
                 file_printf(fin, "\r\n[%s]\r\n", e->section);
                 strcpy(last_section, e->section);
@@ -827,7 +829,7 @@ void config_save(void) {
 
             file_printf(fin, "%s", e->name);
 
-            for (int l = 0; l < 31 - strlen(e->name); l++)
+            for (size_t k = 1; k < sizeof(e->name) - strlen(e->name); k++)
                 file_printf(fin, " ");
 
             file_printf(fin, "= %s\r\n", e->value);

@@ -37,25 +37,27 @@ static int base64_map(char c) {
 }
 
 // works in place
-int base64_decode(char * data, int len) {
-    assert(data && len > 0);
+size_t base64_decode(char * data, size_t size) {
+    assert(data != NULL && size > 0);
 
-    int buffer = 0;
-    int buffer_len = 0;
-    int data_index = 0;
-    int out_index = 0;
-    for (int k = 0; k < len; k++) {
-        if (buffer_len + 6 < sizeof(int) * 8 && data[data_index] != '=') {
-            buffer <<= 6;
-            buffer |= base64_map(data[data_index++]);
-            buffer_len += 6;
+    int buff = 0; size_t buffbits = 0;
+    size_t offsrc = 0, offdst = 0;
+
+    for (size_t i = 0; i < size; i++) {
+        if (buffbits + 6 < 8 * sizeof(buff) && data[offsrc] != '=') {
+            buff <<= 6;
+            buff |= base64_map(data[offsrc++]);
+
+            buffbits += 6;
         }
-        for (int b = 0; b < buffer_len / 8; b++) {
-            data[out_index++] = (buffer >> (buffer_len - 8));
-            buffer_len -= 8;
+
+        for (size_t j = 0; j < buffbits / 8; j++) {
+            data[offdst++] = buff >> (buffbits - 8);
+            buffbits -= 8;
         }
     }
-    return out_index;
+
+    return offdst;
 }
 
 int int_cmp(void * first_key, void * second_key, size_t key_size) {

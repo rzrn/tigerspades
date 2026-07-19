@@ -25,7 +25,7 @@
 
 #include <hashtable.h>
 
-int base64_decode(char * data, int len);
+size_t base64_decode(char *, size_t size);
 
 int int_cmp(void * first_key, void * second_key, size_t key_size);
 size_t int_hash(void * raw_key, size_t key_size);

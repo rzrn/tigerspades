@@ -909,7 +909,7 @@ static void hud_draw_map(float scale) {
                 texture(TEXTURE_COMMAND),
                 minimap_x + clamp(0.0F, 512.0F, x) * scale,
                 minimap_y - clamp(0.0F, 512.0F, y) * scale,
-                12 * scale, 12 * scale, 0.0F
+                16 * scale, 16 * scale, 0.0F
             );
         }
     }
@@ -1079,7 +1079,7 @@ static void hud_draw_minimap(float scale) {
                 texture(TEXTURE_COMMAND),
                 minimap_x + x * scale,
                 minimap_y - y * scale,
-                12 * scale, 12 * scale,
+                16 * scale, 16 * scale,
                 0.0F
             );
         }

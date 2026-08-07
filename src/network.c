@@ -78,7 +78,7 @@ float network_stats_last = 0.0F;
 ENetHost * client = NULL;
 ENetPeer * peer = NULL;
 
-char network_custom_reason[128];
+char network_custom_reason[CHAT_MESSAGE_SIZE];
 
 static float connection_timestamp = -INFINITY;
 static ProtocolVersion connection_version;
@@ -438,7 +438,7 @@ static void getPacketChatMessage(uint8_t * data, size_t len) {
                 return;
 
             if (p.player_id == 255) {
-                strncpy(network_custom_reason, msg, 16);
+                strnzcpy(network_custom_reason, msg, sizeof(network_custom_reason));
                 return; // don’t add message to chat
             }
 

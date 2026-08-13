@@ -39,7 +39,6 @@
 #include <bs/font.h>
 #include <bs/weapon.h>
 #include <bs/window.h>
-#include <bs/rpc.h>
 #include <bs/network.h>
 #include <bs/sound.h>
 #include <bs/map.h>
@@ -689,8 +688,6 @@ void init(void) {
     grenade_init();
 
     weapon_set(false);
-
-    rpc_init();
 }
 
 void reshape(int width, int height) {
@@ -869,7 +866,6 @@ void deinit(void) {
     deque_free(&game_chat);
     deque_free(&game_killfeed);
 
-    rpc_deinit();
     ping_deinit();
 
     if (network_connected)
@@ -913,7 +909,6 @@ void game_idle(double dt) {
 
     sound_update();
     network_update();
-    rpc_update();
 }
 
 static inline bool startswith(const char * prefix, const char * str)

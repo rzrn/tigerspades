@@ -30,7 +30,7 @@ CFILES1 = src/ace/protocol.c src/gui/glfw.c src/gui/sdl.c src/gui/glut.c\
           src/aabb.c src/camera.c src/cameracontroller.c src/channel.c src/chunk.c\
           src/common.c src/config.c src/entitysystem.c src/file.c src/font.c src/glx.c\
           src/grenade.c src/hud.c src/list.c src/main.c src/map.c src/matrix.c src/minheap.c\
-          src/model.c src/network.c src/particle.c src/ping.c src/player.c src/rpc.c src/sound.c\
+          src/model.c src/network.c src/particle.c src/ping.c src/player.c src/sound.c\
           src/tesselator.c src/texture.c src/tracer.c src/unicode.c src/utils.c src/weapon.c src/window.c
 
 CFILES2 = vendor/libdeflate/gzip_decompress.c\

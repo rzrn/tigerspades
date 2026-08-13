@@ -27,7 +27,6 @@
 
 #include <bs/file.h>
 #include <bs/hud.h>
-#include <bs/rpc.h>
 #include <bs/map.h>
 #include <bs/camera.h>
 #include <bs/ping.h>
@@ -37,8 +36,6 @@
 static char serverlist_input[128];
 
 void hud_serverlist_refresh(void) {
-    rpc_seti(RPC_VALUE_SLOTS, 0);
-
     *serverlist_input = 0;
     ping_refresh();
 }
@@ -75,13 +72,6 @@ static void server_c(char * address, char * name, GameVersion version) {
     if (file_exists(address)) load_map(address);
     else {
         window_title(name);
-        if (name && address) {
-            rpc_setv(RPC_VALUE_SERVERNAME, name);
-            rpc_setv(RPC_VALUE_SERVERURL, address);
-            rpc_seti(RPC_VALUE_SLOTS, 32);
-        } else {
-            rpc_seti(RPC_VALUE_SLOTS, 0);
-        }
 
         if (network_connect_string(address, version))
             hud_change(&hud_mapload);

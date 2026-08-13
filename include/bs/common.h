@@ -118,10 +118,6 @@
 #define BSVERSION "v" TOSTRING(BSMAJOR) "." TOSTRING(BSMINOR) "." TOSTRING(BSPATCH)
 #define BSSUMMARY BSVERSION " " ARCH " " GIT_COMMIT_HASH
 
-#ifdef USE_RPC
-    #include <discord_rpc.h>
-#endif
-
 #ifndef min
     #define min(a, b) ((a) < (b) ? (a) : (b))
 #endif

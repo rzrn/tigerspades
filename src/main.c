@@ -785,10 +785,9 @@ void keys(int key, int action, int mods) {
     }
 
     if (key == WINDOW_KEY_SCREENSHOT && action == WINDOW_PRESS) { // take screenshot
-        time_t pic_time;
-        time(&pic_time);
+        time_t pic_time = time(NULL);
         char pic_name[128];
-        sprintf(pic_name, "screenshots/%ld.png", (long) pic_time);
+        sprintf(pic_name, "screenshots/%lld.png", (long long) pic_time);
 
         unsigned char * pic_data = malloc(settings.window_width * settings.window_height * 4 * 2);
         CHECK_ALLOCATION_ERROR(pic_data)
@@ -813,10 +812,9 @@ void keys(int key, int action, int mods) {
     }
 
     if (key == WINDOW_KEY_SAVE_MAP && action == WINDOW_PRESS) { // save map
-        time_t save_time;
-        time(&save_time);
+        time_t save_time = time(NULL);
         char save_name[128];
-        sprintf(save_name, "vxl/%ld.vxl", (long) save_time);
+        sprintf(save_name, "vxl/%lld.vxl", (long long) save_time);
 
         map_save_file(save_name);
 

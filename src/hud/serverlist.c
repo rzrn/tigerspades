@@ -320,8 +320,9 @@ static void hud_serverlist_render(mu_Context * ctx, float scale) {
             mu_text(ctx, hud_serverlist_popup);
 
             int width = cnt->body.w;
-            mu_layout_row(ctx, 2, (int[]) {0.75F * width, -1}, 0);
-            mu_layout_next(ctx);
+            mu_layout_row(ctx, 2, (int[]) {0.50F * width, -1}, 0);
+
+            if (mu_button(ctx, "Reconnect")) network_connect(NULL);
 
             if (mu_button(ctx, "Close")) hud_serverlist_popup = NULL;
 

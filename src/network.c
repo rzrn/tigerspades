@@ -1560,10 +1560,13 @@ const char * get_version_name(GameVersion version) {
     }
 }
 
-static Address network_address;
+static Address network_address = {.ip = "127.0.0.1", .port = 32887, .version = VER07X};
 
 int network_connect(Address * addr) {
-    network_address = *addr;
+    if (addr == NULL)
+        addr = &network_address; // Reuse previously saved address
+    else
+        network_address = *addr; // Save new address to reuse it later
 
     log_info("Connecting to %s at port %i (protocol version %s)", addr->ip, addr->port, get_version_name(addr->version));
     if (peer != NULL) network_disconnect();

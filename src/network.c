@@ -1568,6 +1568,8 @@ int network_connect(Address * addr) {
     else
         network_address = *addr; // Save new address to reuse it later
 
+    hud_change(&hud_mapload);
+
     log_info("Connecting to %s at port %i (protocol version %s)", addr->ip, addr->port, get_version_name(addr->version));
     if (peer != NULL) network_disconnect();
 

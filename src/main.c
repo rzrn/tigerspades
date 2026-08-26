@@ -1028,9 +1028,6 @@ int game_main(int argc, char ** argv) {
         if (!network_connect_string(default_server, VER07X)) {
             log_error("Error: connection failed (use --help for instructions)");
             return -4;
-        } else {
-            log_info("Connection to %s successful", default_server);
-            hud_change(&hud_mapload);
         }
     }
 

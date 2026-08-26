@@ -106,6 +106,9 @@ void hud_init(void) {
 }
 
 void hud_change(HUD * new) {
+    if (hud_active == new)
+        return;
+
     button_map.lmb = button_map.rmb = button_map.mmb = false;
     window_key_reset_togglestates();
 

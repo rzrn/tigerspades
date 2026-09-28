@@ -295,9 +295,14 @@
         u8(subID)
     end()
 
-    begin(PacketDamageMarker)
+    begin(PacketDamageMarker8u)
         u8(player_id)
         u8(hit_amount)
+    end()
+
+    begin(PacketDamageMarker16i)
+        u8(player_id)
+        i16(hit_amount)
     end()
 
     #if PACKET_INCOMPLETE

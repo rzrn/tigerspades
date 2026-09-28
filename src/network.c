@@ -1457,10 +1457,21 @@ static void getPacketStat(uint8_t * data, size_t len) {
 }
 
 static void getPacketDamageMarker(uint8_t * data, size_t len) {
-    READPACKET(PacketDamageMarker, p, data, len);
+    if (!settings.damage_markers) return;
 
-    if (settings.damage_markers)
+    if (len == sizePacketDamageMarker8u) {
+        PacketDamageMarker8u p;
+        readPacketDamageMarker8u(data, &p);
+
         game_damage_marker_add(p.player_id, p.hit_amount);
+    } else if (len == sizePacketDamageMarker16i) {
+        PacketDamageMarker16i p;
+        readPacketDamageMarker16i(data, &p);
+
+        game_damage_marker_add(p.player_id, p.hit_amount);
+    } else {
+        ERRLEN(PacketDamageMarker, len);
+    }
 }
 
 void updateBlockColor(void) {

@@ -1,5 +1,5 @@
 /*
-    Copyright © 2024 rzrn
+    Copyright © 2024, 2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,6 +27,9 @@
 #define u8(dest)      contained->dest = getu8le(buff, &index);
 #define u16(dest)     contained->dest = getu16le(buff, &index);
 #define u32(dest)     contained->dest = getu32le(buff, &index);
+#define i8(dest)      contained->dest = geti8le(buff, &index);
+#define i16(dest)     contained->dest = geti16le(buff, &index);
+#define i32(dest)     contained->dest = geti32le(buff, &index);
 #define f32(dest)     contained->dest = getf32le(buff, &index);
 #define v3f(dest)     contained->dest = getv3f(buff, &index);
 #define v3i(dest)     contained->dest = getv3i(buff, &index);
@@ -43,6 +46,9 @@
 #define u8(src)      setu8le(buff, &index, contained->src);
 #define u16(src)     setu16le(buff, &index, contained->src);
 #define u32(src)     setu32le(buff, &index, contained->src);
+#define i8(src)      seti8le(buff, &index, contained->src);
+#define i16(src)     seti16le(buff, &index, contained->src);
+#define i32(src)     seti32le(buff, &index, contained->src);
 #define f32(src)     setf32le(buff, &index, contained->src);
 #define v3f(src)     setv3f(buff, &index, contained->src);
 #define v3i(src)     setv3i(buff, &index, contained->src);
@@ -59,6 +65,9 @@
 #define u8(dest)      + 1
 #define u16(dest)     + 2
 #define u32(dest)     + 4
+#define i8(dest)      + 1
+#define i16(dest)     + 2
+#define i32(dest)     + 4
 #define f32(dest)     + 4
 #define v3f(dest)     + 12
 #define v3i(dest)     + 12

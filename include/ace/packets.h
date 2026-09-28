@@ -1,5 +1,5 @@
 /*
-    Copyright © 2024 rzrn
+    Copyright © 2024, 2026 rzrn
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,18 @@
 
 #ifndef u32
     #define u32(dest)
+#endif
+
+#ifndef i8
+    #define i8(dest)
+#endif
+
+#ifndef i16
+    #define i16(dest)
+#endif
+
+#ifndef i32
+    #define i32(dest)
 #endif
 
 #ifndef f32
@@ -87,6 +99,9 @@
 #undef u8
 #undef u16
 #undef u32
+#undef i8
+#undef i16
+#undef i32
 #undef f32
 #undef v3f
 #undef v3i

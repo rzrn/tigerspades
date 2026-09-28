@@ -239,6 +239,9 @@ enum {
 #define u8(dest)      uint8_t dest;
 #define u16(dest)     uint16_t dest;
 #define u32(dest)     uint32_t dest;
+#define i8(dest)      int8_t dest;
+#define i16(dest)     int16_t dest;
+#define i32(dest)     int32_t dest;
 #define f32(dest)     float dest;
 #define v3f(dest)     Vector3f dest;
 #define v3i(dest)     Vector3i dest;

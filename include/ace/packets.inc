@@ -305,6 +305,11 @@
         i16(hit_amount)
     end()
 
+    begin(PacketDamageMarker32i)
+        u8(player_id)
+        i32(hit_amount)
+    end()
+
     #if PACKET_INCOMPLETE
         begin(PacketStatNew)
             u8(index)

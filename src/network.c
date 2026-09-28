@@ -1469,6 +1469,11 @@ static void getPacketDamageMarker(uint8_t * data, size_t len) {
         readPacketDamageMarker16i(data, &p);
 
         game_damage_marker_add(p.player_id, p.hit_amount);
+    } else if (len == sizePacketDamageMarker32i) {
+        PacketDamageMarker32i p;
+        readPacketDamageMarker32i(data, &p);
+
+        game_damage_marker_add(p.player_id, p.hit_amount);
     } else {
         ERRLEN(PacketDamageMarker, len);
     }

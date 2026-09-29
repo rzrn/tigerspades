@@ -1,11 +1,11 @@
 # GNU Unifont
 
-This version of [the GNU Unifont font](https://unifoundry.com/unifont/) was converted from `unifont-17.0.03.bdf` and `unifont_upper-17.0.03.bdf` files using the `extra/bdf2bitmap.py` script.
+This version of [the GNU Unifont font](https://unifoundry.com/unifont/) was converted from `unifont-18.0.01.bdf` and `unifont_upper-18.0.01.bdf` files using the `extra/bdf2bitmap.py` script.
 
 Since the original font is distributed under the GPLv2+ license with the GNU Font Embedding Exception,
 we use our right to drop this exception and redistribute it under the GPLv3+ license to be compatible with the rest of the project.
 
-Copyright © 1998—2025 Roman Czyborra, Paul Hardy, Qianqian Fang, Andrew Miller, Johnnie Weaver, David Corbett, Ælla Chiana Moskopp, Rebecca Bettencourt, Minseo Lee, Ho-Seok Ee, et al.
+Copyright © 1998—2026 Roman Czyborra, Paul Hardy, Qianqian Fang, Andrew Miller, Johnnie Weaver, David Corbett, Ælla Chiana Moskopp, Rebecca Bettencourt, Minseo Lee, Ho-Seok Ee, et al.
 
 # UNI-VGA
 

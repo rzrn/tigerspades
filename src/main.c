@@ -1033,6 +1033,7 @@ int game_main(int argc, char ** argv) {
     unveil("cache/",       "wc");
     unveil("screenshots/", "wc");
     unveil("vxl/",         "wc");
+    unveil("config.ini",   "wc");
 
     if (unveil(NULL, NULL) != 0) {
         perror("unveil");

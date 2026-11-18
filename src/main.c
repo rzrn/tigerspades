@@ -57,6 +57,10 @@
 #include <bs/main.h>
 #include <bs/opengl.h>
 
+#ifdef __OpenBSD__
+#include <unistd.h> /* for unveil, pledge */
+#endif
+
 int fps = 0;
 
 int ms_rand(void) {
@@ -1016,6 +1020,30 @@ int game_main(int argc, char ** argv) {
 
     if (settings.vsync > 1)
         window_swapping(0);
+
+#ifdef __OpenBSD__
+    if (unveil("./", "r") != 0) {
+        perror("unveil");
+        return -5;
+    }
+
+    /* it's okay if these fail (ENOENT?), they'll just be unwritable. */
+    unveil("/tmp/",       "rwc");
+    unveil("logs/",        "wc");
+    unveil("cache/",       "wc");
+    unveil("screenshots/", "wc");
+    unveil("vxl/",         "wc");
+
+    if (unveil(NULL, NULL) != 0) {
+        perror("unveil");
+        return -5;
+    }
+
+    if (pledge("stdio rpath wpath cpath drm sendfd flock inet dns", "") != 0) {
+        perror("pledge");
+        return -5;
+    }
+#endif
 
     if (vxl_file != NULL) {
         if (file_exists(vxl_file))
